@@ -103,3 +103,56 @@ SELECT
 FROM pedido p
 JOIN cliente c
     ON c.id = p.cliente_id;
+
+-- ============================================================================
+-- VISTA 3: v_detalle_pedido_producto
+-- ============================================================================
+--
+-- Especificación: specs/vista_detalle_pedido_producto.md
+--
+-- Propósito: evitar repetir manualmente el JOIN entre detalle_pedido y
+-- producto en los reportes operativos, exponiendo el detalle de cada
+-- pedido junto con el nombre del producto asociado.
+--
+-- Regla histórica: la vista representa TODAS las líneas históricas de
+-- pedido. NO filtra por producto.activo. Un pedido histórico debe
+-- seguir mostrando el producto asociado aunque ese producto sea
+-- marcado posteriormente como inactivo. No se agregan filtros de
+-- vigencia, estado o eliminación. No se inventan columnas inexistentes.
+--
+-- Subtotal: subtotal = cantidad * precio_unitario. Esta columna NO
+-- existe físicamente en detalle_pedido; es una columna calculada
+-- dentro de la vista.
+--
+-- Esta vista NO es una optimización de rendimiento: es un mecanismo de
+-- encapsulamiento del JOIN detalle_pedido/producto.
+--
+-- Será validada mediante EXCEPT bidireccional contra la consulta
+-- manual equivalente:
+--
+-- SELECT
+--     dp.pedido_id,
+--     dp.producto_id,
+--     p.nombre AS producto_nombre,
+--     dp.cantidad,
+--     dp.precio_unitario,
+--     dp.cantidad * dp.precio_unitario AS subtotal
+-- FROM detalle_pedido dp
+-- JOIN producto p
+--     ON p.id = dp.producto_id;
+--
+-- manual_minus_view = 0
+-- view_minus_manual = 0
+-- ============================================================================
+
+CREATE OR REPLACE VIEW v_detalle_pedido_producto AS
+SELECT
+    dp.pedido_id,
+    dp.producto_id,
+    p.nombre AS producto_nombre,
+    dp.cantidad,
+    dp.precio_unitario,
+    dp.cantidad * dp.precio_unitario AS subtotal
+FROM detalle_pedido dp
+JOIN producto p
+    ON p.id = dp.producto_id;
