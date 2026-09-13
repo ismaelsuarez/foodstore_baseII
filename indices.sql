@@ -189,3 +189,113 @@ CREATE INDEX idx_producto_stock_bajo
 CREATE INDEX idx_pedido_fecha_reciente
     ON pedido (fecha DESC)
     INCLUDE (id, cliente_id, forma_pago);
+
+-- ============================================================================
+-- ÍNDICE 3: idx_cliente_email_lower
+-- ============================================================================
+--
+-- Especificación: specs/indice_cliente_email_lower.md
+--
+-- 1. Consulta que justifica el índice:
+--
+-- SELECT
+--     id,
+--     nombre,
+--     email
+-- FROM cliente
+-- WHERE lower(email) = lower('ANA.GOMEZ@FOODSTORE.TEST');
+--
+-- ----------------------------------------------------------------------------
+-- 2. Línea base (medida sobre foodstore_tp5, antes de este índice):
+--
+-- - cliente: 20.003 filas
+-- - resultado: 1 fila
+-- - fracción devuelta: ≈0,005 %
+-- - filtro extremadamente selectivo
+-- - plan antes: Seq Scan on cliente
+-- - Filter: lower(email) = 'ana.gomez@foodstore.test'
+-- - Rows Removed by Filter: 20.002
+-- - shared hit: 267
+-- - primera ejecución (calentamiento): 10.440 ms
+-- - ejecuciones estables: 10.322 ms, 10.222 ms
+-- - promedio estable: 10.272 ms
+--
+-- ----------------------------------------------------------------------------
+-- 3. Justificación:
+--
+-- - B-tree de expresión.
+-- - expresión indexada: lower(email).
+-- - NO UNIQUE: no cambia la semántica de cliente_email_key.
+-- - cliente_email_key (email) continúa garantizando unicidad exacta y
+--   resolviendo búsquedas case-sensitive.
+-- - idx_cliente_email_lower resuelve un patrón distinto: búsquedas
+--   case-insensitive mediante lower(email).
+-- - PostgreSQL debe poder reconocer en la consulta una expresión
+--   compatible con la expresión indexada; en esta consulta lower(email)
+--   coincide directamente.
+--
+-- ----------------------------------------------------------------------------
+-- 4. Propuesta de IA descartada por sobreindexación:
+--
+-- PROPUESTA ORIGINAL:
+--
+-- CREATE INDEX idx_cliente_email_lower
+--     ON cliente (lower(email))
+--     INCLUDE (id, nombre, email);
+--
+-- ESTADO: DESCARTADA POR SOBREINDEXACIÓN.
+--
+-- MOTIVO:
+-- La consulta devuelve solamente 1 fila de 20.003. Agregar id, nombre
+-- y email como INCLUDE ampliaría todas las entradas del índice para
+-- intentar evitar un único acceso puntual al heap. Eso implica:
+-- - mayor tamaño del índice;
+-- - más costo de INSERT;
+-- - UPDATE nombre pasaría a mantener también este índice;
+-- - email completo quedaría almacenado adicionalmente en este índice,
+--   aunque ya existe cliente_email_key;
+-- - el ahorro esperado de un único heap access no justifica el costo
+--   estructural permanente.
+-- Se eligió deliberadamente el índice simple de expresión.
+--
+-- ----------------------------------------------------------------------------
+-- 5. Resultado medido (EXPLAIN ANALYZE, BUFFERS sobre foodstore_tp5):
+--
+-- DESPUÉS:
+-- - Index Scan using idx_cliente_email_lower on cliente
+-- - Index Cond: lower(email) = 'ana.gomez@foodstore.test'
+-- - primera ejecución (calentamiento): shared hit=1 read=3,
+--   Execution Time: 0.123 ms
+-- - ejecuciones estables: 0.104 ms (shared hit=4), 0.111 ms (shared hit=4)
+-- - promedio estable: 0.1075 ms
+--
+-- MEJORA:
+-- - 10.272 / 0.1075 ≈ 95.55x
+-- - reducción aproximada de Execution Time ≈98.95 %
+-- - buffers estables: 267 -> 4
+--
+-- ----------------------------------------------------------------------------
+-- 6. Costo de escritura:
+--
+-- - INSERT cliente: mantiene una entrada adicional en
+--   idx_cliente_email_lower, además de cliente_email_key.
+-- - UPDATE email: afecta cliente_email_key y idx_cliente_email_lower.
+-- - UPDATE nombre: NO afecta idx_cliente_email_lower porque nombre no
+--   forma parte del candidato finalmente aceptado.
+-- - UPDATE id: id no forma parte de idx_cliente_email_lower, pero sí de
+--   cliente_pkey. Al modificar una columna indexada por otro índice, la
+--   actualización deja de ser candidata a HOT y puede requerir nuevas
+--   entradas también en los demás índices. En la práctica, id es una
+--   identidad y no debería modificarse normalmente.
+--
+-- ----------------------------------------------------------------------------
+-- 7. Estado:
+--
+-- ÍNDICE ACEPTADO DESPUÉS DE MEDICIÓN
+-- CONSERVAR EN EL PLAN DE INDEXADO
+--
+-- PROPUESTA CUBRIDORA DESCARTADA POR SOBREINDEXACIÓN
+-- ============================================================================
+
+CREATE INDEX idx_cliente_email_lower
+    ON cliente (lower(email));
