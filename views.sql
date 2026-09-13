@@ -5,7 +5,9 @@
 -- ============================================================================
 -- Solo definiciones de vistas (CREATE OR REPLACE VIEW). No incluye
 -- materialized views, índices, EXPLAIN ni consultas de prueba.
--- No fue ejecutado. No se ejecutó SQL ni se modificó la base.
+-- Las vistas documentadas se instalan y verifican manualmente sobre
+-- foodstore_tp5. Los resultados de equivalencia son obtenidos por el
+-- estudiante mediante SQL ejecutado fuera de esta sesión.
 -- ============================================================================
 
 -- ============================================================================
@@ -44,3 +46,60 @@ JOIN categoria c
     ON c.id = p.categoria_id
 WHERE p.activo = TRUE
   AND c.activo = TRUE;
+
+-- ============================================================================
+-- VISTA 2: v_pedidos_cliente
+-- ============================================================================
+--
+-- Especificación: specs/vista_pedidos_cliente.md
+--
+-- Propósito: simplificar reportes de pedidos junto con los datos
+-- mínimos necesarios del cliente asociado.
+--
+-- Contexto del esquema real: la consigna teórica original menciona
+-- usuario y una columna contraseña, pero nuestro esquema real NO
+-- contiene usuario, contraseña ni password. La tabla equivalente del
+-- dominio actual es cliente (id, nombre, email, telefono,
+-- created_at). No se inventan columnas inexistentes.
+--
+-- Minimización de información: esta vista aplica minimización de
+-- datos. NO expone cliente.telefono. NO expone cliente.created_at.
+-- Expone solamente cliente_nombre y cliente_email como datos
+-- necesarios del cliente para el reporte.
+--
+-- No se agregan filtros de activo/eliminado porque esas columnas no
+-- existen en cliente. La vista representa historial de pedidos, no
+-- solamente clientes considerados "vigentes".
+--
+-- Esta vista NO es una optimización de rendimiento: es un mecanismo de
+-- encapsulamiento y consistencia de criterio de minimización de datos.
+--
+-- Será validada mediante EXCEPT bidireccional contra la consulta
+-- manual equivalente:
+--
+-- SELECT
+--     p.id AS pedido_id,
+--     p.fecha,
+--     p.forma_pago,
+--     c.id AS cliente_id,
+--     c.nombre AS cliente_nombre,
+--     c.email AS cliente_email
+-- FROM pedido p
+-- JOIN cliente c
+--     ON c.id = p.cliente_id;
+--
+-- manual_minus_view = 0
+-- view_minus_manual = 0
+-- ============================================================================
+
+CREATE OR REPLACE VIEW v_pedidos_cliente AS
+SELECT
+    p.id AS pedido_id,
+    p.fecha,
+    p.forma_pago,
+    c.id AS cliente_id,
+    c.nombre AS cliente_nombre,
+    c.email AS cliente_email
+FROM pedido p
+JOIN cliente c
+    ON c.id = p.cliente_id;
