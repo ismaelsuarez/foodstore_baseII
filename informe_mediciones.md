@@ -1,6 +1,6 @@
-# Informe de mediciones — TP Unidad 3, Semana 1, Parte A
+# Informe de mediciones y validaciones — TP Unidad 3, Semana 5
 
-Base de Datos II — Plan de indexado asistido por IA
+Base de Datos II — Índices y vistas asistidos por IA
 
 Base de trabajo: `foodstore_tp5` (PostgreSQL 17)
 
@@ -366,3 +366,163 @@ Planning:
 Planning Time: 0.496 ms
 Execution Time: 0.104 ms
 ```
+
+---
+
+## 11. Parte B — Vistas y verificación de equivalencia
+
+La Parte B implementó tres vistas convencionales sobre foodstore_tp5.
+
+Las vistas no fueron utilizadas como mecanismo de optimización de
+rendimiento. Su objetivo fue encapsular consultas frecuentes, mantener
+criterios de negocio consistentes y aplicar minimización de datos donde
+correspondía.
+
+### 11.1 v_productos_vigentes
+
+Propósito:
+
+Exponer productos vigentes junto con los datos básicos de su categoría.
+
+Regla aplicada:
+
+- producto.activo = TRUE
+- categoria.activo = TRUE
+
+Si una categoría está inactiva, sus productos no aparecen aunque el
+producto permanezca activo.
+
+Columnas expuestas:
+
+- producto_id
+- producto_nombre
+- descripcion
+- precio
+- stock
+- categoria_id
+- categoria_nombre
+
+Cantidad de filas obtenida:
+
+50.003
+
+Validación mediante EXCEPT bidireccional:
+
+- manual_minus_view = 0
+- view_minus_manual = 0
+
+Resultado:
+
+VALIDADA. La vista es semánticamente equivalente a la consulta manual
+definida en specs/vista_productos_vigentes.md.
+
+### 11.2 v_pedidos_cliente
+
+Propósito:
+
+Exponer pedidos junto con los datos mínimos necesarios del cliente.
+
+El esquema real del proyecto utiliza cliente y no contiene las columnas
+usuario, contraseña ni password mencionadas en algunos ejemplos
+teóricos. No se inventaron columnas inexistentes.
+
+Criterio de minimización de datos:
+
+La vista expone:
+
+- pedido_id
+- fecha
+- forma_pago
+- cliente_id
+- cliente_nombre
+- cliente_email
+
+La vista NO expone:
+
+- cliente.telefono
+- cliente.created_at
+
+No se agregaron filtros activo/eliminado porque esas columnas no
+existen en cliente.
+
+Cantidad de filas obtenida:
+
+200.005
+
+Validación mediante EXCEPT bidireccional:
+
+- manual_minus_view = 0
+- view_minus_manual = 0
+
+Resultado:
+
+VALIDADA. La vista es semánticamente equivalente a la consulta manual
+definida en specs/vista_pedidos_cliente.md.
+
+Esta vista cumple el criterio de seguridad/minimización solicitado en
+la Parte B, adaptándolo al esquema real del proyecto sin inventar una
+columna contraseña inexistente.
+
+### 11.3 v_detalle_pedido_producto
+
+Propósito:
+
+Exponer las líneas históricas de los pedidos junto con el nombre del
+producto asociado.
+
+Columnas expuestas:
+
+- pedido_id
+- producto_id
+- producto_nombre
+- cantidad
+- precio_unitario
+- subtotal
+
+subtotal es una columna calculada como:
+
+cantidad * precio_unitario
+
+No existe físicamente en detalle_pedido.
+
+La vista no filtra por producto.activo porque debe preservar la
+información histórica de los pedidos aunque posteriormente un producto
+sea desactivado.
+
+Cantidad de filas obtenida:
+
+500.007
+
+Validación mediante EXCEPT bidireccional:
+
+- manual_minus_view = 0
+- view_minus_manual = 0
+
+Resultado:
+
+VALIDADA. La vista es semánticamente equivalente a la consulta manual
+definida en specs/vista_detalle_pedido_producto.md.
+
+### 11.4 Resumen de validación
+
+| Vista | Filas | manual_minus_view | view_minus_manual | Estado |
+|---|---:|---:|---:|---|
+| v_productos_vigentes | 50.003 | 0 | 0 | VALIDADA |
+| v_pedidos_cliente | 200.005 | 0 | 0 | VALIDADA |
+| v_detalle_pedido_producto | 500.007 | 0 | 0 | VALIDADA |
+
+### 11.5 Conclusión de la Parte B
+
+Las tres vistas fueron especificadas antes de su implementación,
+generadas respetando el esquema real de foodstore_tp5, instaladas
+manualmente y comparadas contra sus consultas equivalentes mediante
+EXCEPT en ambos sentidos.
+
+Las seis comparaciones devolvieron cero diferencias.
+
+Por lo tanto, las tres vistas quedan aceptadas como semánticamente
+equivalentes a sus consultas manuales.
+
+Las vistas convencionales se utilizaron para organización,
+encapsulamiento, consistencia y minimización de datos, no como
+mecanismo de mejora de rendimiento.
