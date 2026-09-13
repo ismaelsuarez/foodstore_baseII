@@ -4,7 +4,7 @@
 -- Especificación: specs/indice_producto_stock_bajo.md
 -- ============================================================================
 -- Solo CREATE INDEX. No incluye DROP INDEX, ANALYZE ni EXPLAIN.
--- El índice fue instalado y medido manualmente sobre foodstore_tp5.
+-- Los índices fueron instalados y medidos manualmente sobre foodstore_tp5.
 -- Los resultados documentados provienen de EXPLAIN (ANALYZE, BUFFERS)
 -- ejecutados por el estudiante.
 -- ============================================================================
@@ -90,3 +90,102 @@ CREATE INDEX idx_producto_stock_bajo
     ON producto (stock ASC, nombre ASC)
     INCLUDE (id, precio)
     WHERE activo = TRUE;
+
+-- ============================================================================
+-- ÍNDICE 2: idx_pedido_fecha_reciente
+-- ============================================================================
+--
+-- Especificación: specs/indice_pedido_fecha_reciente.md
+--
+-- 1. Consulta que justifica el índice:
+--
+-- SELECT
+--     id,
+--     cliente_id,
+--     fecha,
+--     forma_pago
+-- FROM pedido
+-- WHERE fecha >= TIMESTAMPTZ '2026-04-11 12:00:00-03'
+-- ORDER BY fecha DESC;
+--
+-- ----------------------------------------------------------------------------
+-- 2. Línea base (medida sobre foodstore_tp5, antes de este índice):
+--
+-- - pedido: 200.005 filas
+-- - resultado: 1.280 filas
+-- - fracción devuelta: ≈0,64 %
+-- - filtro altamente selectivo
+-- - plan antes: Seq Scan + Sort
+-- - Rows Removed by Filter: 198.725
+-- - shared hit del Seq Scan: 1471
+-- - Sort: quicksort, Memory: 109kB
+-- - ejecución de calentamiento: 8.059 ms
+-- - ejecuciones estables: 13.983 ms, 11.778 ms
+-- - promedio estable: 12.8805 ms
+--
+-- ----------------------------------------------------------------------------
+-- 3. Justificación:
+--
+-- - B-tree.
+-- - fecha DESC como única columna clave: participa del filtro
+--   (fecha >= ...) y del ORDER BY (fecha DESC).
+-- - DESC expresa directamente el patrón de acceso esperado (pedidos
+--   recientes primero), pero PostgreSQL puede recorrer un B-tree en
+--   ambos sentidos: un índice sobre fecha ASC también podría satisfacer
+--   ORDER BY fecha DESC mediante backward scan. DESC no es un requisito
+--   técnico para eliminar el Sort, se conserva por claridad.
+-- - INCLUDE (id, cliente_id, forma_pago): columnas proyectadas por el
+--   SELECT que no participan del filtro ni del ORDER BY; se agregan
+--   como no clave para cobertura completa.
+-- - idx_pedido_forma_pago_fecha (forma_pago, fecha DESC) NO es
+--   redundante con este índice: su clave líder es forma_pago, columna
+--   que no aparece en el filtro de esta consulta. Por la regla del
+--   prefijo izquierdo, ese índice existente no puede resolver
+--   eficientemente un filtro que depende únicamente de fecha; cubre un
+--   patrón de consulta distinto (filtrar por forma_pago y ordenar por
+--   fecha dentro de ese medio de pago).
+--
+-- ----------------------------------------------------------------------------
+-- 4. Resultado medido (EXPLAIN ANALYZE, BUFFERS sobre foodstore_tp5):
+--
+-- DESPUÉS:
+-- - Index Only Scan using idx_pedido_fecha_reciente
+-- - Index Cond: fecha >= TIMESTAMPTZ '2026-04-11 12:00:00-03'
+-- - no aparece nodo Sort
+-- - filas devueltas: 1.280
+-- - Heap Fetches: 85
+-- - buffers: shared hit=12
+-- - primera ejecución exitosa (tomada como calentamiento): 0.226 ms
+-- - segunda ejecución válida: 0.384 ms
+-- - hubo un intento intermedio que falló por autenticación de
+--   PostgreSQL; no se incluye como medición porque la consulta no se
+--   ejecutó
+-- - tercera ejecución válida: 0.242 ms
+-- - promedio estable de las dos mediciones válidas: 0.313 ms
+--
+-- MEJORA:
+-- - 12.8805 / 0.313 ≈ 41.15x
+-- - reducción aproximada de Execution Time ≈97.57 %
+-- - buffers principales: 1471 -> 12
+--
+-- ----------------------------------------------------------------------------
+-- 5. Costo de escritura:
+--
+-- - INSERT en pedido: mantiene una entrada adicional del índice.
+-- - UPDATE fecha: modifica la clave del índice.
+-- - UPDATE cliente_id: cliente_id está en INCLUDE; aunque no sea
+--   columna clave, modificarla sí requiere mantenimiento del índice y
+--   puede impedir HOT update para esa fila.
+-- - UPDATE forma_pago: está en INCLUDE y también requiere
+--   mantenimiento del índice.
+--
+-- ----------------------------------------------------------------------------
+-- 6. Estado:
+--
+-- ÍNDICE ACEPTADO DESPUÉS DE MEDICIÓN
+-- CONSERVAR EN EL PLAN DE INDEXADO
+-- ============================================================================
+
+CREATE INDEX idx_pedido_fecha_reciente
+    ON pedido (fecha DESC)
+    INCLUDE (id, cliente_id, forma_pago);
