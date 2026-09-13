@@ -3,11 +3,9 @@
 Base de Datos II — Semana 4, Unidad 2: Optimización de Consultas
 
 Esta declaración documenta honestamente los usos reales de herramientas
-de IA (OpenCode y ChatGPT) durante la resolución de las Partes 1, 2 y 3
+de IA (OpenCode y ChatGPT) durante la resolución de las Partes 1, 2, 3 y 4
 del TP4. No se incluyen prompts literales cuando no están disponibles:
-en su lugar, se resume fielmente el objetivo de cada intercambio. No se
-inventa actividad de la Parte 4, que permanece pendiente por depender de
-una consulta común que debe proporcionar la cátedra.
+en su lugar, se resume fielmente el objetivo de cada intercambio.
 
 ---
 
