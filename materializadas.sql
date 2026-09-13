@@ -3,7 +3,9 @@
 -- Base de Datos II - Unidad 3, Semana 5, Parte C: Vistas materializadas
 -- Especificación: specs/vista_materializada_facturacion_categoria_mes.md
 -- ============================================================================
--- No fue ejecutado. No se ejecutó SQL ni se modificó la base.
+-- La vista materializada y su índice fueron instalados y validados
+-- manualmente sobre foodstore_tp5. La equivalencia y las mediciones
+-- reales se documentan en informe_mediciones.md.
 -- ============================================================================
 
 -- ============================================================================
@@ -21,11 +23,14 @@
 -- Utiliza WITH DATA: la vista queda poblada desde su creación para
 -- permitir las mediciones posteriores.
 --
--- Será validada mediante EXCEPT bidireccional contra la consulta
+-- Validada manualmente mediante EXCEPT bidireccional contra la consulta
 -- original:
 --
 -- original_minus_materialized = 0
 -- materialized_minus_original = 0
+--
+-- Resultado: VALIDADA. El protocolo completo se documenta en
+-- informe_mediciones.md.
 -- ============================================================================
 
 CREATE MATERIALIZED VIEW mv_facturacion_categoria_mes AS
@@ -73,9 +78,9 @@ WITH DATA;
 -- no debe considerarse información transaccional en tiempo real, sino
 -- un reporte agregado para análisis y gestión.
 --
--- El rendimiento de consultar la vista materializada frente a la
--- consulta original todavía NO se afirma como mejor: queda pendiente de
--- medición mediante EXPLAIN (ANALYZE, BUFFERS).
+-- El rendimiento fue medido manualmente con EXPLAIN (ANALYZE, BUFFERS).
+-- Los resultados reales y el protocolo completo se encuentran en
+-- informe_mediciones.md.
 -- ============================================================================
 
 CREATE UNIQUE INDEX idx_mv_facturacion_categoria_mes_unique

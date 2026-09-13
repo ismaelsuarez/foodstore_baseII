@@ -1,6 +1,6 @@
 -- ============================================================================
 -- views.sql
--- Base de Datos II - Unidad 3, Semana 1, Parte B: Vistas
+-- Base de Datos II - Unidad 3, Semana 5, Parte B: Vistas
 -- Especificación: specs/vista_productos_vigentes.md
 -- ============================================================================
 -- Solo definiciones de vistas (CREATE OR REPLACE VIEW). No incluye
@@ -27,9 +27,13 @@
 -- encapsulamiento y consistencia de criterio de vigencia. No agrega
 -- índices ni cambia el plan de ejecución subyacente.
 --
--- Será validada posteriormente mediante EXCEPT bidireccional contra la
--- consulta manual equivalente (manual_minus_view = 0,
--- view_minus_manual = 0).
+-- Validada manualmente mediante EXCEPT bidireccional contra la consulta
+-- manual equivalente:
+--
+-- manual_minus_view = 0
+-- view_minus_manual = 0
+--
+-- Resultado: VALIDADA.
 -- ============================================================================
 
 CREATE OR REPLACE VIEW v_productos_vigentes AS
@@ -74,7 +78,7 @@ WHERE p.activo = TRUE
 -- Esta vista NO es una optimización de rendimiento: es un mecanismo de
 -- encapsulamiento y consistencia de criterio de minimización de datos.
 --
--- Será validada mediante EXCEPT bidireccional contra la consulta
+-- Validada manualmente mediante EXCEPT bidireccional contra la consulta
 -- manual equivalente:
 --
 -- SELECT
@@ -90,6 +94,8 @@ WHERE p.activo = TRUE
 --
 -- manual_minus_view = 0
 -- view_minus_manual = 0
+--
+-- Resultado: VALIDADA.
 -- ============================================================================
 
 CREATE OR REPLACE VIEW v_pedidos_cliente AS
@@ -127,7 +133,7 @@ JOIN cliente c
 -- Esta vista NO es una optimización de rendimiento: es un mecanismo de
 -- encapsulamiento del JOIN detalle_pedido/producto.
 --
--- Será validada mediante EXCEPT bidireccional contra la consulta
+-- Validada manualmente mediante EXCEPT bidireccional contra la consulta
 -- manual equivalente:
 --
 -- SELECT
@@ -143,6 +149,8 @@ JOIN cliente c
 --
 -- manual_minus_view = 0
 -- view_minus_manual = 0
+--
+-- Resultado: VALIDADA.
 -- ============================================================================
 
 CREATE OR REPLACE VIEW v_detalle_pedido_producto AS
