@@ -1,0 +1,92 @@
+-- ============================================================================
+-- indices.sql
+-- Base de Datos II - Unidad 3, Semana 1: Plan de indexado asistido por IA
+-- Especificación: specs/indice_producto_stock_bajo.md
+-- ============================================================================
+-- Solo CREATE INDEX. No incluye DROP INDEX, ANALYZE ni EXPLAIN.
+-- El índice fue instalado y medido manualmente sobre foodstore_tp5.
+-- Los resultados documentados provienen de EXPLAIN (ANALYZE, BUFFERS)
+-- ejecutados por el estudiante.
+-- ============================================================================
+
+-- ============================================================================
+-- ÍNDICE 1: idx_producto_stock_bajo
+-- ============================================================================
+--
+-- 1. Consulta que justifica el índice:
+--
+-- SELECT
+--     id,
+--     nombre,
+--     stock,
+--     precio
+-- FROM producto
+-- WHERE activo = TRUE
+--   AND stock <= 5
+-- ORDER BY stock ASC, nombre ASC;
+--
+-- ----------------------------------------------------------------------------
+-- 2. Línea base (medida sobre foodstore_tp5, antes de este índice):
+--
+-- - producto: 50.003 filas
+-- - resultado: 1.493 filas
+-- - fracción devuelta: ≈2,99 %
+-- - filtro altamente selectivo
+-- - plan antes: Seq Scan + Sort
+-- - Rows Removed by Filter: 48.510
+-- - shared hit del Seq Scan: 900
+-- - promedio estable antes: 10.030 ms
+--
+-- ----------------------------------------------------------------------------
+-- 3. Justificación:
+--
+-- - B-tree compuesto.
+-- - stock ASC como primera clave: participa del filtro (stock <= 5) y es
+--   el primer criterio del ORDER BY.
+-- - nombre ASC como segunda clave: coincide con el segundo criterio del
+--   ORDER BY, preservando el orden exacto dentro de cada valor de stock.
+-- - INCLUDE (id, precio): columnas proyectadas por el SELECT que no
+--   participan del filtro ni del ORDER BY; se agregan como no clave para
+--   cobertura sin intervenir en las comparaciones del árbol.
+-- - Parcial WHERE activo = TRUE.
+-- - Actualmente los 50.003 productos están activos, por lo que el
+--   predicado parcial NO reduce hoy la cantidad física de entradas del
+--   índice.
+-- - Se conserva el predicado parcial porque coincide exactamente con el
+--   filtro de la consulta y puede permitir que activo = TRUE quede
+--   demostrado por la sola pertenencia de la fila al índice, sin
+--   necesitar a activo como columna clave ni INCLUDE.
+-- - La expectativa de Index Only Scan depende del visibility map de la
+--   tabla.
+-- - No se afirma Heap Fetches = 0 antes de medir con
+--   EXPLAIN (ANALYZE, BUFFERS).
+--
+-- ----------------------------------------------------------------------------
+-- 4. Resultado medido (EXPLAIN ANALYZE, BUFFERS sobre foodstore_tp5):
+--
+-- DESPUÉS:
+-- - Index Only Scan using idx_producto_stock_bajo
+-- - Index Cond: stock <= 5
+-- - no aparece nodo Sort
+-- - filas devueltas: 1.493
+-- - Heap Fetches: 0
+-- - ejecución 1 de calentamiento: Execution Time 0.385 ms, shared hit=1 read=13
+-- - ejecuciones estables: 0.262 ms (shared hit=14), 0.273 ms (shared hit=14)
+-- - promedio estable: 0.2675 ms
+--
+-- MEJORA:
+-- - ≈37.50x
+-- - reducción aproximada de Execution Time ≈97.33 %
+-- - buffers estables del recorrido principal: 900 -> 14
+--
+-- ----------------------------------------------------------------------------
+-- 5. Estado:
+--
+-- ÍNDICE ACEPTADO DESPUÉS DE MEDICIÓN
+-- CONSERVAR EN EL PLAN DE INDEXADO
+-- ============================================================================
+
+CREATE INDEX idx_producto_stock_bajo
+    ON producto (stock ASC, nombre ASC)
+    INCLUDE (id, precio)
+    WHERE activo = TRUE;
