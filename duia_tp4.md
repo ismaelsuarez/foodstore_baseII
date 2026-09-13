@@ -101,13 +101,23 @@ resultados se revisaron antes de documentarse en este repositorio.
 
 ---
 
-## Parte 4 — Pendiente
+## Parte 4 — Competencia de optimización
 
-La Parte 4 depende de una consulta analítica lenta común que debe
-proporcionar la cátedra a todos los equipos. Al momento de confeccionar
-esta DUIA esa consulta no fue suministrada entre los materiales
-disponibles, por lo que no se inventan estrategias, métricas ni
-resultados inexistentes.
+| Herramienta | Para qué se usó | Prompt / spec (resumen) | Se aceptó / se descartó — por qué |
+|---|---|---|---|
+| OpenCode | Analizar la consulta de ranking de clientes y proponer una estrategia de optimización | Preagregar `detalle_pedido` por `pedido_id` antes de unir con `pedido` y `cliente`, permitiendo reemplazar `COUNT(DISTINCT pe.id)` por `COUNT(*)` | **Aceptada** después de medición real y verificación de equivalencia — `Tiempo antes: 696.459 ms`, `Tiempo después: 509.388 ms`, mejora ≈1.37x (≈26.9% de reducción de `Execution Time`). Cambio de plan observado: `Hash Join + Hash Join` → `Merge Join + Hash Join` |
+| ChatGPT / verificación humana | Revisar la propuesta de optimización, diseñar la verificación de equivalencia y contrastar los resultados obtenidos | `EXCEPT` bidireccional entre la versión original y la reescrita | **Aceptado** — equivalencia comprobada: `original_minus_reescrita = 0`, `reescrita_minus_original = 0` |
+
+**Estudiante / PostgreSQL**: el estudiante ejecutó manualmente las
+consultas y los `EXPLAIN ANALYZE` sobre `foodstore_tp4`. PostgreSQL fue
+la fuente final de verdad para: `Execution Time`; `Planning Time`;
+algoritmos del plan; cantidad de filas; resultados `EXCEPT`.
+
+En esta instancia participa un único equipo, por lo que la Parte 4 se
+documenta como desempeño propio sobre la consulta seleccionada, sin
+comparación ni ranking contra terceros.
+
+**Fuente**: `competencia_optimizacion_tp4.md`.
 
 ---
 
@@ -129,5 +139,10 @@ resultados inexistentes.
 - Toda métrica documentada en este repositorio (`Execution Time`,
   `cost`, conteos de filas, resultados de `EXCEPT`) fue realmente
   observada, no inventada.
-- La Parte 4 queda pendiente por depender de material externo que la
-  cátedra todavía no proporcionó.
+- Las Partes 1, 2, 3 y 4 fueron completadas. En la Parte 4 se reutilizó
+  la consulta de ranking de clientes por gasto (ya optimizada en la
+  Parte 1) como consulta de competencia; la estrategia aceptada produjo
+  una mejora real de ≈1.37x, con equivalencia verificada mediante
+  `EXCEPT` en ambos sentidos. No se inventaron resultados ni
+  competidores — al participar un único equipo, la Parte 4 se documentó
+  como desempeño propio, sin ranking contra terceros.
