@@ -526,3 +526,206 @@ equivalentes a sus consultas manuales.
 Las vistas convencionales se utilizaron para organización,
 encapsulamiento, consistencia y minimización de datos, no como
 mecanismo de mejora de rendimiento.
+
+---
+
+## 12. Parte C — Vista materializada de facturación por categoría y mes
+
+### 12.1 Reporte elegido
+
+Se eligió el reporte agregado de facturación por categoría y mes.
+
+La consulta original combina:
+
+- categoria
+- producto
+- detalle_pedido
+- pedido
+
+y realiza:
+
+- múltiples JOIN;
+- COUNT(DISTINCT pe.id);
+- SUM de unidades;
+- SUM de facturación;
+- GROUP BY por categoría y mes;
+- ORDER BY por mes y facturación.
+
+La vista materializada creada fue:
+
+mv_facturacion_categoria_mes
+
+Fue creada con WITH DATA y quedó poblada con 4 filas.
+
+### 12.2 Índice UNIQUE
+
+Se creó:
+
+idx_mv_facturacion_categoria_mes_unique
+
+sobre:
+
+(categoria_id, mes)
+
+El índice representa la clave lógica del resultado y permite utilizar
+posteriormente:
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY
+    mv_facturacion_categoria_mes;
+
+### 12.3 Equivalencia semántica
+
+La consulta original y la vista materializada fueron comparadas mediante
+EXCEPT en ambos sentidos.
+
+Resultados:
+
+- original_minus_materialized = 0
+- materialized_minus_original = 0
+
+Resultado:
+
+VALIDADA.
+
+La vista materializada contiene exactamente el mismo conjunto de datos
+que la consulta original en el momento de su creación.
+
+### 12.4 Protocolo de medición
+
+Tanto la consulta original como la consulta sobre la vista materializada
+se ejecutaron tres veces mediante:
+
+EXPLAIN (ANALYZE, BUFFERS)
+
+La primera ejecución se consideró calentamiento.
+
+Las ejecuciones 2 y 3 se utilizaron para calcular el promedio estable.
+
+### 12.5 Consulta original
+
+Tiempos:
+
+- calentamiento: 1122.988 ms
+- ejecución válida 1: 1123.239 ms
+- ejecución válida 2: 1139.208 ms
+- promedio estable: 1131.224 ms
+
+Plan principal observado:
+
+- Incremental Sort
+- GroupAggregate
+- Sort
+- tres Hash Join
+- Seq Scan sobre detalle_pedido
+- Seq Scan sobre producto
+- Seq Scan sobre categoria
+- Seq Scan sobre pedido
+
+Datos relevantes:
+
+- filas procesadas por el agregado: 500.007
+- Sort Method: external merge
+- Disk: 25008 kB
+- shared hit: 6080
+- temp read: 5397
+- temp written: 5407
+
+### 12.6 Consulta sobre la vista materializada
+
+Consulta:
+
+```sql
+SELECT
+    categoria_id,
+    categoria_nombre,
+    mes,
+    cantidad_pedidos,
+    unidades_vendidas,
+    facturacion_total
+FROM mv_facturacion_categoria_mes
+ORDER BY
+    mes ASC,
+    facturacion_total DESC;
+```
+
+Tiempos:
+
+- calentamiento: 0.064 ms
+- ejecución válida 1: 0.060 ms
+- ejecución válida 2: 0.060 ms
+- promedio estable: 0.060 ms
+
+Plan principal observado:
+
+- Seq Scan sobre mv_facturacion_categoria_mes
+- Sort
+
+Datos relevantes:
+
+- filas leídas: 4
+- Sort Method: quicksort
+- Memory: 25 kB
+- shared hit: 7
+- sin buffers temporales
+- sin escritura temporal
+
+### 12.7 Comparación
+
+| Consulta | Promedio estable |
+|---|---:|
+| Consulta original | 1131.224 ms |
+| Vista materializada | 0.060 ms |
+
+Mejora aproximada:
+
+1131.224 / 0.060 ≈ 18.853,7x
+
+Reducción aproximada de Execution Time:
+
+≈99,9947 %
+
+La mejora observada se debe a que la consulta sobre la vista
+materializada lee únicamente 4 filas ya agregadas, mientras que la
+consulta original debe volver a recorrer y combinar cientos de miles de
+filas y reconstruir el agregado.
+
+### 12.8 Política de REFRESH
+
+La frecuencia propuesta es:
+
+cada 60 minutos mientras el sistema se encuentre en operación.
+
+El reporte es analítico y de gestión, no una fuente transaccional para
+confirmar ventas individuales.
+
+También puede ejecutarse un refresh manual cuando sea necesario disponer
+de información actualizada antes del próximo ciclo.
+
+### 12.9 Staleness
+
+La vista materializada no se actualiza automáticamente cuando se
+insertan nuevos pedidos o detalles.
+
+Con una política de refresh cada 60 minutos, una venta nueva podría
+tardar hasta aproximadamente una hora en aparecer en el reporte.
+
+Por lo tanto:
+
+- la vista materializada no representa información en tiempo real;
+- los usuarios deben conocer la hora del último refresh;
+- para información transaccional actual debe consultarse la fuente base.
+
+### 12.10 Conclusión de la Parte C
+
+La vista materializada:
+
+- conserva la semántica del reporte original;
+- fue validada mediante EXCEPT bidireccional con cero diferencias;
+- quedó preparada para REFRESH CONCURRENTLY mediante un índice UNIQUE;
+- redujo el tiempo estable observado desde 1131.224 ms a 0.060 ms;
+- produjo una mejora aproximada de 18.853,7x;
+- reduce el costo de lectura a cambio de aceptar datos potencialmente
+  atrasados entre refresh.
+
+La estrategia es adecuada para un reporte analítico de gestión siempre
+que se documente y respete la política de actualización.
