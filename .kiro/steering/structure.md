@@ -11,6 +11,18 @@ foodStore/
 ├── datos_iniciales.sql   # DML: dataset inicial mínimo
 ├── .kiro/
 │   └── steering/         # product.md, structure.md, tech.md
+├── tpi/                 # Capa integradora de la Primera Entrega
+│   ├── README.md
+│   ├── informe_tecnico.md
+│   ├── modelo/
+│   │   ├── modelo_er.md
+│   │   ├── modelo_relacional.md
+│   │   └── normalizacion.md
+│   ├── sql/
+│   │   ├── consultas_cobertura_tpi.sql
+│   │   └── objetos_programables.sql
+│   └── pruebas/
+│       └── pruebas_objetos_programables.sql
 └── unidades/
     ├── unidad-1/tp2/
     ├── unidad-2/tp3/
@@ -28,8 +40,13 @@ y `AGENTS.md` son los puntos de entrada para un humano o una IA que
 recién llega al repositorio, y `.kiro/` es la configuración de
 steering de la herramienta Kiro — ambos también pertenecen a la raíz
 por convención de la herramienta y por ser transversales a todas las
-unidades. Todo lo demás es trabajo académico específico de una unidad
-o TP, y vive bajo `unidades/`.
+unidades. El trabajo histórico específico de una unidad o TP vive bajo
+`unidades/`; `tpi/` integra y complementa la evidencia de U1–U3 para la
+Primera Entrega, sin constituir una nueva unidad académica ni reemplazar
+los TPs históricos. Su README mapea y reproduce la entrega, el informe
+técnico la justifica, y `modelo/`, `sql/` y `pruebas/` reúnen sus
+artefactos específicos. Sus objetos adicionales se instalan explícitamente,
+sin modificar la fundación canónica.
 
 ## Estructura interna de cada unidad/TP
 

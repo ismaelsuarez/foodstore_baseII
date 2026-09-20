@@ -10,6 +10,18 @@ consultas, indexado, vistas y normalización avanzada sobre un esquema
 relacional de comercio (categorías, clientes, productos, pedidos y
 detalle de pedido).
 
+## Primera Entrega del TPI
+
+La integración específica de la **Primera Entrega del TPI** cubre los
+nueve objetivos requeridos mediante evidencia de las Unidades 1–3 y
+complementos mínimos en `tpi/`. No reemplaza ni altera los trabajos
+históricos.
+
+| Recurso | Propósito |
+|---|---|
+| [tpi/README.md](tpi/README.md) | Punto de entrada: mapa de los nueve objetivos, reproducción y resultados. |
+| [tpi/informe_tecnico.md](tpi/informe_tecnico.md) | Justificación, implementación, pruebas y decisiones. |
+
 ## 2. Integrantes
 
 - Avalos Pablo
@@ -111,6 +123,18 @@ foodstore_baseII/
 │       ├── product.md
 │       ├── structure.md
 │       └── tech.md
+├── tpi/
+│   ├── README.md
+│   ├── informe_tecnico.md
+│   ├── modelo/
+│   │   ├── modelo_er.md
+│   │   ├── modelo_relacional.md
+│   │   └── normalizacion.md
+│   ├── sql/
+│   │   ├── consultas_cobertura_tpi.sql
+│   │   └── objetos_programables.sql
+│   └── pruebas/
+│       └── pruebas_objetos_programables.sql
 └── unidades/
     ├── unidad-1/
     │   └── tp2/
@@ -149,11 +173,15 @@ foodstore_baseII/
 
 | Unidad / TP | Tema principal | Punto de entrada | Artefactos principales |
 |---|---|---|---|
+| TPI — Primera Entrega | Integración U1–U3 y cobertura de los nueve objetivos de la primera entrega | [tpi/README.md](tpi/README.md) | Modelo ER/relacional, normalización, HAVING, función PL/pgSQL, procedimiento, trigger, pruebas e informe técnico |
 | Unidad 1 / TP2 | Integridad, concurrencia, lectura crítica, protocolo de seguridad | [unidades/unidad-1/tp2/README.md](unidades/unidad-1/tp2/README.md) | Restricción `CHECK` histórica, escenarios de concurrencia, lectura crítica de scripts peligrosos |
 | Unidad 2 / TP3 | Volumen de datos, consultas, `EXPLAIN ANALYZE`, optimización | [unidades/unidad-2/tp3/README.md](unidades/unidad-2/tp3/README.md) | Carga masiva, consultas principales y alternativas, informe de optimización |
 | Unidad 2 / TP4 | JOIN, consultas analíticas, optimización comparativa | [unidades/unidad-2/tp4/README.md](unidades/unidad-2/tp4/README.md) | Consultas de ranking/facturación, lectura crítica de planes de JOIN, competencia de optimización |
 | Unidad 3 | Índices, vistas, vista materializada, medición real | [unidades/unidad-3/README.md](unidades/unidad-3/README.md) | 3 índices, 3 vistas, 1 vista materializada, informe de mediciones |
 | Unidad 4 | FNBC, descomposición sin pérdida, desnormalización controlada | [unidades/unidad-4/README.md](unidades/unidad-4/README.md) | Descomposición FNBC de `control_lote_almacen`, columna redundante con triggers de sincronización |
+
+Unidad 4 se conserva como trabajo posterior/complementario, fuera del
+alcance obligatorio de la Primera Entrega del TPI.
 
 ## 9. Dataset masivo compartido
 
@@ -235,25 +263,36 @@ README no documenta datos sensibles ni credenciales.
 Orden recomendado de lectura:
 
 1. Leer este `README.md` raíz.
-2. Leer `schema.sql`.
-3. Leer `datos_iniciales.sql`.
-4. Ir al README local de la unidad que se quiere auditar.
-5. Leer su spec antes de evaluar cualquier implementación.
-6. Leer los informes para la evidencia real (tiempos, planes, buffers).
-7. Leer la DUIA correspondiente para la trazabilidad del uso de IA.
-8. No asumir que todo SQL es una migración pendiente sobre la base
-   canónica.
-9. No inventar columnas que no existan en `schema.sql`.
-10. No modificar evidencia histórica para hacerla coincidir con el
-    estado actual del proyecto.
+2. Leer [tpi/README.md](tpi/README.md) si se evalúa la Primera Entrega.
+3. Consultar [tpi/informe_tecnico.md](tpi/informe_tecnico.md) para la
+   justificación completa y el mapa detallado de evidencias.
+4. Leer `schema.sql`, autoridad estructural del proyecto.
+5. Leer `datos_iniciales.sql`.
+6. Revisar la documentación y los modelos de `tpi/modelo/` cuando
+   corresponda, siguiendo los enlaces del README del TPI.
+7. Comprobar la evidencia reutilizada en las unidades históricas:
+   README local, spec antes de evaluar la implementación e informes
+   con resultados reales (tiempos, planes, buffers).
+8. Leer la DUIA local correspondiente para la trazabilidad del uso de IA.
+
+**Advertencias:** no ejecutar todo SQL en cadena ni asumir que cada
+script es una migración pendiente; no inventar columnas que no existan
+en `schema.sql`; no modificar evidencia histórica para hacerla coincidir
+con el estado actual del proyecto.
 
 ## 15. Estado actual
 
 - La base canónica del proyecto sigue siendo `schema.sql` +
   `datos_iniciales.sql`.
+- `tpi/` es la capa integradora de la Primera Entrega (U1–U3).
+  [tpi/README.md](tpi/README.md) documenta el flujo de reproducción;
+  sus objetos programables son adicionales y se instalan explícitamente,
+  no como una migración automática de la base canónica.
 - Unidad 4 contiene laboratorios (FNBC, desnormalización controlada)
   que **no** fueron fusionados a la base canónica: viven en sus propios
-  scripts, ejecutados sobre una copia de laboratorio.
+  scripts, ejecutados sobre una copia de laboratorio. Continúa separada
+  como trabajo posterior/complementario y no se utiliza para cubrir
+  artificialmente requisitos de la Primera Entrega.
 - El repositorio conserva evidencia histórica (informes, DUIA,
   consultas alternativas) para defensa académica y auditoría, no para
   ser reejecutada automáticamente.

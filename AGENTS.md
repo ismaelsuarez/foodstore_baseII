@@ -5,7 +5,7 @@
 Proyecto académico PostgreSQL (UTN — Base de Datos II). No hay
 aplicación, backend, frontend ni test framework: todo el trabajo es
 SQL y documentación Markdown, organizado por unidad/TP bajo
-`unidades/`.
+`unidades/`, con la integración de la Primera Entrega en `tpi/`.
 
 ## Fuentes de verdad
 
@@ -18,6 +18,31 @@ En orden de autoridad:
 5. `specs/` de cada unidad — contrato previo a la generación de SQL.
 6. `informes/` de cada unidad — evidencia real medida.
 7. `duia/` de cada unidad, cuando exista — trazabilidad de uso de IA y decisiones humanas.
+
+## Primera Entrega del TPI
+
+Para evaluar la Primera Entrega, comenzar por
+[tpi/README.md](tpi/README.md) y usar
+[tpi/informe_tecnico.md](tpi/informe_tecnico.md) como mapa detallado
+de evidencias. El alcance principal es U1–U3; Unidad 4 permanece como
+trabajo posterior/complementario.
+
+Cuando la tarea sea sobre el TPI, aplicar este orden de autoridad:
+
+1. `schema.sql` — autoridad estructural canónica.
+2. `datos_iniciales.sql` — dataset inicial canónico.
+3. `tpi/README.md` — cobertura y reproducción de la entrega.
+4. `tpi/modelo/` — ER, modelo relacional y normalización.
+5. `tpi/sql/` — consultas y objetos adicionales específicos del TPI.
+6. `tpi/pruebas/` — batería de verificación de esos objetos.
+7. Evidencia histórica de `unidades/` referenciada por el informe técnico.
+8. DUIA correspondientes — trazabilidad histórica.
+
+`tpi/` integra y complementa: no modifica el contrato de `schema.sql`.
+Los objetos TPI se instalan explícitamente; no son migraciones automáticas.
+No inventar campos para satisfacer consignas, no tratar scripts históricos
+como migraciones pendientes ni reescribir evidencia histórica sin una
+instrucción explícita.
 
 ## Regla crítica
 
@@ -77,8 +102,9 @@ canónica salvo que el README local de esa unidad diga lo contrario.
 
 Ver `.kiro/steering/structure.md` para el árbol completo. En resumen:
 `schema.sql`, `datos_iniciales.sql`, `README.md`, `AGENTS.md` y
-`.kiro/` viven en la raíz; todo el trabajo académico vive bajo
-`unidades/unidad-N/[tpX]/{sql,specs,informes,duia}/`.
+`.kiro/` viven en la raíz; los TPs históricos se organizan bajo
+`unidades/unidad-N/[tpX]/{sql,specs,informes,duia}/`, y `tpi/` reúne
+la capa integradora de la Primera Entrega.
 
 ## Contexto histórico
 
