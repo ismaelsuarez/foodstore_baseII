@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Consultas TP3 - Parte 4 - Alternativas equivalentes
 -- Base de Datos II - Semana 3, Unidad 2: Optimización de Consultas
--- Especificación: spec_consultas_tp3.md
+-- Especificación: ../specs/spec_consultas_tp3.md
 -- ============================================================================
 -- Solo SELECT. No modifica esquema ni datos. No incluye EXPLAIN todavía.
 -- ============================================================================

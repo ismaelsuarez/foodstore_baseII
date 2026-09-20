@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Consulta B - Versión alternativa (promedio de categoría precalculado)
 -- Base de Datos II - Semana 4, Unidad 2: Optimización de Consultas
--- Especificación: spec_consultas_tp4.md
+-- Especificación: ../specs/spec_consultas_tp4.md
 -- ============================================================================
 -- Solo SELECT. No modifica esquema ni datos. No incluye EXPLAIN todavía.
 -- No incluye verificaciones EXCEPT todavía.
