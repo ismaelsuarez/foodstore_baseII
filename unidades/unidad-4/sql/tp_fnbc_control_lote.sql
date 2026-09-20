@@ -1,7 +1,7 @@
 -- ============================================================================
 -- tp_fnbc_control_lote.sql
 -- Base de Datos II - Unidad 4, Parte 1: FNBC - ControlLoteAlmacen
--- Especificación: specs/u4_fnbc_control_lote.md
+-- Especificación: ../specs/u4_fnbc_control_lote.md
 -- ============================================================================
 -- Diseñado para ejecutarse una única vez sobre la copia foodstore_u4.
 -- No usa IDENTITY, IF NOT EXISTS, ON CONFLICT ni CASCADE: si algún

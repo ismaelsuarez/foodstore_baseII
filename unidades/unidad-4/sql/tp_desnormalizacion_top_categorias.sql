@@ -2,7 +2,7 @@
 -- tp_desnormalizacion_top_categorias.sql
 -- Base de Datos II - Unidad 4, Parte 2: Desnormalización controlada
 -- Reporte: "Top categorías por monto vendido"
--- Especificación: specs/u4_desnormalizacion_top_categorias.md
+-- Especificación: ../specs/u4_desnormalizacion_top_categorias.md
 -- ============================================================================
 --
 -- CONTEXTO REAL DEL SCHEMA

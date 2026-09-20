@@ -715,10 +715,10 @@ El dump no está incluido en Git.
 
 ## 21. Artefactos relacionados
 
-specs/u4_fnbc_control_lote.md
+../specs/u4_fnbc_control_lote.md
 
-tp_fnbc_control_lote.sql
+../sql/tp_fnbc_control_lote.sql
 
-specs/u4_desnormalizacion_top_categorias.md
+../specs/u4_desnormalizacion_top_categorias.md
 
-tp_desnormalizacion_top_categorias.sql
+../sql/tp_desnormalizacion_top_categorias.sql
