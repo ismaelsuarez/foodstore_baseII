@@ -1,37 +1,110 @@
-# AGENTS.md — foodStore
+# AGENTS.md — Food Store / Base de Datos II
 
-## What this is
+## Propósito
 
-PostgreSQL-only academic project (UTN – Base de Datos II). No app code, no build system, no test framework. Two SQL files: schema + seed data.
+Proyecto académico PostgreSQL (UTN — Base de Datos II). No hay
+aplicación, backend, frontend ni test framework: todo el trabajo es
+SQL y documentación Markdown, organizado por unidad/TP bajo
+`unidades/`.
 
-## Database engine
+## Fuentes de verdad
 
-PostgreSQL. Uses dialect-specific features: `GENERATED ALWAYS AS IDENTITY`, custom ENUM type, `TIMESTAMPTZ`.
+En orden de autoridad:
 
-## Load order (matters)
+1. `schema.sql` — esquema base canónico actual.
+2. `datos_iniciales.sql` — dataset inicial mínimo.
+3. `README.md` de la raíz — punto de entrada del proyecto completo.
+4. README local de cada unidad (`unidades/.../README.md`).
+5. `specs/` de cada unidad — contrato previo a la generación de SQL.
+6. `informes/` de cada unidad — evidencia real medida.
+7. `duia/` de cada unidad, cuando exista — trazabilidad de uso de IA y decisiones humanas.
 
-```powershell
-psql -U <user> -d <database> -f schema.sql        # DDL first
-psql -U <user> -d <database> -f datos_iniciales.sql # DML second
-```
+## Regla crítica
 
-`datos_iniciales.sql` depends on `schema.sql` — tables and the `forma_pago` ENUM must exist first.
+**No asumir que todo SQL bajo `unidades/` es una migración pendiente**
+sobre `schema.sql`. La mayoría son ejercicios académicos cerrados,
+evidencia histórica, consultas experimentales o scripts de laboratorio
+ejecutados sobre una copia de la base — no forman parte de la base
+canónica salvo que el README local de esa unidad diga lo contrario.
 
-## Naming conventions (non-negotiable)
+## Antes de proponer SQL
 
-- All identifiers in **Spanish**, lowercase, `snake_case`
-- Tables: singular nouns (`categoria`, `cliente`, `producto`, `pedido`, `detalle_pedido`)
-- FK columns: `<referenced_table>_id`
-- Constraint naming: `pk_<table>`, `fk_<table>_<ref>`, `chk_<table>_<column>`, `idx_<table>_<column>`
-- Composite PK on `detalle_pedido` (`pedido_id`, `producto_id`) — no surrogate key there
+- Leer `schema.sql` real — no asumir columnas o tablas de memoria.
+- Verificar nombres de tablas y columnas reales antes de escribir una
+  consulta o un `ALTER TABLE`.
+- Revisar las restricciones (`CHECK`, `FOREIGN KEY`, `UNIQUE`) ya
+  existentes antes de proponer una nueva.
+- Revisar el README de la unidad involucrada.
+- Revisar la spec correspondiente, si existe, antes de generar o
+  modificar una implementación.
 
-## Schema design facts
+## Prohibiciones
 
-- `ON DELETE RESTRICT` on all foreign keys — deletes will fail if referenced rows exist
-- `precio_unitario` in `detalle_pedido` is denormalized (snapshot at time of sale, not a FK to current price)
-- `activo` boolean on `categoria` and `producto` = soft-delete pattern
-- Seed data uses subqueries on natural keys (email, name) — no hardcoded IDs
+- No inventar columnas que no existan en el esquema real.
+- No inventar resultados, tiempos ni planes de ejecución.
+- No modificar mediciones históricas ya documentadas.
+- No reescribir prompts históricos citados en una DUIA.
+- No ejecutar scripts destructivos sin autorización explícita.
+- No trabajar sobre una base importante para probar un laboratorio —
+  usar una copia.
+- No duplicar archivos canónicos (por ejemplo,
+  `unidades/unidad-2/tp3/sql/carga_masiva_tp3.sql` tiene una única
+  ubicación; otras unidades lo referencian, no lo copian).
+- No mover archivos sin actualizar las referencias de ruta que queden
+  rotas por el movimiento.
 
-## Detailed docs
+## Convenciones
 
-See `.kiro/steering/` for product, tech stack, and structure details.
+- Identificadores en **español**, `snake_case`.
+- Tablas en singular (`categoria`, `cliente`, `producto`, `pedido`,
+  `detalle_pedido`).
+- Columnas de clave foránea: `<tabla_referenciada>_id`.
+- PostgreSQL como motor exclusivo — no asumir compatibilidad con otro
+  motor.
+
+## Validación
+
+- **Equivalencia semántica:** `EXCEPT` bidireccional entre la consulta
+  original y su alternativa, o entre una vista/vista materializada y
+  su consulta manual equivalente.
+- **Rendimiento:** `EXPLAIN (ANALYZE, BUFFERS)`, con protocolo de
+  varias corridas descartando la primera como calentamiento cuando así
+  se documenta.
+- **Migraciones y laboratorios:** transacciones, consulta de auditoría
+  cuando corresponda, y plan de reversión documentado.
+
+## Estructura
+
+Ver `.kiro/steering/structure.md` para el árbol completo. En resumen:
+`schema.sql`, `datos_iniciales.sql`, `README.md`, `AGENTS.md` y
+`.kiro/` viven en la raíz; todo el trabajo académico vive bajo
+`unidades/unidad-N/[tpX]/{sql,specs,informes,duia}/`.
+
+## Contexto histórico
+
+Los informes y las DUIA son evidencia histórica de trabajo ya
+evaluado. No deben reescribirse para "actualizarlos" ni para que
+parezcan generados en el estado actual del repositorio — solo se
+corrigen errores de ruta cuando un archivo se reubica físicamente.
+
+## Unidad 4
+
+Atención especial en esta unidad:
+
+- `usuario`, `lote` y `deposito` **no** forman parte del esquema base
+  (`schema.sql`) — son tablas mínimas creadas exclusivamente dentro del
+  laboratorio de Unidad 4 para hacerlo reproducible.
+- `detalle_pedido.categoria_id` tampoco forma parte del esquema base —
+  es una columna redundante agregada solo dentro de ese laboratorio.
+- Ambas extensiones pertenecen únicamente al laboratorio de Unidad 4,
+  ejecutado sobre una copia (`foodstore_u4`), no a la base canónica.
+- `producto.categoria_id` sigue siendo la única fuente de verdad en el
+  esquema de desnormalización controlada de esa unidad.
+
+## Git
+
+- Cambios pequeños y descriptivos.
+- No hacer `push` sin autorización explícita del usuario.
+- Verificar `git diff --check` antes de dar por cerrado un cambio.
+- Preservar historial usando `git mv` al reubicar archivos, en vez de
+  borrar y recrear.
