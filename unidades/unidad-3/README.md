@@ -49,14 +49,17 @@ El dataset usado durante las mediciones de este TP no proviene
 carga masiva heredada de TP3. Para reproducir ese mismo volumen desde
 cero, el orden real es:
 
-1. `schema.sql` — crea el esquema (tablas, restricciones).
-2. `datos_iniciales.sql` — aporta el dataset inicial del proyecto:
-   2 categorías, 3 clientes, 3 productos, 5 pedidos, 7 detalles.
-3. `carga_masiva_tp3.sql` — agrega el volumen masivo usado para las
-   pruebas de rendimiento: 20.000 clientes, 50.000 productos, 200.000
-   pedidos, 500.000 detalles.
-4. Los objetos de este TP (`indices.sql`, `views.sql`,
-   `materializadas.sql`), aplicados sobre esa base ya poblada.
+1. [`../../schema.sql`](../../schema.sql) — crea el esquema (tablas, restricciones).
+2. [`../../datos_iniciales.sql`](../../datos_iniciales.sql) — aporta el
+   dataset inicial del proyecto: 2 categorías, 3 clientes, 3 productos,
+   5 pedidos, 7 detalles.
+3. [`../unidad-2/tp3/sql/carga_masiva_tp3.sql`](../unidad-2/tp3/sql/carga_masiva_tp3.sql)
+   — agrega el volumen masivo usado para las pruebas de rendimiento:
+   20.000 clientes, 50.000 productos, 200.000 pedidos, 500.000
+   detalles. Este archivo fue creado para TP3 y es reutilizado acá; su
+   única copia canónica vive en Unidad 2/TP3, no se duplica en Unidad 3.
+4. Los objetos de este TP (`sql/indices.sql`, `sql/views.sql`,
+   `sql/materializadas.sql`), aplicados sobre esa base ya poblada.
 
 Sumando los pasos 2 y 3, el dataset de `foodstore_tp5` queda
 aproximadamente con los conteos utilizados durante este TP:
@@ -67,16 +70,17 @@ aproximadamente con los conteos utilizados durante este TP:
 - `pedido`: 200.005
 - `detalle_pedido`: 500.007
 
-Ejemplo de reproducción desde PowerShell:
+Ejemplo de reproducción desde PowerShell, ejecutado desde
+`unidades/unidad-3/` (rutas relativas desde acá):
 
 ```powershell
 createdb -U postgres foodstore_tp5
 
-psql -U postgres -d foodstore_tp5 -f .\schema.sql
+psql -U postgres -d foodstore_tp5 -f ..\..\schema.sql
 
-psql -U postgres -d foodstore_tp5 -f .\datos_iniciales.sql
+psql -U postgres -d foodstore_tp5 -f ..\..\datos_iniciales.sql
 
-psql -U postgres -d foodstore_tp5 -v ON_ERROR_STOP=1 -1 -f .\carga_masiva_tp3.sql
+psql -U postgres -d foodstore_tp5 -v ON_ERROR_STOP=1 -1 -f ..\unidad-2\tp3\sql\carga_masiva_tp3.sql
 ```
 
 - `-v ON_ERROR_STOP=1` detiene la carga apenas ocurre un error, en
@@ -95,7 +99,7 @@ entorno y la máquina donde se ejecuten.
 Los índices de este TP se encuentran en:
 
 ```
-indices.sql
+sql/indices.sql
 ```
 
 Nombres:
@@ -104,29 +108,31 @@ Nombres:
 - `idx_pedido_fecha_reciente`
 - `idx_cliente_email_lower`
 
-**Importante:** `indices.sql` usa `CREATE INDEX` sin `IF NOT EXISTS`.
-Antes de ejecutarlo, hay que revisar si esos índices ya existen en la
-base de destino — ejecutarlo dos veces sobre la misma base falla.
+**Importante:** `sql/indices.sql` usa `CREATE INDEX` sin
+`IF NOT EXISTS`. Antes de ejecutarlo, hay que revisar si esos índices
+ya existen en la base de destino — ejecutarlo dos veces sobre la misma
+base falla.
 
 Las mediciones reales (antes/después, buffers, planes) están
 documentadas en:
 
 ```
-informe_mediciones.md
+informes/informe_mediciones.md
 ```
 
 No se repiten acá los `EXPLAIN` completos; están en ese informe.
 
 **Orden para reproducir las mediciones "antes/después":** no alcanza
-con ejecutar `indices.sql` y comparar. El orden correcto es:
+con ejecutar `sql/indices.sql` y comparar. El orden correcto es:
 
-1. preparar la base con `schema.sql` + `datos_iniciales.sql` + `carga_masiva_tp3.sql`;
+1. preparar la base con `../../schema.sql` + `../../datos_iniciales.sql`
+   + `../unidad-2/tp3/sql/carga_masiva_tp3.sql`;
 2. ejecutar las consultas baseline **antes** de crear los índices de
-   `indices.sql` — ese es el estado "antes";
+   `sql/indices.sql` — ese es el estado "antes";
 3. recién ahí crear los índices y repetir las mismas consultas para
    obtener el estado "después";
 4. el protocolo de medición y las consultas exactas usadas en cada
-   caso están documentados en `informe_mediciones.md`.
+   caso están documentados en `informes/informe_mediciones.md`.
 
 Crear los índices antes de medir el estado "antes" invalida la
 comparación, porque ya no habría una línea base real contra la cual
@@ -139,7 +145,7 @@ medir la mejora.
 Archivo:
 
 ```
-views.sql
+sql/views.sql
 ```
 
 Vistas:
@@ -148,18 +154,19 @@ Vistas:
 - `v_pedidos_cliente`
 - `v_detalle_pedido_producto`
 
-Instalación desde PowerShell:
+Instalación desde PowerShell (ejecutado desde `unidades/unidad-3/`):
 
 ```powershell
-psql -U postgres -d foodstore_tp5 -f .\views.sql
+psql -U postgres -d foodstore_tp5 -f sql\views.sql
 ```
 
-Al usar `CREATE OR REPLACE VIEW`, `views.sql` puede volver a aplicarse
-sobre las vistas ya existentes sin necesidad de borrarlas primero.
+Al usar `CREATE OR REPLACE VIEW`, `sql/views.sql` puede volver a
+aplicarse sobre las vistas ya existentes sin necesidad de borrarlas
+primero.
 
 La equivalencia semántica de cada vista contra su consulta manual fue
 validada con `EXCEPT` bidireccional; los resultados están documentados
-en `informe_mediciones.md`.
+en `informes/informe_mediciones.md`.
 
 ---
 
@@ -168,7 +175,7 @@ en `informe_mediciones.md`.
 Archivo:
 
 ```
-materializadas.sql
+sql/materializadas.sql
 ```
 
 Objetos:
@@ -176,13 +183,14 @@ Objetos:
 - `mv_facturacion_categoria_mes`
 - `idx_mv_facturacion_categoria_mes_unique`
 
-Instalación sobre una base limpia que todavía no tenga esos objetos:
+Instalación sobre una base limpia que todavía no tenga esos objetos
+(ejecutado desde `unidades/unidad-3/`):
 
 ```powershell
-psql -U postgres -d foodstore_tp5 -f .\materializadas.sql
+psql -U postgres -d foodstore_tp5 -f sql\materializadas.sql
 ```
 
-**Advertencia importante:** `materializadas.sql` contiene
+**Advertencia importante:** `sql/materializadas.sql` contiene
 `CREATE MATERIALIZED VIEW` y `CREATE UNIQUE INDEX` sin
 `IF NOT EXISTS`. No debe ejecutarse dos veces sobre una base que ya
 tenga `mv_facturacion_categoria_mes` — fallará.
@@ -238,7 +246,7 @@ Para la evidencia completa (planes reales, buffers, protocolo de
 medición, propuestas descartadas) ver:
 
 ```
-informe_mediciones.md
+informes/informe_mediciones.md
 ```
 
 ---
@@ -248,7 +256,7 @@ informe_mediciones.md
 El archivo:
 
 ```
-duia.md
+duia/duia.md
 ```
 
 documenta:
@@ -283,16 +291,16 @@ especificar → generar → revisar → medir → decidir → versionar
 
 | Archivo | Propósito |
 |---|---|
-| `schema.sql` | Esquema base del proyecto Food Store (tablas, restricciones). |
-| `datos_iniciales.sql` | Datos base heredados del proyecto Food Store. |
-| `carga_masiva_tp3.sql` | Genera el volumen de datos utilizado para las pruebas de rendimiento, heredado desde TP3. |
-| `queries.sql` | Consultas de referencia utilizadas en el TP5 para las mediciones de índices, equivalencia de vistas y reporte de la vista materializada. |
-| `indices.sql` | Definición de los tres índices de este TP, documentados con su spec, justificación y resultado medido. |
-| `views.sql` | Definición de las tres vistas convencionales de la Parte B. |
-| `materializadas.sql` | Definición de la vista materializada y su índice UNIQUE de la Parte C. |
-| `informe_mediciones.md` | Evidencia completa de mediciones (`EXPLAIN ANALYZE`), equivalencias `EXCEPT` y planes reales. |
-| `duia.md` | Declaración de uso de IA y bitácora de decisiones. |
-| `specs/` | Especificaciones previas de cada índice, vista y vista materializada. |
+| [`../../schema.sql`](../../schema.sql) | Esquema base del proyecto Food Store (tablas, restricciones). |
+| [`../../datos_iniciales.sql`](../../datos_iniciales.sql) | Datos base heredados del proyecto Food Store. |
+| [`../unidad-2/tp3/sql/carga_masiva_tp3.sql`](../unidad-2/tp3/sql/carga_masiva_tp3.sql) | Genera el volumen de datos utilizado para las pruebas de rendimiento; creado en TP3, copia canónica única, reutilizado acá sin duplicar. |
+| [`sql/queries.sql`](sql/queries.sql) | Consultas de referencia utilizadas en el TP5 para las mediciones de índices, equivalencia de vistas y reporte de la vista materializada. |
+| [`sql/indices.sql`](sql/indices.sql) | Definición de los tres índices de este TP, documentados con su spec, justificación y resultado medido. |
+| [`sql/views.sql`](sql/views.sql) | Definición de las tres vistas convencionales de la Parte B. |
+| [`sql/materializadas.sql`](sql/materializadas.sql) | Definición de la vista materializada y su índice UNIQUE de la Parte C. |
+| [`informes/informe_mediciones.md`](informes/informe_mediciones.md) | Evidencia completa de mediciones (`EXPLAIN ANALYZE`), equivalencias `EXCEPT` y planes reales. |
+| [`duia/duia.md`](duia/duia.md) | Declaración de uso de IA y bitácora de decisiones. |
+| [`specs/`](specs/) | Especificaciones previas de cada índice, vista y vista materializada. |
 
 ---
 

@@ -16,7 +16,7 @@
 -- INSERT, UPDATE, DELETE, DROP ni REFRESH.
 --
 -- Los EXPLAIN (ANALYZE, BUFFERS) y los resultados medidos sobre estas
--- consultas están documentados en informe_mediciones.md.
+-- consultas están documentados en ../informes/informe_mediciones.md.
 -- ============================================================================
 
 -- ============================================================================

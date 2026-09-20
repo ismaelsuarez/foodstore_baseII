@@ -1,7 +1,7 @@
 -- ============================================================================
 -- indices.sql
 -- Base de Datos II - Unidad 3, Semana 1: Plan de indexado asistido por IA
--- Especificación: specs/indice_producto_stock_bajo.md
+-- Especificación: ../specs/indice_producto_stock_bajo.md
 -- ============================================================================
 -- Solo CREATE INDEX. No incluye DROP INDEX, ANALYZE ni EXPLAIN.
 -- Los índices fueron instalados y medidos manualmente sobre foodstore_tp5.
@@ -95,7 +95,7 @@ CREATE INDEX idx_producto_stock_bajo
 -- ÍNDICE 2: idx_pedido_fecha_reciente
 -- ============================================================================
 --
--- Especificación: specs/indice_pedido_fecha_reciente.md
+-- Especificación: ../specs/indice_pedido_fecha_reciente.md
 --
 -- 1. Consulta que justifica el índice:
 --
@@ -194,7 +194,7 @@ CREATE INDEX idx_pedido_fecha_reciente
 -- ÍNDICE 3: idx_cliente_email_lower
 -- ============================================================================
 --
--- Especificación: specs/indice_cliente_email_lower.md
+-- Especificación: ../specs/indice_cliente_email_lower.md
 --
 -- 1. Consulta que justifica el índice:
 --

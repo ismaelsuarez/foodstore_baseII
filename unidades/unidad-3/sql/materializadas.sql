@@ -1,11 +1,11 @@
 -- ============================================================================
 -- materializadas.sql
 -- Base de Datos II - Unidad 3, Semana 5, Parte C: Vistas materializadas
--- Especificación: specs/vista_materializada_facturacion_categoria_mes.md
+-- Especificación: ../specs/vista_materializada_facturacion_categoria_mes.md
 -- ============================================================================
 -- La vista materializada y su índice fueron instalados y validados
 -- manualmente sobre foodstore_tp5. La equivalencia y las mediciones
--- reales se documentan en informe_mediciones.md.
+-- reales se documentan en ../informes/informe_mediciones.md.
 -- ============================================================================
 
 -- ============================================================================
@@ -30,7 +30,7 @@
 -- materialized_minus_original = 0
 --
 -- Resultado: VALIDADA. El protocolo completo se documenta en
--- informe_mediciones.md.
+-- ../informes/informe_mediciones.md.
 -- ============================================================================
 
 CREATE MATERIALIZED VIEW mv_facturacion_categoria_mes AS
@@ -80,7 +80,7 @@ WITH DATA;
 --
 -- El rendimiento fue medido manualmente con EXPLAIN (ANALYZE, BUFFERS).
 -- Los resultados reales y el protocolo completo se encuentran en
--- informe_mediciones.md.
+-- ../informes/informe_mediciones.md.
 -- ============================================================================
 
 CREATE UNIQUE INDEX idx_mv_facturacion_categoria_mes_unique

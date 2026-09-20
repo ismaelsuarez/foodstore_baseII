@@ -1,7 +1,7 @@
 -- ============================================================================
 -- views.sql
 -- Base de Datos II - Unidad 3, Semana 5, Parte B: Vistas
--- Especificación: specs/vista_productos_vigentes.md
+-- Especificación: ../specs/vista_productos_vigentes.md
 -- ============================================================================
 -- Solo definiciones de vistas (CREATE OR REPLACE VIEW). No incluye
 -- materialized views, índices, EXPLAIN ni consultas de prueba.
@@ -55,7 +55,7 @@ WHERE p.activo = TRUE
 -- VISTA 2: v_pedidos_cliente
 -- ============================================================================
 --
--- Especificación: specs/vista_pedidos_cliente.md
+-- Especificación: ../specs/vista_pedidos_cliente.md
 --
 -- Propósito: simplificar reportes de pedidos junto con los datos
 -- mínimos necesarios del cliente asociado.
@@ -114,7 +114,7 @@ JOIN cliente c
 -- VISTA 3: v_detalle_pedido_producto
 -- ============================================================================
 --
--- Especificación: specs/vista_detalle_pedido_producto.md
+-- Especificación: ../specs/vista_detalle_pedido_producto.md
 --
 -- Propósito: evitar repetir manualmente el JOIN entre detalle_pedido y
 -- producto en los reportes operativos, exponiendo el detalle de cada
