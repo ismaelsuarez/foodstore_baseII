@@ -1,301 +1,33 @@
--- ============================================================================
--- indices.sql
--- Base de Datos II - Unidad 3, Semana 1: Plan de indexado asistido por IA
--- Especificación: ../specs/indice_producto_stock_bajo.md
--- ============================================================================
--- Solo CREATE INDEX. No incluye DROP INDEX, ANALYZE ni EXPLAIN.
--- Los índices fueron instalados y medidos manualmente sobre foodstore_tp5.
--- Los resultados documentados provienen de EXPLAIN (ANALYZE, BUFFERS)
--- ejecutados por el estudiante.
--- ============================================================================
+-- Base de Datos II - Unidad 3 / Semana 5 - TP5
+-- Requiere el modelo oficial indicado en las specs de este bloque.
+-- No migra tablas ni acredita compatibilidad con schema.sql de la raíz.
+-- Definiciones no ejecutadas en este bloque; validación real pendiente.
+-- Instalación futura en una copia con el modelo oficial y sin estos objetos.
+-- Si ya existen índices homónimos, evaluar sus definiciones antes de instalar.
+-- No se incluyen DROP, mediciones ni resultados de ejecuciones anteriores.
 
--- ============================================================================
--- ÍNDICE 1: idx_producto_stock_bajo
--- ============================================================================
---
--- 1. Consulta que justifica el índice:
---
--- SELECT
---     id,
---     nombre,
---     stock,
---     precio
--- FROM producto
--- WHERE activo = TRUE
---   AND stock <= 5
--- ORDER BY stock ASC, nombre ASC;
---
--- ----------------------------------------------------------------------------
--- 2. Línea base (medida sobre foodstore_tp5, antes de este índice):
---
--- - producto: 50.003 filas
--- - resultado: 1.493 filas
--- - fracción devuelta: ≈2,99 %
--- - filtro altamente selectivo
--- - plan antes: Seq Scan + Sort
--- - Rows Removed by Filter: 48.510
--- - shared hit del Seq Scan: 900
--- - promedio estable antes: 10.030 ms
---
--- ----------------------------------------------------------------------------
--- 3. Justificación:
---
--- - B-tree compuesto.
--- - stock ASC como primera clave: participa del filtro (stock <= 5) y es
---   el primer criterio del ORDER BY.
--- - nombre ASC como segunda clave: coincide con el segundo criterio del
---   ORDER BY, preservando el orden exacto dentro de cada valor de stock.
--- - INCLUDE (id, precio): columnas proyectadas por el SELECT que no
---   participan del filtro ni del ORDER BY; se agregan como no clave para
---   cobertura sin intervenir en las comparaciones del árbol.
--- - Parcial WHERE activo = TRUE.
--- - Actualmente los 50.003 productos están activos, por lo que el
---   predicado parcial NO reduce hoy la cantidad física de entradas del
---   índice.
--- - Se conserva el predicado parcial porque coincide exactamente con el
---   filtro de la consulta y puede permitir que activo = TRUE quede
---   demostrado por la sola pertenencia de la fila al índice, sin
---   necesitar a activo como columna clave ni INCLUDE.
--- - La expectativa de Index Only Scan depende del visibility map de la
---   tabla.
--- - No se afirma Heap Fetches = 0 antes de medir con
---   EXPLAIN (ANALYZE, BUFFERS).
---
--- ----------------------------------------------------------------------------
--- 4. Resultado medido (EXPLAIN ANALYZE, BUFFERS sobre foodstore_tp5):
---
--- DESPUÉS:
--- - Index Only Scan using idx_producto_stock_bajo
--- - Index Cond: stock <= 5
--- - no aparece nodo Sort
--- - filas devueltas: 1.493
--- - Heap Fetches: 0
--- - ejecución 1 de calentamiento: Execution Time 0.385 ms, shared hit=1 read=13
--- - ejecuciones estables: 0.262 ms (shared hit=14), 0.273 ms (shared hit=14)
--- - promedio estable: 0.2675 ms
---
--- MEJORA:
--- - ≈37.50x
--- - reducción aproximada de Execution Time ≈97.33 %
--- - buffers estables del recorrido principal: 900 -> 14
---
--- ----------------------------------------------------------------------------
--- 5. Estado:
---
--- ÍNDICE ACEPTADO DESPUÉS DE MEDICIÓN
--- CONSERVAR EN EL PLAN DE INDEXADO
--- ============================================================================
-
+-- CANDIDATO_PENDIENTE_DE_MEDICION
+-- Spec: ../specs/indice_producto_stock_bajo.md
+-- El panel incluye productos no disponibles que pueden requerir reposición.
+-- Las claves siguen el filtro/orden; INCLUDE es una hipótesis de cobertura.
 CREATE INDEX idx_producto_stock_bajo
     ON producto (stock ASC, nombre ASC)
     INCLUDE (id, precio)
-    WHERE activo = TRUE;
+    WHERE eliminado = FALSE;
 
--- ============================================================================
--- ÍNDICE 2: idx_pedido_fecha_reciente
--- ============================================================================
---
--- Especificación: ../specs/indice_pedido_fecha_reciente.md
---
--- 1. Consulta que justifica el índice:
---
--- SELECT
---     id,
---     cliente_id,
---     fecha,
---     forma_pago
--- FROM pedido
--- WHERE fecha >= TIMESTAMPTZ '2026-04-11 12:00:00-03'
--- ORDER BY fecha DESC;
---
--- ----------------------------------------------------------------------------
--- 2. Línea base (medida sobre foodstore_tp5, antes de este índice):
---
--- - pedido: 200.005 filas
--- - resultado: 1.280 filas
--- - fracción devuelta: ≈0,64 %
--- - filtro altamente selectivo
--- - plan antes: Seq Scan + Sort
--- - Rows Removed by Filter: 198.725
--- - shared hit del Seq Scan: 1471
--- - Sort: quicksort, Memory: 109kB
--- - ejecución de calentamiento: 8.059 ms
--- - ejecuciones estables: 13.983 ms, 11.778 ms
--- - promedio estable: 12.8805 ms
---
--- ----------------------------------------------------------------------------
--- 3. Justificación:
---
--- - B-tree.
--- - fecha DESC como única columna clave: participa del filtro
---   (fecha >= ...) y del ORDER BY (fecha DESC).
--- - DESC expresa directamente el patrón de acceso esperado (pedidos
---   recientes primero), pero PostgreSQL puede recorrer un B-tree en
---   ambos sentidos: un índice sobre fecha ASC también podría satisfacer
---   ORDER BY fecha DESC mediante backward scan. DESC no es un requisito
---   técnico para eliminar el Sort, se conserva por claridad.
--- - INCLUDE (id, cliente_id, forma_pago): columnas proyectadas por el
---   SELECT que no participan del filtro ni del ORDER BY; se agregan
---   como no clave para cobertura completa.
--- - idx_pedido_forma_pago_fecha (forma_pago, fecha DESC) NO es
---   redundante con este índice: su clave líder es forma_pago, columna
---   que no aparece en el filtro de esta consulta. Por la regla del
---   prefijo izquierdo, ese índice existente no puede resolver
---   eficientemente un filtro que depende únicamente de fecha; cubre un
---   patrón de consulta distinto (filtrar por forma_pago y ordenar por
---   fecha dentro de ese medio de pago).
---
--- ----------------------------------------------------------------------------
--- 4. Resultado medido (EXPLAIN ANALYZE, BUFFERS sobre foodstore_tp5):
---
--- DESPUÉS:
--- - Index Only Scan using idx_pedido_fecha_reciente
--- - Index Cond: fecha >= TIMESTAMPTZ '2026-04-11 12:00:00-03'
--- - no aparece nodo Sort
--- - filas devueltas: 1.280
--- - Heap Fetches: 85
--- - buffers: shared hit=12
--- - primera ejecución exitosa (tomada como calentamiento): 0.226 ms
--- - segunda ejecución válida: 0.384 ms
--- - hubo un intento intermedio que falló por autenticación de
---   PostgreSQL; no se incluye como medición porque la consulta no se
---   ejecutó
--- - tercera ejecución válida: 0.242 ms
--- - promedio estable de las dos mediciones válidas: 0.313 ms
---
--- MEJORA:
--- - 12.8805 / 0.313 ≈ 41.15x
--- - reducción aproximada de Execution Time ≈97.57 %
--- - buffers principales: 1471 -> 12
---
--- ----------------------------------------------------------------------------
--- 5. Costo de escritura:
---
--- - INSERT en pedido: mantiene una entrada adicional del índice.
--- - UPDATE fecha: modifica la clave del índice.
--- - UPDATE cliente_id: cliente_id está en INCLUDE; aunque no sea
---   columna clave, modificarla sí requiere mantenimiento del índice y
---   puede impedir HOT update para esa fila.
--- - UPDATE forma_pago: está en INCLUDE y también requiere
---   mantenimiento del índice.
---
--- ----------------------------------------------------------------------------
--- 6. Estado:
---
--- ÍNDICE ACEPTADO DESPUÉS DE MEDICIÓN
--- CONSERVAR EN EL PLAN DE INDEXADO
--- ============================================================================
-
+-- CANDIDATO_PENDIENTE_DE_MEDICION
+-- Spec: ../specs/indice_pedido_fecha_reciente.md
+-- Fecha DATE; sin valores supuestos para estado o forma_pago.
+-- INCLUDE está sujeto a EXPLAIN (ANALYZE, BUFFERS) y costo de escritura.
 CREATE INDEX idx_pedido_fecha_reciente
     ON pedido (fecha DESC)
-    INCLUDE (id, cliente_id, forma_pago);
+    INCLUDE (id, usuario_id, estado, forma_pago, total)
+    WHERE eliminado = FALSE;
 
--- ============================================================================
--- ÍNDICE 3: idx_cliente_email_lower
--- ============================================================================
---
--- Especificación: ../specs/indice_cliente_email_lower.md
---
--- 1. Consulta que justifica el índice:
---
--- SELECT
---     id,
---     nombre,
---     email
--- FROM cliente
--- WHERE lower(email) = lower('ANA.GOMEZ@FOODSTORE.TEST');
---
--- ----------------------------------------------------------------------------
--- 2. Línea base (medida sobre foodstore_tp5, antes de este índice):
---
--- - cliente: 20.003 filas
--- - resultado: 1 fila
--- - fracción devuelta: ≈0,005 %
--- - filtro extremadamente selectivo
--- - plan antes: Seq Scan on cliente
--- - Filter: lower(email) = 'ana.gomez@foodstore.test'
--- - Rows Removed by Filter: 20.002
--- - shared hit: 267
--- - primera ejecución (calentamiento): 10.440 ms
--- - ejecuciones estables: 10.322 ms, 10.222 ms
--- - promedio estable: 10.272 ms
---
--- ----------------------------------------------------------------------------
--- 3. Justificación:
---
--- - B-tree de expresión.
--- - expresión indexada: lower(email).
--- - NO UNIQUE: no cambia la semántica de cliente_email_key.
--- - cliente_email_key (email) continúa garantizando unicidad exacta y
---   resolviendo búsquedas case-sensitive.
--- - idx_cliente_email_lower resuelve un patrón distinto: búsquedas
---   case-insensitive mediante lower(email).
--- - PostgreSQL debe poder reconocer en la consulta una expresión
---   compatible con la expresión indexada; en esta consulta lower(email)
---   coincide directamente.
---
--- ----------------------------------------------------------------------------
--- 4. Propuesta de IA descartada por sobreindexación:
---
--- PROPUESTA ORIGINAL:
---
--- CREATE INDEX idx_cliente_email_lower
---     ON cliente (lower(email))
---     INCLUDE (id, nombre, email);
---
--- ESTADO: DESCARTADA POR SOBREINDEXACIÓN.
---
--- MOTIVO:
--- La consulta devuelve solamente 1 fila de 20.003. Agregar id, nombre
--- y email como INCLUDE ampliaría todas las entradas del índice para
--- intentar evitar un único acceso puntual al heap. Eso implica:
--- - mayor tamaño del índice;
--- - más costo de INSERT;
--- - UPDATE nombre pasaría a mantener también este índice;
--- - email completo quedaría almacenado adicionalmente en este índice,
---   aunque ya existe cliente_email_key;
--- - el ahorro esperado de un único heap access no justifica el costo
---   estructural permanente.
--- Se eligió deliberadamente el índice simple de expresión.
---
--- ----------------------------------------------------------------------------
--- 5. Resultado medido (EXPLAIN ANALYZE, BUFFERS sobre foodstore_tp5):
---
--- DESPUÉS:
--- - Index Scan using idx_cliente_email_lower on cliente
--- - Index Cond: lower(email) = 'ana.gomez@foodstore.test'
--- - primera ejecución (calentamiento): shared hit=1 read=3,
---   Execution Time: 0.123 ms
--- - ejecuciones estables: 0.104 ms (shared hit=4), 0.111 ms (shared hit=4)
--- - promedio estable: 0.1075 ms
---
--- MEJORA:
--- - 10.272 / 0.1075 ≈ 95.55x
--- - reducción aproximada de Execution Time ≈98.95 %
--- - buffers estables: 267 -> 4
---
--- ----------------------------------------------------------------------------
--- 6. Costo de escritura:
---
--- - INSERT cliente: mantiene una entrada adicional en
---   idx_cliente_email_lower, además de cliente_email_key.
--- - UPDATE email: afecta cliente_email_key y idx_cliente_email_lower.
--- - UPDATE nombre: NO afecta idx_cliente_email_lower porque nombre no
---   forma parte del candidato finalmente aceptado.
--- - UPDATE id: id no forma parte de idx_cliente_email_lower, pero sí de
---   cliente_pkey. Al modificar una columna indexada por otro índice, la
---   actualización deja de ser candidata a HOT y puede requerir nuevas
---   entradas también en los demás índices. En la práctica, id es una
---   identidad y no debería modificarse normalmente.
---
--- ----------------------------------------------------------------------------
--- 7. Estado:
---
--- ÍNDICE ACEPTADO DESPUÉS DE MEDICIÓN
--- CONSERVAR EN EL PLAN DE INDEXADO
---
--- PROPUESTA CUBRIDORA DESCARTADA POR SOBREINDEXACIÓN
--- ============================================================================
-
-CREATE INDEX idx_cliente_email_lower
-    ON cliente (lower(email));
+-- CANDIDATO_PENDIENTE_DE_MEDICION
+-- Spec: ../specs/indice_usuario_mail_lower.md
+-- Índice de expresión no UNIQUE: no establece unicidad case-insensitive.
+-- Una eventual restricción UNIQUE(mail) no equivale a lower(mail).
+CREATE INDEX idx_usuario_mail_lower
+    ON usuario (lower(mail))
+    WHERE eliminado = FALSE;

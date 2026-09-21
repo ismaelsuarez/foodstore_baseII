@@ -1,211 +1,52 @@
 # Spec: indice_producto_stock_bajo
 
-## Objetivo
+Contrato del modelo oficial de TP5. Requiere una copia de pruebas que lo implemente; no migra tablas ni acredita compatibilidad con `schema.sql` de la raíz. Este bloque no ejecuta SQL ni produce resultados.
 
-Optimizar la consulta frecuente del panel de productos con stock bajo
+## MODELO_OFICIAL
 
-sobre la base foodstore_tp5.
+`producto`: `id`, `nombre`, `stock`, `precio`, `eliminado`, `disponible`. Eliminación lógica y disponibilidad tienen significados distintos.
 
-La consulta representa un listado del camino crítico, consultado por un
+## OBJETIVO
 
-usuario mientras espera frente a la aplicación.
+Evaluar un acceso para el panel de reposición. Incluir productos no disponibles: pueden ser precisamente los que requieren reposición. No filtrar por `disponible`.
 
-## Consulta afectada
+## CONSULTA
 
+```sql
 SELECT
-
     id,
-
     nombre,
-
     stock,
-
     precio
-
 FROM producto
-
-WHERE activo = TRUE
-
+WHERE eliminado = FALSE
   AND stock <= 5
-
 ORDER BY stock ASC, nombre ASC;
+```
 
-## Volumen actual
+## OBJETO_CANDIDATO
 
-Tabla producto:
+**CANDIDATO_PENDIENTE_DE_MEDICION**. Definición en [indices.sql](../sql/indices.sql).
 
-50.003 filas.
+```sql
+CREATE INDEX idx_producto_stock_bajo
+    ON producto (stock ASC, nombre ASC)
+    INCLUDE (id, precio)
+    WHERE eliminado = FALSE;
+```
 
-Productos activos:
+Claves B-tree alineadas con stock y orden por nombre. `INCLUDE (id, precio)` propone cobertura sin incorporar esas columnas al orden.
 
-50.003.
+## CRITERIO_DE_ACEPTACION
 
-Productos inactivos:
+- Mantener exactamente las filas, columnas y orden de la consulta de referencia.
+- Aceptar el índice solo si la evidencia real justifica beneficio de lectura frente al costo de escritura y espacio, sin duplicar capacidad existente.
+- No exigir un nodo de plan específico ni afirmar de antemano que desaparecerá el ordenamiento.
 
-0.
+## RIESGOS
 
-Resultado de la consulta:
+Un predicado parcial no garantiza alta selectividad. `INCLUDE` amplía el índice; las actualizaciones de stock, nombre, precio o eliminación pueden aumentar su mantenimiento. La cobertura no garantiza un Index Only Scan ni ausencia de accesos al heap.
 
-1.493 filas.
+## VALIDACION_PENDIENTE
 
-Selectividad aproximada:
-
-2,99 %.
-
-## Plan base medido
-
-Plan actual:
-
-Seq Scan on producto
-
-Filas reales:
-
-1.493
-
-Filas descartadas:
-
-48.510
-
-Buffers del Seq Scan:
-
-shared hit=900
-
-Ordenamiento:
-
-Sort Method: quicksort
-
-Memory: 130kB
-
-## Mediciones de línea base
-
-Primera ejecución, descartada como calentamiento:
-
-12.195 ms
-
-Segunda ejecución:
-
-9.694 ms
-
-Tercera ejecución:
-
-10.366 ms
-
-Promedio estable de ejecuciones 2 y 3:
-
-10.030 ms
-
-## Columnas involucradas
-
-Filtro:
-
-- activo
-
-- stock
-
-ORDER BY:
-
-- stock ASC
-
-- nombre ASC
-
-SELECT:
-
-- id
-
-- nombre
-
-- stock
-
-- precio
-
-## Índices existentes relevantes
-
-producto_pkey (id)
-
-idx_producto_categoria (categoria_id)
-
-idx_producto_nombre (nombre)
-
-idx_producto_precio_desc (precio DESC)
-
-No existe actualmente un índice cuya primera clave sea stock.
-
-## Restricciones de diseño
-
-- PostgreSQL 17.
-
-- No modificar tablas ni restricciones.
-
-- No crear el índice todavía.
-
-- Evitar índices redundantes.
-
-- No usar activo como clave principal solamente por aparecer en el filtro,
-
-  ya que es booleano y de baja cardinalidad.
-
-- Se puede evaluar activo = TRUE como condición de índice parcial, pero
-
-  debe reconocerse que en el conjunto de datos actual todos los productos
-
-  están activos, por lo que hoy esa condición no reduce físicamente el
-
-  número de entradas.
-
-- Evaluar B-tree, índice compuesto, parcial y/o INCLUDE.
-
-- Si se propone un índice cubridor, recordar que el heap TID interno no
-
-  reemplaza las columnas proyectadas por la consulta: id debe estar
-
-  disponible explícitamente como clave o INCLUDE si se pretende un
-
-  Index Only Scan.
-
-- Justificar el orden de las columnas.
-
-## Criterios de aceptación
-
-La propuesta futura solo será aceptada si después de crearla en
-
-foodstore_tp5:
-
-1. el plan mejora respecto del Seq Scan actual;
-
-2. disminuyen los buffers;
-
-3. baja el Execution Time estable;
-
-4. no duplica un índice existente;
-
-5. el beneficio de lectura compensa el costo de escritura y almacenamiento.
-
-La medición posterior se hará con:
-
-EXPLAIN (ANALYZE, BUFFERS)
-
-ejecutado tres veces y descartando la primera.
-
-## Entrega esperada en la siguiente etapa
-
-Este archivo será entregado a OpenCode.
-
-OpenCode deberá proponer exactamente un índice candidato principal y
-
-justificar:
-
-- tipo;
-
-- columnas;
-
-- orden;
-
-- condición parcial, si corresponde;
-
-- INCLUDE, si corresponde;
-
-- nodo del plan que espera cambiar;
-
-- costo sobre INSERT y UPDATE.
-
-Kiro no debe generar ahora el CREATE INDEX.
+Pendiente: inventariar índices y restricciones reales, obtener una nueva línea base y medir antes/después con `EXPLAIN (ANALYZE, BUFFERS)`. Realizar tres corridas por variante, descartar la primera como calentamiento y comparar el promedio de las otras dos sobre el mismo dataset. Registrar planes, filas, buffers y tiempos reales; medir también almacenamiento y mantenimiento en escrituras. No reutilizar cifras históricas como evidencia de este contrato. Probar productos eliminados y no eliminados, disponibles y no disponibles, incluidos los límites de stock 5 y 6.

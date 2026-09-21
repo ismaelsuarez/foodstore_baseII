@@ -1,225 +1,54 @@
 # Spec: indice_pedido_fecha_reciente
 
-## Objetivo
+Contrato del modelo oficial de TP5. Requiere una copia de pruebas que lo implemente; no migra tablas ni acredita compatibilidad con `schema.sql` de la raíz. Este bloque no ejecuta SQL ni produce resultados.
 
-Optimizar la consulta frecuente de pedidos recientes sobre
+## MODELO_OFICIAL
 
-foodstore_tp5.
+`pedido`: `id`, `usuario_id`, `fecha DATE`, `estado`, `forma_pago`, `total`, `eliminado`. Relación `pedido.usuario_id = usuario.id`. No se presuponen valores ENUM.
 
-La consulta representa un listado operativo consultado por un usuario
+## OBJETIVO
 
-mientras espera frente a la aplicación.
+Evaluar el listado de pedidos no eliminados desde una fecha inclusiva. La fecha de corte no tiene hora ni zona horaria.
 
-## Consulta afectada
+## CONSULTA
 
+```sql
 SELECT
-
     id,
-
-    cliente_id,
-
+    usuario_id,
     fecha,
-
-    forma_pago
-
+    estado,
+    forma_pago,
+    total
 FROM pedido
-
-WHERE fecha >= TIMESTAMPTZ '2026-04-11 12:00:00-03'
-
+WHERE eliminado = FALSE
+  AND fecha >= DATE '2026-04-11'
 ORDER BY fecha DESC;
+```
 
-## Volumen actual
+## OBJETO_CANDIDATO
 
-Tabla pedido:
+**CANDIDATO_PENDIENTE_DE_MEDICION**. Definición en [indices.sql](../sql/indices.sql).
 
-200.005 filas.
+```sql
+CREATE INDEX idx_pedido_fecha_reciente
+    ON pedido (fecha DESC)
+    INCLUDE (id, usuario_id, estado, forma_pago, total)
+    WHERE eliminado = FALSE;
+```
 
-Resultado real:
+La clave expresa el orden descendente. La cobertura mediante `INCLUDE` es una hipótesis, no una elección óptima demostrada; queda sujeta a `EXPLAIN (ANALYZE, BUFFERS)`.
 
-1.280 filas.
+## CRITERIO_DE_ACEPTACION
 
-Fracción devuelta:
+- Preservar columnas, filtro inclusivo y orden de la consulta.
+- Aceptar el índice solo con beneficio medido que compense escritura y espacio, revisando índices existentes sin asumir su inventario.
+- Evaluar el costo de cobertura y el ordenamiento observado; no exigir un plan predeterminado.
 
-≈0,64 %.
+## RIESGOS
 
-El filtro es altamente selectivo.
+La selectividad depende del dataset y del corte fijo. Columnas incluidas aumentan espacio y costo de actualización; `estado`, `total` y `forma_pago` pueden cambiar. El orden entre pedidos de una misma fecha no está definido por esta consulta.
 
-## Plan base medido
+## VALIDACION_PENDIENTE
 
-Plan actual:
-
-Seq Scan on pedido
-
-+
-
-Sort
-
-Filas reales:
-
-1.280
-
-Filas descartadas:
-
-198.725
-
-Buffers del Seq Scan:
-
-shared hit=1471
-
-Ordenamiento:
-
-Sort Key: fecha DESC
-
-Sort Method: quicksort
-
-Memory: 109kB
-
-## Mediciones de línea base
-
-Primera ejecución, descartada como calentamiento:
-
-8.059 ms
-
-Segunda ejecución:
-
-13.983 ms
-
-Tercera ejecución:
-
-11.778 ms
-
-Promedio estable de ejecuciones 2 y 3:
-
-12.8805 ms
-
-## Columnas involucradas
-
-Filtro:
-
-- fecha
-
-ORDER BY:
-
-- fecha DESC
-
-SELECT:
-
-- id
-
-- cliente_id
-
-- fecha
-
-- forma_pago
-
-## Índices existentes relevantes en pedido
-
-pedido_pkey (id)
-
-idx_pedido_cliente (cliente_id)
-
-idx_pedido_forma_pago_fecha (forma_pago, fecha DESC)
-
-## Observación importante
-
-Existe:
-
-idx_pedido_forma_pago_fecha (forma_pago, fecha DESC)
-
-pero el plan real sigue usando Seq Scan para esta consulta que filtra
-
-solo por fecha.
-
-La futura propuesta debe analizar la regla del prefijo izquierdo:
-
-fecha es la segunda columna del índice existente y forma_pago no aparece
-
-en el filtro.
-
-No asumir redundancia ni utilidad únicamente por compartir la columna
-
-fecha: justificarlo mediante el plan real.
-
-## Restricciones de diseño
-
-- PostgreSQL 17.
-
-- No modificar tablas ni restricciones.
-
-- No crear ningún índice todavía.
-
-- Evitar sobreindexación.
-
-- Evaluar B-tree.
-
-- Evaluar si corresponde índice simple o cubridor.
-
-- Evaluar si el ORDER BY fecha DESC puede ser satisfecho directamente
-
-  por el índice.
-
-- Si se pretende Index Only Scan, todas las columnas proyectadas deben
-
-  estar explícitamente disponibles como clave o INCLUDE.
-
-- No inventar columnas que no existen en nuestro modelo real.
-
-- No utilizar estado ni eliminado: esas columnas no existen en pedido.
-
-## Criterios de aceptación
-
-La futura propuesta solo será aceptada si, después de crearla en
-
-foodstore_tp5:
-
-1. el Seq Scan completo desaparece o se demuestra una estrategia
-
-   claramente más eficiente;
-
-2. disminuyen los buffers;
-
-3. baja el Execution Time estable;
-
-4. se elimina el Sort si el índice puede entregar fecha DESC;
-
-5. no duplica capacidad de un índice existente;
-
-6. el beneficio compensa el costo de escritura y almacenamiento.
-
-La medición posterior se hará mediante:
-
-EXPLAIN (ANALYZE, BUFFERS)
-
-ejecutado tres veces, descartando la primera.
-
-## Entrega esperada en la siguiente etapa
-
-Este archivo será entregado a OpenCode.
-
-OpenCode deberá proponer exactamente UN índice candidato principal y
-
-explicar:
-
-- tipo;
-
-- columnas clave;
-
-- orden;
-
-- INCLUDE, si corresponde;
-
-- relación con idx_pedido_forma_pago_fecha;
-
-- nodo esperado antes;
-
-- nodo esperado después;
-
-- impacto sobre INSERT;
-
-- impacto sobre UPDATE fecha;
-
-- impacto sobre UPDATE cliente_id;
-
-- impacto sobre UPDATE forma_pago.
-
-No debe ejecutar SQL.
+Pendiente: inventariar índices y restricciones reales, obtener una nueva línea base y medir antes/después con `EXPLAIN (ANALYZE, BUFFERS)`. Realizar tres corridas por variante, descartar la primera como calentamiento y comparar el promedio de las otras dos sobre el mismo dataset. Registrar planes, filas, buffers y tiempos reales; medir también almacenamiento y mantenimiento en escrituras. No reutilizar cifras históricas como evidencia de este contrato. Probar pedidos anteriores, iguales y posteriores al corte, con y sin eliminación lógica.

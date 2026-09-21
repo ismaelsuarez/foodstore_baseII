@@ -1,7 +1,11 @@
 # Food Store — Base de Datos II
 
 ## TP Unidad 3 — Semana 5
-## Índices, vistas y vistas materializadas
+## Índices, vistas y vistas materializadas — Modelo oficial
+
+**Entrega vigente:** contratos corregidos y validación real en PostgreSQL
+17.11 sobre `foodstore_tp5_oficial`. Los tres índices se aceptan para el
+TP; las cuatro vistas, la seguridad y la materializada fueron verificadas.
 
 ## Integrantes
 
@@ -9,316 +13,224 @@
 - Blangetti Sofia
 - Suarez Ismael
 
-Este trabajo continúa el proyecto Food Store de semanas anteriores.
-Evalúa:
+## Ruta de lectura
 
-- diseño e implementación de índices B-tree (simples, compuestos,
-  parciales y de expresión);
-- medición real del impacto de cada índice mediante
-  `EXPLAIN (ANALYZE, BUFFERS)`;
-- vistas convencionales para encapsular reglas de negocio;
-- minimización de datos en una de esas vistas;
-- una vista materializada para un reporte analítico costoso;
-- verificación de equivalencia semántica mediante `EXCEPT`
-  bidireccional;
-- el flujo de trabajo Kiro (especificación) → OpenCode (generación) →
-  revisión humana → medición real → decisión → versionado en Git.
+1. [Informe vigente](informes/informe_mediciones.md): decisiones y resultados resumidos.
+2. [Evidencia técnica](informes/evidencia_modelo_oficial.md): consultas exactas,
+   corridas, planes completos, controles y bootstrap/carga del laboratorio.
+3. [DUIA vigente](duia/duia.md): corrección del modelo, uso de herramientas
+   y decisiones humanas.
 
----
+El contrato utiliza `usuario`, `usuario_id`, `mail`, `eliminado`,
+`disponible`, `estado`, `total` y `subtotal` físico. Disponibilidad y
+eliminación lógica tienen semánticas distintas. El subtotal almacenado
+no se reemplaza por una expresión calculada en las consultas vigentes.
 
-## Requisitos
+## Base utilizada y límites
 
-- PostgreSQL 17 (recomendado).
-- `psql` disponible en el `PATH`.
-- Git.
-- Una base PostgreSQL local de pruebas.
+| Dato | Valor registrado |
+|---|---|
+| Motor | PostgreSQL 17.11, Windows x86_64 |
+| Base descartable | `foodstore_tp5_oficial` |
+| Fecha local de ejecución | 20/09/2026, America/Buenos_Aires |
+| Filas | 8 categorías; 50.000 productos; 20.000 usuarios; 200.000 pedidos; 500.000 detalles |
 
-Este README no documenta contraseñas ni credenciales.
+**El `schema.sql` raíz no reconstruye esta base:** conserva el esquema
+histórico anterior. Tampoco deben aplicarse los datos iniciales raíz ni
+la carga de TP3 para reproducir estas mediciones. No se modificaron esos
+archivos ni otros trabajos prácticos.
 
----
+La copia descartable usa el contrato oficial aportado por el usuario.
+El bootstrap temporal registra los supuestos adicionales de laboratorio
+sobre tipos, nulabilidad y carga sintética: no es una migración ni un
+nuevo esquema canónico entregable. Los tiempos no son universales y no
+se garantiza repetirlos en otra máquina o corrida.
 
-## Base de datos de trabajo
+## Scripts y specs vigentes
 
-Las mediciones de este TP se realizaron sobre una base llamada
-`foodstore_tp5`. Esa base fue creada por el estudiante como copia de
-una versión previa del proyecto Food Store; no se asume que otra
-persona ya la tenga disponible.
+| Script | Alcance |
+|---|---|
+| [sql/queries.sql](sql/queries.sql) | Ocho consultas manuales de referencia. |
+| [sql/indices.sql](sql/indices.sql) | Tres índices: stock bajo, pedidos recientes y búsqueda por mail. |
+| [sql/views.sql](sql/views.sql) | Cuatro vistas convencionales, incluida la pública de usuarios. |
+| [sql/seguridad.sql](sql/seguridad.sql) | GRANT de lectura de la vista pública; requiere rol existente. |
+| [sql/materializadas.sql](sql/materializadas.sql) | Facturación por categoría/mes y su índice UNIQUE lógico. |
 
-El dataset usado durante las mediciones de este TP no proviene
-únicamente de los datos iniciales del proyecto: fue ampliado con una
-carga masiva heredada de TP3. Para reproducir ese mismo volumen desde
-cero, el orden real es:
+| Spec | Contrato |
+|---|---|
+| [indice_producto_stock_bajo.md](specs/indice_producto_stock_bajo.md) | Reposición sin filtrar disponibilidad. |
+| [indice_pedido_fecha_reciente.md](specs/indice_pedido_fecha_reciente.md) | Fecha DATE, eliminación lógica y cobertura. |
+| [indice_usuario_mail_lower.md](specs/indice_usuario_mail_lower.md) | Expresión no UNIQUE para mail. |
+| [vista_productos_vigentes.md](specs/vista_productos_vigentes.md) | Producto/categoría no eliminados. |
+| [vista_pedidos_resumen.md](specs/vista_pedidos_resumen.md) | Pedidos sin ocultar historial por baja del usuario. |
+| [vista_pedido_detalle.md](specs/vista_pedido_detalle.md) | Subtotal físico e historial de producto. |
+| [vista_usuarios_publico.md](specs/vista_usuarios_publico.md) | Proyección segura sin contrasena ni celular. |
+| [vista_materializada_facturacion_categoria_mes.md](specs/vista_materializada_facturacion_categoria_mes.md) | Agregación histórica y actualización propuesta. |
 
-1. [`../../schema.sql`](../../schema.sql) — crea el esquema (tablas, restricciones).
-2. [`../../datos_iniciales.sql`](../../datos_iniciales.sql) — aporta el
-   dataset inicial del proyecto: 2 categorías, 3 clientes, 3 productos,
-   5 pedidos, 7 detalles.
-3. [`../unidad-2/tp3/sql/carga_masiva_tp3.sql`](../unidad-2/tp3/sql/carga_masiva_tp3.sql)
-   — agrega el volumen masivo usado para las pruebas de rendimiento:
-   20.000 clientes, 50.000 productos, 200.000 pedidos, 500.000
-   detalles. Este archivo fue creado para TP3 y es reutilizado acá; su
-   única copia canónica vive en Unidad 2/TP3, no se duplica en Unidad 3.
-4. Los objetos de este TP (`sql/indices.sql`, `sql/views.sql`,
-   `sql/materializadas.sql`), aplicados sobre esa base ya poblada.
+SQL y specs conservan sus estados de candidato/validación pendiente del
+**Bloque 1**, previo a ejecutar. No se reescribieron en este cierre:
+los resultados posteriores y la aceptación para el TP constan en el
+informe vigente y la evidencia del **Bloque 2**.
 
-Sumando los pasos 2 y 3, el dataset de `foodstore_tp5` queda
-aproximadamente con los conteos utilizados durante este TP:
+## Reproducción controlada
 
-- `categoria`: 2
-- `cliente`: 20.003
-- `producto`: 50.003
-- `pedido`: 200.005
-- `detalle_pedido`: 500.007
+Estas instrucciones son para una nueva ejecución autorizada, no describen
+benchmarks nuevos durante el cierre documental. Se requiere PostgreSQL
+17.x, `psql`, Git y autenticación local configurada sin exponer secretos.
+Ejecutar desde `unidades/unidad-3/`.
 
-Ejemplo de reproducción desde PowerShell, ejecutado desde
-`unidades/unidad-3/` (rutas relativas desde acá):
+### 1. Preparar exclusivamente la copia descartable
+
+Recuperar los archivos temporales del Bloque 2 si todavía existen. Si no,
+copiar **literalmente** los dos bloques SQL del **Anexo B** de la
+[evidencia](informes/evidencia_modelo_oficial.md) a:
+
+```text
+$env:TEMP\foodstore_tp5_oficial_schema.sql
+$env:TEMP\foodstore_tp5_oficial_data.sql
+```
+
+El primero es el bootstrap; el segundo contiene carga, reconciliación
+de totales y `VACUUM ANALYZE`. Revisar ambos antes de aplicarlos.
+El bootstrap incluye únicamente PK/UNIQUE e índices base de cátedra,
+no los tres candidatos TP5. Confirmar que solo esa base es descartable;
+**los comandos siguientes eliminan su contenido** y ningún otro nombre
+está autorizado para eliminación.
 
 ```powershell
-createdb -U postgres foodstore_tp5
-
-psql -U postgres -d foodstore_tp5 -f ..\..\schema.sql
-
-psql -U postgres -d foodstore_tp5 -f ..\..\datos_iniciales.sql
-
-psql -U postgres -d foodstore_tp5 -v ON_ERROR_STOP=1 -1 -f ..\unidad-2\tp3\sql\carga_masiva_tp3.sql
+psql --version
+psql -X -w -h 127.0.0.1 -U postgres -d postgres -c "SELECT version();"
+dropdb -h 127.0.0.1 -U postgres --if-exists foodstore_tp5_oficial
+createdb -h 127.0.0.1 -U postgres foodstore_tp5_oficial
+psql -X -w -h 127.0.0.1 -U postgres -d foodstore_tp5_oficial -v ON_ERROR_STOP=1 -1 -f "$env:TEMP\foodstore_tp5_oficial_schema.sql"
+psql -X -w -h 127.0.0.1 -U postgres -d foodstore_tp5_oficial -v ON_ERROR_STOP=1 -f "$env:TEMP\foodstore_tp5_oficial_data.sql"
 ```
 
-- `-v ON_ERROR_STOP=1` detiene la carga apenas ocurre un error, en
-  lugar de seguir ejecutando el resto del script.
-- `-1` ejecuta todo el archivo dentro de una única transacción, para
-  que un error a mitad de la carga masiva no deje datos parciales.
+Verificar el código de salida después de **cada comando**; ante cualquier
+error, detenerse. No envolver toda la carga en `-1`: contiene su propia
+transacción y un `VACUUM ANALYZE` posterior fuera de ella. Confirmar conteos,
+inventario inicial y ausencia de los tres candidatos (evidencia, sección 2).
 
-Estos pasos reproducen el volumen de datos utilizado, no
-necesariamente los mismos tiempos: los tiempos medidos dependen del
-entorno y la máquina donde se ejecuten.
+### 2. Medir índices y costo de escritura
 
----
+Para cada candidato: `ANALYZE`, tres EXPLAIN antes, creación de **solo ese
+índice**, `ANALYZE` y tres EXPLAIN después. Descartar la primera corrida y
+promediar 2 y 3. No ejecutar `indices.sql` completo antes de las líneas base.
 
-## Parte A — Índices
+Usar las consultas exactas de la sección 4 de la evidencia: pedidos utiliza
+`CURRENT_DATE - 30`, no el literal fijo de `queries.sql`; mail utiliza
+`usuario8452@foodstore.test`, no su literal ilustrativo. Así se conserva
+la selectividad prevista al regenerar fechas relativas.
 
-Los índices de este TP se encuentran en:
+La alternativa covering solo se crea dentro de `BEGIN`/`ROLLBACK` para
+medir `pg_relation_size`; verificar después su ausencia. Para escritura,
+retirar **solo los tres candidatos**, nunca los índices base, medir 1.000
+INSERT en cada tabla, recrearlos mediante `indices.sql`, analizar y repetir.
+Cada corrida de INSERT usa `BEGIN`/`ROLLBACK`, con calentamiento y dos
+mediciones válidas. Seguir la sección 6 de la evidencia, incluido el
+`VACUUM ANALYZE` previo; las secuencias pueden avanzar pese al rollback.
 
-```
-sql/indices.sql
-```
-
-Nombres:
-
-- `idx_producto_stock_bajo`
-- `idx_pedido_fecha_reciente`
-- `idx_cliente_email_lower`
-
-**Importante:** `sql/indices.sql` usa `CREATE INDEX` sin
-`IF NOT EXISTS`. Antes de ejecutarlo, hay que revisar si esos índices
-ya existen en la base de destino — ejecutarlo dos veces sobre la misma
-base falla.
-
-Las mediciones reales (antes/después, buffers, planes) están
-documentadas en:
-
-```
-informes/informe_mediciones.md
-```
-
-No se repiten acá los `EXPLAIN` completos; están en ese informe.
-
-**Orden para reproducir las mediciones "antes/después":** no alcanza
-con ejecutar `sql/indices.sql` y comparar. El orden correcto es:
-
-1. preparar la base con `../../schema.sql` + `../../datos_iniciales.sql`
-   + `../unidad-2/tp3/sql/carga_masiva_tp3.sql`;
-2. ejecutar las consultas baseline **antes** de crear los índices de
-   `sql/indices.sql` — ese es el estado "antes";
-3. recién ahí crear los índices y repetir las mismas consultas para
-   obtener el estado "después";
-4. el protocolo de medición y las consultas exactas usadas en cada
-   caso están documentados en `informes/informe_mediciones.md`.
-
-Crear los índices antes de medir el estado "antes" invalida la
-comparación, porque ya no habría una línea base real contra la cual
-medir la mejora.
-
----
-
-## Parte B — Vistas
-
-Archivo:
-
-```
-sql/views.sql
-```
-
-Vistas:
-
-- `v_productos_vigentes`
-- `v_pedidos_cliente`
-- `v_detalle_pedido_producto`
-
-Instalación desde PowerShell (ejecutado desde `unidades/unidad-3/`):
+### 3. Validar vistas, seguridad y materializada
 
 ```powershell
-psql -U postgres -d foodstore_tp5 -f sql\views.sql
+psql -X -w -h 127.0.0.1 -U postgres -d foodstore_tp5_oficial -v ON_ERROR_STOP=1 -f sql\views.sql
 ```
 
-Al usar `CREATE OR REPLACE VIEW`, `sql/views.sql` puede volver a
-aplicarse sobre las vistas ya existentes sin necesidad de borrarlas
-primero.
+Comparar las cuatro vistas individualmente con las consultas 4–7 de
+`queries.sql` mediante EXCEPT en ambos sentidos y registrar conteos.
+Las comprobaciones ejecutadas están en la sección 7 de la evidencia.
 
-La equivalencia semántica de cada vista contra su consulta manual fue
-validada con `EXCEPT` bidireccional; los resultados están documentados
-en `informes/informe_mediciones.md`.
+Para seguridad, inventariar primero `rol_soporte`. Si no existe, crear
+`NOLOGIN` solo para la prueba, aplicar `seguridad.sql`, comprobar lectura
+de vista y denegaciones sobre `contrasena`/`celular` con `SET ROLE`, luego
+`RESET ROLE`, revocar y eliminar únicamente el rol creado. Las pruebas
+negativas deben capturar SQLSTATE `42501` y permitir el RESET; no evaluar
+solo el código de salida de psql. Si el rol ya existe, no alterarlo,
+revocarlo ni eliminarlo: limitarse al inventario de privilegios y resolver
+por separado la autorización de cualquier cambio. El GRANT no borra
+permisos anteriores (sección 8 de la evidencia).
 
----
-
-## Parte C — Vista materializada
-
-Archivo:
-
-```
-sql/materializadas.sql
-```
-
-Objetos:
-
-- `mv_facturacion_categoria_mes`
-- `idx_mv_facturacion_categoria_mes_unique`
-
-Instalación sobre una base limpia que todavía no tenga esos objetos
-(ejecutado desde `unidades/unidad-3/`):
+Medir la consulta 8 original **antes** de crear la materializada; después:
 
 ```powershell
-psql -U postgres -d foodstore_tp5 -f sql\materializadas.sql
+psql -X -w -h 127.0.0.1 -U postgres -d foodstore_tp5_oficial -v ON_ERROR_STOP=1 -f sql\materializadas.sql
 ```
 
-**Advertencia importante:** `sql/materializadas.sql` contiene
-`CREATE MATERIALIZED VIEW` y `CREATE UNIQUE INDEX` sin
-`IF NOT EXISTS`. No debe ejecutarse dos veces sobre una base que ya
-tenga `mv_facturacion_categoria_mes` — fallará.
+Validar EXCEPT bidireccional y medir con el mismo orden del original:
+`ORDER BY mes ASC, facturacion_total DESC`. El orden `categoria_id, mes`
+es un caso separado. Ejecutar `REFRESH MATERIALIZED VIEW CONCURRENTLY
+mv_facturacion_categoria_mes` y repetir equivalencia. Los índices y la
+materializada no usan `IF NOT EXISTS`: no reinstalarlos a ciegas sobre
+objetos existentes. Esta guía no es una migración de vistas previas.
 
-El índice `UNIQUE` sobre `(categoria_id, mes)` permite posteriormente
-ejecutar:
+## Resultados y decisiones
 
-```sql
-REFRESH MATERIALIZED VIEW CONCURRENTLY
-    mv_facturacion_categoria_mes;
-```
+| Objeto | Antes, ms | Después, ms | Decisión |
+|---|---:|---:|---|
+| `idx_producto_stock_bajo` | 9.4390 | 0.2975 | Aceptado; mejora observada 31.73x. |
+| `idx_pedido_fecha_reciente` | 264.3715 | 1.2250 | Aceptado; mejora observada 215.81x. |
+| `idx_usuario_mail_lower` | 10.8865 | 0.1360 | Aceptado; mejora observada 80.05x. |
+| Materializada, mismo orden | 1188.4945 | 0.2230 | Equivalencia 0/0; 192 filas. |
 
-Ese `REFRESH CONCURRENTLY` **no** fue ejecutado durante este TP; el
-índice solo deja preparada la posibilidad de hacerlo más adelante.
+El covering se rechazó: 2.621.440 frente a 999.424 bytes del simple, sin
+beneficio temporal adicional medido. Los INSERT aumentaron +14.96 %,
++9.54 % y +91.88 % en producto, pedido y usuario. Conservar el índice de
+mail depende del supuesto de pocas altas frente a búsquedas interactivas;
+no es una frecuencia de producción medida.
+
+Las cuatro vistas dieron EXCEPT 0/0. La vista pública permitió lectura y
+los accesos directos a las columnas sensibles fallaron con `42501`;
+el rol temporal fue eliminado. El refresh concurrente fue **ejecutado**
+con éxito, no solo habilitado por el índice UNIQUE.
 
 ### Política de refresh
 
-Política propuesta: refrescar la vista materializada cada 60 minutos
-mientras el sistema esté en operación.
+**Propuesta heredada:** cada 60 minutos, pendiente de ratificación del
+equipo antes del despliegue. **Ejecución de prueba:** un refresh manual
+concurrente exitoso. No se programó una tarea ni se validó esa frecuencia.
+La materializada admite staleness; duración y fallos pueden aumentar el
+atraso, por lo que no se promete un máximo garantizado de una hora.
 
-- La vista materializada **no** se actualiza automáticamente cuando
-  cambian los datos base.
-- Puede existir hasta aproximadamente una hora de atraso (staleness)
-  entre dos refresh.
-- No debe utilizarse como fuente transaccional en tiempo real; es un
-  reporte agregado para análisis y gestión.
+## Auditoría contra rúbrica
 
----
+PASS indica cobertura documentada y, donde corresponde, ejecución real;
+no certifica un despliegue de producción.
 
-## Mediciones (resumen)
+| Requisito | Estado | Evidencia |
+|---|---|---|
+| Plan de indexado | PASS | Specs y tres candidatos, inventario y decisiones; informe §§1–4. |
+| EXPLAIN antes/después | PASS | Evidencia §4 y anexo A: planes y corridas reales. |
+| Costo escritura | PASS | Evidencia §6: INSERT en las tres tablas indexadas. |
+| Índice descartado | PASS | Evidencia §5: tamaño covering y rollback. |
+| Vistas + EXCEPT | PASS | Evidencia §7: cuatro pares 0/0 y conteos. |
+| Seguridad real | PASS | Evidencia §8: SET ROLE, denegaciones 42501 y limpieza. |
+| Vista materializada | PASS | Evidencia §9: 192 filas, comparación homogénea y EXCEPT. |
+| Índice UNIQUE materializada | PASS | SQL y evidencia §9: clave lógica y refresh exitoso. |
+| Refresh policy | PASS | Propuesta explícita de 60 minutos, no automatizada ni ratificada para despliegue. |
+| Kiro + IA + revisión humana | PASS | DUIA vigente §1 y DUIA histórica preservada. |
+| DUIA | PASS | Declaración vigente separa corrección, ejecución y decisiones. |
+| Trazabilidad Git | PASS | Historial previo y renombres preservados; cierre local pendiente de commit, sin SHA nuevo. |
 
-**Índices:**
+## Evidencia histórica
 
-| Índice | Antes | Después |
-|---|---:|---:|
-| `idx_producto_stock_bajo` | 10.030 ms | 0.2675 ms |
-| `idx_pedido_fecha_reciente` | 12.8805 ms | 0.313 ms |
-| `idx_cliente_email_lower` | 10.272 ms | 0.1075 ms |
+- [informe_mediciones_historico.md](informes/informe_mediciones_historico.md)
+- [duia_historica.md](duia/duia_historica.md)
 
-**Vista materializada:**
+Ambos corresponden a una iteración basada en un esquema no alineado con
+el modelo oficial. Se renombraron mediante `git mv` sin editar su contenido
+y se conservan **solo por trazabilidad**, no como solución vigente.
+Sus resultados y afirmaciones no se trasladan al informe actual.
 
-| Consulta | Promedio estable |
-|---|---:|
-| Original (JOIN + agregación) | 1131.224 ms |
-| Sobre la vista materializada | 0.060 ms |
+La evidencia del Bloque 2 permanece intacta: sus menciones temporales al
+informe y DUIA anteriores deben leerse con estos nuevos destinos. Las
+referencias externas a Unidad 3 no se modifican dentro de este cierre.
 
-Estas cifras corresponden al entorno y al dataset utilizados durante
-esta medición puntual — no se presentan como valores universales ni se
-afirma que se reproducirán con tiempos idénticos en otra corrida u
-otra máquina.
+## Puntos para la defensa
 
-Para la evidencia completa (planes reales, buffers, protocolo de
-medición, propuestas descartadas) ver:
-
-```
-informes/informe_mediciones.md
-```
-
----
-
-## DUIA — Declaración de Uso de IA
-
-El archivo:
-
-```
-duia/duia.md
-```
-
-documenta:
-
-- el uso de Kiro para especificar cada objeto antes de generarlo;
-- el uso de OpenCode para generar SQL y documentación a partir de esas
-  specs;
-- las propuestas que fueron revisadas y corregidas antes de aceptarse;
-- el caso de un índice descartado explícitamente por sobreindexación;
-- las decisiones que tomó el estudiante y no se delegaron a la IA;
-- las verificaciones de equivalencia semántica realizadas;
-- la trazabilidad de commits de cada pieza del trabajo.
-
----
-
-## Specs
-
-El directorio `specs/` conserva las especificaciones escritas antes de
-generar cada índice, cada vista y la vista materializada. Cada spec
-define el objetivo, el esquema real involucrado, las restricciones de
-diseño y el criterio de aceptación de esa pieza.
-
-Esto permite demostrar el flujo de trabajo seguido en todo el TP:
-
-```
-especificar → generar → revisar → medir → decidir → versionar
-```
-
----
-
-## Archivos principales
-
-| Archivo | Propósito |
-|---|---|
-| [`../../schema.sql`](../../schema.sql) | Esquema base del proyecto Food Store (tablas, restricciones). |
-| [`../../datos_iniciales.sql`](../../datos_iniciales.sql) | Datos base heredados del proyecto Food Store. |
-| [`../unidad-2/tp3/sql/carga_masiva_tp3.sql`](../unidad-2/tp3/sql/carga_masiva_tp3.sql) | Genera el volumen de datos utilizado para las pruebas de rendimiento; creado en TP3, copia canónica única, reutilizado acá sin duplicar. |
-| [`sql/queries.sql`](sql/queries.sql) | Consultas de referencia utilizadas en el TP5 para las mediciones de índices, equivalencia de vistas y reporte de la vista materializada. |
-| [`sql/indices.sql`](sql/indices.sql) | Definición de los tres índices de este TP, documentados con su spec, justificación y resultado medido. |
-| [`sql/views.sql`](sql/views.sql) | Definición de las tres vistas convencionales de la Parte B. |
-| [`sql/materializadas.sql`](sql/materializadas.sql) | Definición de la vista materializada y su índice UNIQUE de la Parte C. |
-| [`informes/informe_mediciones.md`](informes/informe_mediciones.md) | Evidencia completa de mediciones (`EXPLAIN ANALYZE`), equivalencias `EXCEPT` y planes reales. |
-| [`duia/duia.md`](duia/duia.md) | Declaración de uso de IA y bitácora de decisiones. |
-| [`specs/`](specs/) | Especificaciones previas de cada índice, vista y vista materializada. |
-
----
-
-## Notas para la defensa
-
-El estudiante debe poder justificar oralmente, para cada pieza:
-
-- por qué se creó cada índice y qué columnas se eligieron como clave o
-  como `INCLUDE`;
-- qué nodo del plan cambió realmente (no solo qué se esperaba que
-  cambiara);
-- el costo de mantenimiento de cada índice sobre `INSERT`/`UPDATE`;
-- por qué se descartó la variante *covering* de
-  `idx_cliente_email_lower` por sobreindexación;
-- por qué `v_pedidos_cliente` no expone (ni inventa) una columna de
-  contraseña;
-- por qué `v_detalle_pedido_producto` no filtra por
-  `producto.activo`;
-- por qué la vista materializada acepta staleness de hasta
-  aproximadamente una hora, y por qué eso es aceptable para ese
-  reporte en particular.
+1. Por qué eliminación lógica y disponibilidad no son filtros equivalentes.
+2. Cómo cambió cada plan realmente y qué aporta `INCLUDE`, sin garantizar optimalidad.
+3. Por qué `UNIQUE(mail)` no decide la unicidad de `lower(mail)`.
+4. Cómo justificar lectura frente a INSERT y el descarte por tamaño del covering.
+5. Qué demuestra EXCEPT y cómo las vistas conservan historial y protegen datos.
+6. Por qué se comparan órdenes iguales y qué costo/atraso introduce materializar.
+7. Qué corrigió la revisión humana y cómo se distingue evidencia vigente de histórica.

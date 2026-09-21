@@ -1,135 +1,67 @@
 # Spec: vista_productos_vigentes
 
-## Objetivo
+Contrato del modelo oficial de TP5. Requiere una copia de pruebas que lo implemente; no migra tablas ni acredita compatibilidad con `schema.sql` de la raíz. Este bloque no ejecuta SQL ni produce resultados.
 
-Crear una vista para consultar productos vigentes junto con los datos
+## MODELO_OFICIAL
 
-básicos de su categoría en foodstore_tp5.
+`producto`: `id`, `nombre`, `descripcion`, `precio`, `stock`, `disponible`, `categoria_id`, `eliminado`. `categoria`: `id`, `nombre`, `eliminado`. Relación `producto.categoria_id = categoria.id`.
 
-La vista debe encapsular una regla única y consistente de vigencia para
+## OBJETIVO
 
-el catálogo.
+Exponer productos y categorías no eliminados. Mostrar `disponible` sin usarlo como filtro: disponibilidad y existencia lógica son independientes.
 
-## Nombre esperado
+## CONSULTA
 
-v_productos_vigentes
-
-## Tablas involucradas
-
-producto
-
-categoria
-
-## Regla de vigencia
-
-Un producto debe aparecer únicamente cuando:
-
-producto.activo = TRUE
-
-y además:
-
-categoria.activo = TRUE
-
-La decisión es explícita:
-
-si una categoría queda inactiva, sus productos dejan de aparecer en la
-
-vista aunque el registro de producto siga teniendo activo = TRUE.
-
-## Columnas a exponer
-
-- producto_id
-
-- producto_nombre
-
-- descripcion
-
-- precio
-
-- stock
-
-- categoria_id
-
-- categoria_nombre
-
-No exponer:
-
-- created_at de producto
-
-- created_at de categoria
-
-- columnas internas innecesarias para el reporte
-
-## Relación
-
-producto.categoria_id = categoria.id
-
-## Consulta manual equivalente esperada
-
+```sql
 SELECT
-
     p.id AS producto_id,
-
     p.nombre AS producto_nombre,
-
     p.descripcion,
-
     p.precio,
-
     p.stock,
-
+    p.disponible,
     c.id AS categoria_id,
-
     c.nombre AS categoria_nombre
-
 FROM producto p
-
 JOIN categoria c
-
     ON c.id = p.categoria_id
+WHERE p.eliminado = FALSE
+  AND c.eliminado = FALSE;
+```
 
-WHERE p.activo = TRUE
+## OBJETO_CANDIDATO
 
-  AND c.activo = TRUE;
+Definición en [views.sql](../sql/views.sql).
 
-## Criterio de aceptación
+```sql
+CREATE OR REPLACE VIEW v_productos_vigentes AS
+SELECT
+    p.id AS producto_id,
+    p.nombre AS producto_nombre,
+    p.descripcion,
+    p.precio,
+    p.stock,
+    p.disponible,
+    c.id AS categoria_id,
+    c.nombre AS categoria_nombre
+FROM producto p
+JOIN categoria c
+    ON c.id = p.categoria_id
+WHERE p.eliminado = FALSE
+  AND c.eliminado = FALSE;
+```
 
-Después de crear la vista:
+## CRITERIO_DE_ACEPTACION
 
-SELECT * FROM v_productos_vigentes
+- Exponer exactamente `producto_id`, `producto_nombre`, `descripcion`, `precio`, `stock`, `disponible`, `categoria_id`, `categoria_nombre`.
+- Excluir productos o categorías eliminados.
+- Mantener productos no disponibles cuando ellos y su categoría no estén eliminados.
+- Cumplir equivalencia bidireccional con la consulta manual.
 
-debe ser semánticamente equivalente a la consulta manual anterior.
+## RIESGOS
 
-La equivalencia debe verificarse mediante EXCEPT en ambos sentidos:
+Instalación prevista en una copia limpia. Si existe una versión anterior, `CREATE OR REPLACE VIEW` puede no aceptar cambios de columnas; evaluar dependencias y migración por separado. Este bloque no elimina objetos instalados. El JOIN requiere una categoría asociada. No confundir catálogo vigente con catálogo disponible para venta.
 
-manual_minus_view = 0
+## VALIDACION_PENDIENTE
 
-view_minus_manual = 0
-
-## Restricciones
-
-- PostgreSQL 17.
-
-- No modificar las tablas base.
-
-- No inventar columnas.
-
-- No agregar filtros que no estén documentados.
-
-- No usar materialized view en esta etapa.
-
-- No afirmar que una vista mejora rendimiento.
-
-- La vista es un mecanismo de encapsulamiento y consistencia de criterio,
-
-  no una optimización por sí misma.
-
-## Entrega esperada en la siguiente etapa
-
-Este archivo será entregado a OpenCode.
-
-OpenCode deberá generar solamente la definición SQL de:
-
-v_productos_vigentes
-
-No debe ejecutar SQL.
+Pendiente: instalar en una copia con el modelo oficial y comprobar las columnas expuestas. Comparar con la consulta manual mediante `EXCEPT` en ambos sentidos: el criterio esperado es que ambas diferencias estén vacías, no un resultado ya obtenido. Usar un mismo estado de datos para ambas consultas. Una vista convencional no demuestra por sí sola mejora de rendimiento. Probar todas las combinaciones de eliminación de producto/categoría y disponibilidad.
