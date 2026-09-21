@@ -3,30 +3,44 @@
 -- Base de Datos II - Unidad 4, Parte 1: FNBC - ControlLoteAlmacen
 -- Especificación: ../specs/u4_fnbc_control_lote.md
 -- ============================================================================
--- Diseñado para ejecutarse una única vez sobre la copia foodstore_u4.
+-- Diseñado para ejecutarse una única vez sobre la copia foodstore_u4_oficial.
 -- No usa IDENTITY, IF NOT EXISTS, ON CONFLICT ni CASCADE: si algún
 -- objeto ya existe o los datos violan una regla de negocio necesaria,
 -- el script debe fallar de forma visible, no ocultar el problema.
 --
--- El schema.sql real del proyecto Food Store NO contiene lote,
--- deposito ni usuario. La consigna académica las supone existentes.
--- Este script crea versiones mínimas de esas tres tablas (solo id)
--- exclusivamente para que este TP sea reproducible desde GitHub sobre
--- una copia de la base, sin modificar schema.sql ni inventar columnas
--- o reglas de negocio adicionales.
+-- El modelo oficial ya contiene usuario: esta práctica utiliza los usuarios
+-- existentes 801 y 802, no los crea ni elimina. Solo deposito y lote son
+-- tablas maestras auxiliares de la extensión académica de Unidad 4.
+-- Requiere una copia de laboratorio conforme al modelo oficial; schema.sql
+-- raíz conserva la iteración histórica y no es su bootstrap oficial.
+-- VALIDATION_STATUS: PASS_ON_OFFICIAL_MODEL.
+-- Bloque 2, PostgreSQL 17.11: diagnóstico 0, conteos 3 / 3, EXCEPT 0 / 0.
+-- usuario conservó OID, conteo y huella de contenido; responsables 801/802.
+-- Evidencia: ../informes/evidencia_modelo_oficial.md.
 -- ============================================================================
 
 BEGIN;
+
+-- Precondición: exactamente dos usuarios existentes y no eliminados.
+SELECT id
+FROM usuario
+WHERE id IN (801, 802)
+  AND eliminado = FALSE;
+
+DO $$
+BEGIN
+    IF (SELECT COUNT(*) FROM usuario
+        WHERE id IN (801, 802) AND eliminado = FALSE) <> 2 THEN
+        RAISE EXCEPTION 'Se requieren los usuarios 801 y 802 no eliminados';
+    END IF;
+END;
+$$;
 
 -- ============================================================================
 -- ETAPA 1: Tablas maestras mínimas (soporte reproducible, no del dominio real)
 -- ============================================================================
 
 CREATE TABLE deposito (
-    id BIGINT PRIMARY KEY
-);
-
-CREATE TABLE usuario (
     id BIGINT PRIMARY KEY
 );
 
@@ -37,10 +51,6 @@ CREATE TABLE lote (
 INSERT INTO deposito (id) VALUES
     (30),
     (31);
-
-INSERT INTO usuario (id) VALUES
-    (801),
-    (802);
 
 INSERT INTO lote (id) VALUES
     (501),
@@ -292,13 +302,10 @@ COMMIT;
 -- 3. DROP TABLE responsable_control_deposito;
 -- 4. DROP TABLE control_lote_almacen;
 -- 5. DROP TABLE lote;
--- 6. DROP TABLE usuario;
--- 7. DROP TABLE deposito;
+-- 6. DROP TABLE deposito;
+-- usuario pertenece al modelo base y no forma parte del DOWN.
 --
--- Alternativamente, existe un backup externo tomado antes de iniciar
--- esta práctica:
---
--- backups/foodstore_u4_pre_u4.dump
---
--- Ese dump no debe versionarse en Git.
+-- Antes de ejecutar, generar y verificar un backup de la copia oficial
+-- fuera del repositorio. El backup histórico de la iteración anterior no
+-- acredita un respaldo de esta nueva base. No versionar el dump.
 -- ============================================================================

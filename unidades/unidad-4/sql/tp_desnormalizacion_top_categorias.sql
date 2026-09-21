@@ -5,47 +5,32 @@
 -- Especificación: ../specs/u4_desnormalizacion_top_categorias.md
 -- ============================================================================
 --
--- CONTEXTO REAL DEL SCHEMA
+-- STATUS: EXPERIMENTAL_CANDIDATE_REJECTED
+-- FINAL_DECISION: DO_NOT_ADOPT
+-- MODELO OFICIAL Y ESTADO DE VALIDACIÓN
 --
--- El schema.sql real de este repositorio NO contiene:
--- - detalle_pedido.subtotal
--- - detalle_pedido.eliminado
--- - pedido.eliminado
+-- detalle_pedido.subtotal es una columna física; detalle_pedido y pedido
+-- tienen eliminado. pedido.fecha es DATE y el reporte usa CURRENT_DATE.
+-- Se suman dp.subtotal con filtros de borrado lógico sobre detalle y pedido.
+-- No se filtran producto/categoria por eliminado ni producto.disponible:
+-- una baja actual no debe ocultar las ventas históricas del día consultado.
 --
--- Esas columnas aparecen en la consigna teórica, pero no existen acá.
--- No se inventan: el subtotal real utilizado en todo este archivo es
--- cantidad * precio_unitario.
+-- Resultado real en foodstore_u4_oficial, PostgreSQL 17.11 (Bloque 2):
+-- baseline median = 200.392 ms; candidate median = 196.507 ms
+-- time delta = -1.94 %; buffers = +59.70 %; write cost = +34.97 %
+-- Evidencia: ../informes/evidencia_modelo_oficial.md.
+-- Implementación experimental válida, no una mejora robusta ni una
+-- migración pendiente de incorporar a schema.sql. Candidato descartado
+-- por relación costo/beneficio; conservar producto.categoria_id.
 --
--- MOTIVO MEDIDO DE LA DESNORMALIZACIÓN
---
--- Se ejecutó EXPLAIN (ANALYZE, BUFFERS) cinco veces sobre la consulta
--- normalizada (Sección "CONSULTA NORMALIZADA (BASELINE)" más abajo),
--- para el día 2026-04-11 (4160 pedidos, 10400 detalles ese día):
---
--- Execution Time:
--- 1. 234.451 ms
--- 2. 369.073 ms
--- 3. 231.651 ms
--- 4. 239.969 ms
--- 5. 266.980 ms
---
--- Mediana baseline = 239.969 ms. No se oculta la corrida de 369.073 ms.
---
--- El plan mostró Parallel Seq Scan sobre detalle_pedido y pedido,
--- Parallel Hash Join entre ambos, y un Nested Loop hacia producto con
--- Index Scan using producto_pkey ejecutado aproximadamente 10400 veces
--- (una por detalle), acumulando aproximadamente 31200 de los 36400
--- buffers totales. El Sort final (quicksort, ~25 kB) NO es el cuello
--- de botella: el costo medido está concentrado en las búsquedas
--- repetidas contra producto, hechas únicamente para obtener
--- producto.categoria_id.
---
--- DECISIÓN: columna redundante derivada, mantenida por triggers,
--- en lugar de una vista materializada — el escenario es un panel de
--- actualización frecuente, y la columna redundante mantiene
--- sincronización inmediata en vez de aceptar staleness entre refresh.
--- Esto no implica que una vista materializada sea incorrecta en
--- general; simplemente no es el patrón elegido para este caso.
+-- HIPÓTESIS: eliminar el JOIN a producto puede reducir trabajo de lectura.
+-- Se conserva la columna redundante mantenida por triggers en lugar de una
+-- vista materializada, evitando un ciclo de refresh para este dato derivado.
+-- Equivalencia 0 / 0, pruebas A/B/C PASS y auditoría final 0.
+-- Concurrencia ensayada: dos UPDATE del mismo producto, espera y auditoría 0.
+-- No se probó INSERT concurrente de detalle frente a UPDATE de producto.
+-- No se incorpora aquí una estrategia adicional de bloqueo.
+-- La hipótesis y el SQL se conservan como evidencia del experimento.
 --
 -- producto.categoria_id sigue siendo la ÚNICA fuente de verdad.
 -- detalle_pedido.categoria_id es redundancia controlada, cuyo dueño
@@ -100,7 +85,7 @@ ALTER TABLE detalle_pedido
 -- ETAPA 4: Sincronización A — detalle_pedido -> producto
 -- ============================================================================
 --
--- Antes de INSERT o de UPDATE de producto_id sobre detalle_pedido,
+-- Antes de INSERT o de UPDATE de producto_id o categoria_id en detalle_pedido,
 -- obtiene producto.categoria_id usando NEW.producto_id y lo asigna a
 -- NEW.categoria_id. Si NEW.producto_id no identifica un producto
 -- existente, la función no oculta ni corrige el problema: no podrá
@@ -125,12 +110,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- IMPORTANTE: la condición WHEN evita que este trigger se dispare
--- cuando solo cambia categoria_id (por ejemplo, por efecto del
--- trigger de sincronización B sobre producto), evitando una recursión
--- accidental entre ambos mecanismos.
+-- También intercepta UPDATE directo de categoria_id: la aplicación no
+-- puede imponer un valor distinto de producto.categoria_id mediante DML
+-- ordinario con estos triggers habilitados. La función solo asigna NEW;
+-- no ejecuta UPDATE sobre producto ni detalle, por lo que no hay ciclo.
+-- El UPDATE de sincronización B vuelve a derivar el mismo valor vigente.
+-- No se filtra eliminado/disponible: las bajas lógicas no excluyen filas
+-- de la sincronización. Esto requiere verificación posterior en ejecución.
 CREATE TRIGGER trg_detalle_pedido_set_categoria
-    BEFORE INSERT OR UPDATE OF producto_id
+    BEFORE INSERT OR UPDATE OF producto_id, categoria_id
     ON detalle_pedido
     FOR EACH ROW
     EXECUTE FUNCTION fn_detalle_pedido_set_categoria();
@@ -192,14 +180,13 @@ COMMIT;
 -- ============================================================================
 -- CONSULTA NORMALIZADA (BASELINE, con JOIN a producto)
 -- ============================================================================
--- Se conserva como consulta de referencia; es la que se midió con
--- EXPLAIN (ANALYZE, BUFFERS) para obtener las cinco corridas del
--- encabezado.
+-- Consulta oficial medida: mediana 200.392 ms de las cinco corridas.
+-- Los resultados completos permanecen en la evidencia del Bloque 2.
 -- ============================================================================
 
 SELECT
     c.nombre AS categoria,
-    SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
+    SUM(dp.subtotal) AS total_vendido
 FROM detalle_pedido dp
 JOIN producto pr
     ON pr.id = dp.producto_id
@@ -207,8 +194,9 @@ JOIN categoria c
     ON c.id = pr.categoria_id
 JOIN pedido ped
     ON ped.id = dp.pedido_id
-WHERE ped.fecha >= DATE '2026-04-11'
-  AND ped.fecha < DATE '2026-04-12'
+WHERE ped.eliminado = FALSE
+  AND dp.eliminado = FALSE
+  AND ped.fecha = CURRENT_DATE
 GROUP BY c.nombre
 ORDER BY total_vendido DESC
 LIMIT 5;
@@ -216,21 +204,21 @@ LIMIT 5;
 -- ============================================================================
 -- CONSULTA DESNORMALIZADA (sin JOIN a producto)
 -- ============================================================================
--- No se agrega EXPLAIN fijo como resultado medido acá: las mediciones
--- reales de esta consulta se ejecutarán manualmente después, según el
--- protocolo documentado en "MEDICIÓN POSTERIOR" más abajo.
+-- Consulta oficial medida: mediana 196.507 ms de las cinco corridas.
+-- No se incrustan planes en el script; consultar evidencia del Bloque 2.
 -- ============================================================================
 
 SELECT
     c.nombre AS categoria,
-    SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
+    SUM(dp.subtotal) AS total_vendido
 FROM detalle_pedido dp
 JOIN categoria c
     ON c.id = dp.categoria_id
 JOIN pedido ped
     ON ped.id = dp.pedido_id
-WHERE ped.fecha >= DATE '2026-04-11'
-  AND ped.fecha < DATE '2026-04-12'
+WHERE ped.eliminado = FALSE
+  AND dp.eliminado = FALSE
+  AND ped.fecha = CURRENT_DATE
 GROUP BY c.nombre
 ORDER BY total_vendido DESC
 LIMIT 5;
@@ -238,13 +226,16 @@ LIMIT 5;
 -- ============================================================================
 -- EQUIVALENCIA — ORIGINAL MENOS DESNORMALIZADA
 -- ============================================================================
--- Resultado esperado: 0 filas.
+-- Resultado esperado: 0 filas. Se comparan todos los grupos, sin LIMIT.
+-- ORDER BY total_vendido DESC no desempata: categorías con igual importe
+-- en el límite pueden dar distintos Top 5 igualmente válidos. No confundir
+-- esa selección no determinista con una diferencia de agregados.
 -- ============================================================================
 
 WITH original AS (
     SELECT
         c.nombre AS categoria,
-        SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
+        SUM(dp.subtotal) AS total_vendido
     FROM detalle_pedido dp
     JOIN producto pr
         ON pr.id = dp.producto_id
@@ -252,21 +243,23 @@ WITH original AS (
         ON c.id = pr.categoria_id
     JOIN pedido ped
         ON ped.id = dp.pedido_id
-    WHERE ped.fecha >= DATE '2026-04-11'
-      AND ped.fecha < DATE '2026-04-12'
+    WHERE ped.eliminado = FALSE
+      AND dp.eliminado = FALSE
+      AND ped.fecha = CURRENT_DATE
     GROUP BY c.nombre
 ),
 desnormalizada AS (
     SELECT
         c.nombre AS categoria,
-        SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
+        SUM(dp.subtotal) AS total_vendido
     FROM detalle_pedido dp
     JOIN categoria c
         ON c.id = dp.categoria_id
     JOIN pedido ped
         ON ped.id = dp.pedido_id
-    WHERE ped.fecha >= DATE '2026-04-11'
-      AND ped.fecha < DATE '2026-04-12'
+    WHERE ped.eliminado = FALSE
+      AND dp.eliminado = FALSE
+      AND ped.fecha = CURRENT_DATE
     GROUP BY c.nombre
 )
 SELECT *
@@ -285,7 +278,7 @@ FROM desnormalizada;
 WITH original AS (
     SELECT
         c.nombre AS categoria,
-        SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
+        SUM(dp.subtotal) AS total_vendido
     FROM detalle_pedido dp
     JOIN producto pr
         ON pr.id = dp.producto_id
@@ -293,21 +286,23 @@ WITH original AS (
         ON c.id = pr.categoria_id
     JOIN pedido ped
         ON ped.id = dp.pedido_id
-    WHERE ped.fecha >= DATE '2026-04-11'
-      AND ped.fecha < DATE '2026-04-12'
+    WHERE ped.eliminado = FALSE
+      AND dp.eliminado = FALSE
+      AND ped.fecha = CURRENT_DATE
     GROUP BY c.nombre
 ),
 desnormalizada AS (
     SELECT
         c.nombre AS categoria,
-        SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
+        SUM(dp.subtotal) AS total_vendido
     FROM detalle_pedido dp
     JOIN categoria c
         ON c.id = dp.categoria_id
     JOIN pedido ped
         ON ped.id = dp.pedido_id
-    WHERE ped.fecha >= DATE '2026-04-11'
-      AND ped.fecha < DATE '2026-04-12'
+    WHERE ped.eliminado = FALSE
+      AND dp.eliminado = FALSE
+      AND ped.fecha = CURRENT_DATE
     GROUP BY c.nombre
 )
 SELECT *
@@ -323,11 +318,11 @@ FROM original;
 -- Objetivo: comprobar que al modificar producto_id de un detalle
 -- existente, categoria_id se actualiza automáticamente desde producto.
 --
--- Esta prueba requiere elegir, con datos reales de foodstore_u4:
+-- Esta prueba requiere elegir, con datos reales de foodstore_u4_oficial:
 -- - un detalle existente (pedido_id, producto_id) determinado;
 -- - un producto_id alternativo válido, de categoría distinta, que no
---   provoque conflicto con la PK (pedido_id, producto_id) de
---   detalle_pedido (es decir, que ese pedido_id no tenga ya una fila
+--   provoque conflicto con UNIQUE (pedido_id, producto_id) de
+--   detalle_pedido; su PK es id (es decir, que ese pedido_id no tenga ya una fila
 --   con ese producto_id alternativo).
 --
 -- Esos IDs concretos no están documentados en la spec y no se
@@ -335,7 +330,7 @@ FROM original;
 -- ejecutarse manualmente con IDs válidos seleccionados previamente
 -- por el estudiante (por ejemplo, verificando de antemano con un
 -- SELECT que el producto alternativo exista, tenga categoría distinta
--- y no choque con la PK del detalle elegido):
+-- y no choque con UNIQUE del detalle elegido):
 --
 -- BEGIN;
 --
@@ -355,6 +350,25 @@ FROM original;
 -- ============================================================================
 
 -- ============================================================================
+-- PRUEBA REVERSIBLE A2 — ASIGNACIÓN DIRECTA DE CATEGORÍA
+-- ============================================================================
+-- Con un detalle y una categoría alternativa válidos elegidos del dataset:
+-- BEGIN;
+-- UPDATE detalle_pedido
+-- SET categoria_id = :categoria_id_alternativa_valida
+-- WHERE id = :detalle_id_elegido;
+-- SELECT dp.id, dp.categoria_id, pr.categoria_id AS categoria_real
+-- FROM detalle_pedido dp JOIN producto pr ON pr.id = dp.producto_id
+-- WHERE dp.id = :detalle_id_elegido;
+-- -- Debe prevalecer producto.categoria_id, no el valor proporcionado.
+-- ROLLBACK;
+-- Repetir los controles con bajas lógicas reversibles; la sincronización
+-- incluye esas filas, aunque pedido/detalle eliminados no integren el reporte.
+-- Bloque 2: INSERT de 1000 detalles medido y dos UPDATE concurrentes
+-- del mismo producto validados. La carrera INSERT/UPDATE no fue ensayada.
+-- ============================================================================
+
+-- ============================================================================
 -- PRUEBA REVERSIBLE B — PRODUCTO
 -- ============================================================================
 --
@@ -362,7 +376,7 @@ FROM original;
 -- las filas de detalle_pedido asociadas a ese producto reciben la
 -- nueva categoria_id.
 --
--- Esta prueba requiere elegir, con datos reales de foodstore_u4:
+-- Esta prueba requiere elegir, con datos reales de foodstore_u4_oficial:
 -- - un producto que tenga detalles asociados;
 -- - una categoria_id alternativa válida y distinta de la actual.
 --
@@ -396,30 +410,28 @@ FROM original;
 -- ============================================================================
 
 -- ============================================================================
--- MEDICIÓN POSTERIOR
+-- MEDICIÓN REAL Y PROTOCOLO CONSERVADO
 -- ============================================================================
 --
--- Medir manualmente la consulta desnormalizada con:
---
--- EXPLAIN (ANALYZE, BUFFERS)
---
--- Protocolo:
--- - ejecutar 5 veces;
--- - conservar las cinco mediciones (no descartar ninguna);
--- - calcular la mediana como valor representativo;
--- - comparar la mediana contra el baseline: 239.969 ms;
--- - comparar también el tipo de nodo dominante y los buffers totales
---   contra el plan normalizado documentado en el encabezado de este
---   archivo (Parallel Hash Join + Nested Loop hacia producto,
---   ~36400 buffers, ~31200 de ellos en producto_pkey);
--- - no declarar mejora de rendimiento hasta obtener esa evidencia
---   real.
+-- Bloque 2: cinco corridas por variante, ninguna descartada.
+-- Normalizada (ms): 191.465, 188.192, 210.285, 237.785, 200.392.
+-- Candidato (ms): 174.459, 177.794, 287.053, 196.507, 307.298.
+-- Buffers hit + read: 8382 -> 13386. Mayor dispersión posterior.
+-- INSERT de 1000 detalles: promedio válido 21.3385 -> 28.8015 ms.
+-- Costo incremental del trigger, no todo el costo de la columna/FK.
+-- Propagación del producto 17: 18 detalles, 57.540 ms (observación puntual).
+-- Backfill: 550000; NULL y desincronizadas: 0. EXCEPT: 0 / 0.
+-- Protocolo: EXPLAIN (ANALYZE, BUFFERS); registrar todas las corridas,
+-- nodos, filas y buffers; mediana sin seleccionar solo resultados favorables.
+-- Las cachés y el estado físico posterior al backfill limitan la comparación.
+-- Beneficio temporal marginal: no adoptar el candidato como diseño permanente.
 -- ============================================================================
 
 -- ============================================================================
 -- PLAN DE REVERSIÓN / DOWN
 -- ============================================================================
 --
+-- DOWN validado estáticamente en el Bloque 2, no ejecutado.
 -- Los siguientes comandos NO se ejecutan automáticamente. Revertir en
 -- este orden, sin CASCADE:
 --
@@ -435,9 +447,7 @@ FROM original;
 -- Eliminar categoria_id no pierde información original: la fuente de
 -- verdad continúa siendo producto.categoria_id en todo momento.
 --
--- Backup externo previo a esta práctica:
---
--- backups/foodstore_u4_pre_u4.dump
---
--- Ese dump no debe versionarse en Git.
+-- Antes de ejecutar, crear y verificar un backup de la copia oficial fuera
+-- del repositorio. El backup histórico no acredita respaldo de esta nueva
+-- base. No versionar el dump.
 -- ============================================================================

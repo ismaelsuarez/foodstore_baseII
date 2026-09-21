@@ -1,491 +1,267 @@
 # Spec — Unidad 4 — Desnormalización controlada — Top categorías
 
-## 1. Contexto real del proyecto
+## 1. Modelo oficial y objetivo
 
-El TP de Unidad 4 solicita optimizar el reporte:
+Optimizar como hipótesis el reporte de las cinco categorías por monto
+vendido en el día, sin cambiar su resultado. Hipótesis conservada como
+contrato del experimento. **Estado final: REJECTED_AFTER_MEASUREMENT**.
+La implementación fue válida; la decisión de diseño permanente fue rechazada.
 
-Top 5 categorías por monto vendido en el día.
+El modelo oficial contiene `detalle_pedido.subtotal` físico,
+`detalle_pedido.eliminado` y `pedido.eliminado`; `pedido.fecha` es
+`DATE`. La PK del detalle es `id` y existe `UNIQUE (pedido_id, producto_id)`.
+No sustituir el subtotal almacenado por una expresión derivada.
 
-La consigna teórica utiliza:
+La ejecución del Bloque 2 utilizó foodstore_u4_oficial, copia descartable
+del modelo oficial con volumen verificado en CURRENT_DATE. Para reproducir
+el experimento se requiere otra copia y registrar sus conteos antes de medir.
+No se adoptan fechas, volúmenes, planes ni tiempos de la iteración anterior.
+El schema.sql raíz permanece histórico y no es el bootstrap de esta copia.
 
-dp.subtotal
+## 2. Consulta normalizada de referencia
 
-dp.eliminado
-
-ped.eliminado
-
-CURRENT_DATE
-
-Pero el schema.sql REAL de este repositorio contiene:
-
-detalle_pedido(
-
-    pedido_id,
-
-    producto_id,
-
-    cantidad,
-
-    precio_unitario
-
-)
-
-pedido(
-
-    id,
-
-    cliente_id,
-
-    fecha,
-
-    forma_pago
-
-)
-
-No existen:
-
-- detalle_pedido.subtotal
-
-- detalle_pedido.eliminado
-
-- pedido.eliminado
-
-Por lo tanto, NO inventar esas columnas.
-
-El subtotal real utilizado debe ser:
-
-dp.cantidad * dp.precio_unitario
-
-## 2. Adaptación temporal documentada
-
-La copia de trabajo es:
-
-foodstore_u4
-
-Fecha actual durante la práctica:
-
-2026-09-19
-
-Rango real de pedido.fecha en el dataset:
-
-2026-03-01 a 2026-04-11
-
-Pedidos con CURRENT_DATE:
-
-0
-
-Por lo tanto, para obtener una medición representativa se utiliza
-
-el último día existente en el dataset:
-
-2026-04-11
-
-Como pedido.fecha es TIMESTAMPTZ, utilizar:
-
-ped.fecha >= DATE '2026-04-11'
-
-AND ped.fecha < DATE '2026-04-12'
-
-No usar igualdad contra TIMESTAMPTZ.
-
-Para ese día se verificó:
-
-pedidos: 4160
-
-detalles: 10400
-
-## 3. Consulta normalizada baseline
-
-La consulta real medida fue:
-
+```sql
 SELECT
-
     c.nombre AS categoria,
-
-    SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
-
+    SUM(dp.subtotal) AS total_vendido
 FROM detalle_pedido dp
-
 JOIN producto pr
-
     ON pr.id = dp.producto_id
-
 JOIN categoria c
-
     ON c.id = pr.categoria_id
-
 JOIN pedido ped
-
     ON ped.id = dp.pedido_id
-
-WHERE ped.fecha >= DATE '2026-04-11'
-
-  AND ped.fecha < DATE '2026-04-12'
-
+WHERE ped.eliminado = FALSE
+  AND dp.eliminado = FALSE
+  AND ped.fecha = CURRENT_DATE
 GROUP BY c.nombre
-
 ORDER BY total_vendido DESC
-
 LIMIT 5;
+```
 
-## 4. Mediciones baseline reales
+La eliminación lógica de pedido/detalle excluye la venta del reporte.
+No filtrar producto o categoría por `eliminado`, ni producto por
+`disponible`: una baja actual no debe ocultar ventas históricas.
+La atribución de categoría sigue la categoría **actual** del producto;
+no representa una captura de la categoría al momento de la venta.
 
-Se ejecutó EXPLAIN (ANALYZE, BUFFERS) cinco veces.
+## 3. Estrategia conservada
 
-Execution Time:
+Agregar `detalle_pedido.categoria_id BIGINT` solo en el laboratorio,
+como columna redundante derivada de **producto.categoria_id**, que sigue
+siendo la única fuente de verdad. La aplicación no decide este valor.
 
-1. 234.451 ms
+La hipótesis intentó evitar el JOIN a producto. Se midió junto con el costo
+de escritura: eliminar ese JOIN no produjo una mejora robusta. El diseño
+se conserva como evidencia experimental, no como recomendación de adopción.
 
-2. 369.073 ms
+Se conserva el patrón de triggers para este panel de actualización
+frecuente, en lugar de una vista materializada con staleness entre refresh.
+No se afirma que la alternativa materializada sea incorrecta; requeriría
+otra política de actualización y otro análisis de costos.
 
-3. 231.651 ms
+## 4. Migración
 
-4. 239.969 ms
+Dentro de una transacción:
 
-5. 266.980 ms
+1. Agregar la columna redundante.
+2. Realizar backfill desde producto:
 
-Debido a variabilidad del entorno, conservar las cinco mediciones
-
-y utilizar la mediana como valor representativo:
-
-MEDIANA BASELINE = 239.969 ms
-
-No ocultar la ejecución de 369.073 ms.
-
-## 5. Diagnóstico del plan
-
-El plan fue estructuralmente consistente.
-
-Elementos principales:
-
-Parallel Seq Scan sobre detalle_pedido
-
-Parallel Seq Scan sobre pedido
-
-Parallel Hash Join entre detalle_pedido y pedido
-
-Nested Loop hacia producto
-
-Index Scan using producto_pkey
-
-Para el día medido:
-
-- 4160 pedidos
-
-- 10400 detalles
-
-- producto_pkey se ejecuta aproximadamente 10400 veces
-
-- buffers totales aproximados: 36400
-
-- producto_pkey acumula aproximadamente 31200 buffers
-
-El Sort final utiliza quicksort y aproximadamente 25 kB.
-
-Por lo tanto:
-
-El Sort NO es el cuello de botella principal.
-
-La evidencia medida muestra que una parte importante del costo está
-
-en el subárbol de JOIN y especialmente en las búsquedas repetidas de
-
-producto necesarias exclusivamente para obtener producto.categoria_id.
-
-## 6. Decisión de desnormalización
-
-Patrón elegido:
-
-Columna redundante derivada mantenida por triggers.
-
-Agregar posteriormente a:
-
-detalle_pedido
-
-la columna:
-
-categoria_id BIGINT
-
-Fuente de verdad:
-
-producto.categoria_id
-
-Objetivo:
-
-Evitar el JOIN detalle_pedido -> producto en el reporte frecuente.
-
-NO eliminar producto.categoria_id.
-
-NO cambiar la fuente de verdad.
-
-NO modificar schema.sql.
-
-El cambio debe vivir exclusivamente en:
-
-tp_desnormalizacion_top_categorias.sql
-
-## 7. Por qué no se elige vista materializada
-
-Una vista materializada sería eficiente para lectura, pero introduce
-
-staleness entre refresh.
-
-El escenario describe un panel de actualización frecuente.
-
-La columna redundante mantenida por triggers permite mantener
-
-sincronización inmediata con la fuente de verdad y elimina precisamente
-
-el JOIN identificado como costoso en la medición.
-
-No afirmar que una vista materializada sea incorrecta:
-
-simplemente no es el patrón elegido para este caso.
-
-## 8. Estrategia de migración
-
-La migración debe realizarse en transacción.
-
-Orden:
-
-1. ALTER TABLE detalle_pedido ADD COLUMN categoria_id BIGINT;
-
-2. Backfill:
-
+```sql
 UPDATE detalle_pedido dp
-
 SET categoria_id = pr.categoria_id
-
 FROM producto pr
-
 WHERE pr.id = dp.producto_id;
+```
 
-3. Verificar que no queden NULL.
+3. Verificar que no queden NULL y agregar NOT NULL.
+4. Agregar FK hacia categoria(id), sin introducir UNIQUE.
+5. Crear las dos funciones y los dos triggers existentes.
+6. Ejecutar auditoría de desincronización antes de confirmar.
 
-4. Agregar NOT NULL.
+No modificar tablas base fuera de esta extensión autorizada ni schema.sql.
+Antes de ejecutar, preparar y verificar un backup de la copia oficial
+fuera del repositorio. El backup de la iteración histórica no acredita
+respaldo de esta nueva copia. No versionar el dump.
 
-5. Agregar FOREIGN KEY hacia categoria(id).
+## 5. Sincronización y límites
 
-6. Crear función trigger para nuevas filas y cambios de producto_id.
+### Detalle → categoría del producto
 
-7. Crear trigger BEFORE INSERT OR UPDATE OF producto_id
+`fn_detalle_pedido_set_categoria` obtiene producto.categoria_id y lo
+asigna a NEW.categoria_id. Su trigger `trg_detalle_pedido_set_categoria`
+actúa BEFORE INSERT OR UPDATE OF producto_id, categoria_id.
 
-   sobre detalle_pedido.
+Incluir categoria_id corrige el bypass de una actualización directa de
+la columna redundante. Con los triggers habilitados, el DML ordinario de
+la aplicación vuelve a derivar el valor, aunque proporcione otro.
 
-8. Crear mecanismo para mantener sincronizados los detalles existentes
+### Producto → detalles
 
-   si cambia producto.categoria_id.
+`fn_producto_sync_categoria_detalle` y
+`trg_producto_sync_categoria_detalle` actúan AFTER UPDATE OF categoria_id
+sobre producto. Si el valor realmente cambia, actualizan todos sus detalles.
+No filtran bajas lógicas ni disponibilidad: preservan la misma autoridad
+incluso en filas que no participan actualmente del reporte.
 
-## 9. Sincronización obligatoria
+### Revisión estática
 
-Se requieren DOS caminos de sincronización.
+No hay ciclo entre estos dos mecanismos: el trigger de detalle solo
+asigna NEW y no actualiza producto ni emite otro UPDATE de detalle. El
+UPDATE emitido desde producto dispara esa asignación, no vuelve a producto.
 
-A. detalle_pedido -> producto
+Las pruebas A/B/C del Bloque 2 dieron PASS. Dos UPDATE concurrentes sobre
+el mismo producto dieron PASS: la segunda sesión esperó bloqueo y la
+auditoría final fue 0. No se agregó una estrategia adicional de bloqueo.
+NO se ensayó INSERT concurrente de detalle contra UPDATE de categoría del
+producto; no se garantiza consistencia bajo cualquier intercalación. El
+UPDATE puede reescribir numerosos detalles históricos; su costo puntual
+medido se registra en Resultado experimental.
 
-Antes de INSERT o UPDATE OF producto_id en detalle_pedido:
+## 6. Consulta desnormalizada
 
-buscar producto.categoria_id y asignarlo a NEW.categoria_id.
-
-La aplicación NO debe ser la responsable de decidir categoria_id.
-
-B. producto -> detalle_pedido
-
-Si producto.categoria_id cambia:
-
-actualizar detalle_pedido.categoria_id en todas las filas cuyo
-
-producto_id corresponda al producto modificado.
-
-Esto es necesario para conservar equivalencia con la consulta
-
-normalizada original, que siempre utiliza el categoria_id actual
-
-de producto.
-
-Evitar recursión accidental de triggers.
-
-## 10. Consulta desnormalizada objetivo
-
-Después de la migración, el mismo reporte debe resolverse sin JOIN
-
-con producto:
-
+```sql
 SELECT
-
     c.nombre AS categoria,
-
-    SUM(dp.cantidad * dp.precio_unitario) AS total_vendido
-
+    SUM(dp.subtotal) AS total_vendido
 FROM detalle_pedido dp
-
 JOIN categoria c
-
     ON c.id = dp.categoria_id
-
 JOIN pedido ped
-
     ON ped.id = dp.pedido_id
-
-WHERE ped.fecha >= DATE '2026-04-11'
-
-  AND ped.fecha < DATE '2026-04-12'
-
+WHERE ped.eliminado = FALSE
+  AND dp.eliminado = FALSE
+  AND ped.fecha = CURRENT_DATE
 GROUP BY c.nombre
-
 ORDER BY total_vendido DESC
-
 LIMIT 5;
+```
 
-Debe medirse posteriormente con:
+## 7. Equivalencia y auditoría
 
-EXPLAIN (ANALYZE, BUFFERS)
+Comparar las agregaciones completas mediante EXCEPT en ambos sentidos,
+como implementa el SQL. Resultados obtenidos en foodstore_u4_oficial:
 
-utilizando el mismo protocolo de cinco corridas.
+- original_minus_desnormalizada = 0 filas.
+- desnormalizada_minus_original = 0 filas.
 
-## 11. Equivalencia del reporte
+Se comparan todos los grupos antes de LIMIT. El orden solicitado solo por
+total no desempata categorías: si hay empate en el corte, distintas
+selecciones Top 5 pueden ser igualmente válidas. El Top 5 exacto también
+coincidió en el dataset medido; no se generaliza ese resultado a todos los
+casos de empate ni se atribuye una selección diferente a desincronización.
 
-Antes de comparar rendimiento, verificar que consulta normalizada
+Auditoría, incluyendo filas eliminadas:
 
-y consulta desnormalizada produzcan exactamente el mismo resultado.
-
-Usar EXCEPT en ambas direcciones.
-
-original_minus_desnormalizada = 0 filas
-
-desnormalizada_minus_original = 0 filas
-
-No considerar válida una mejora de rendimiento si cambia el resultado.
-
-## 12. Auditoría de desincronización
-
-El SQL final debe incluir una consulta de conciliación:
-
+```sql
 SELECT
-
     dp.pedido_id,
-
     dp.producto_id,
-
     dp.categoria_id AS categoria_guardada,
-
     pr.categoria_id AS categoria_real
-
 FROM detalle_pedido dp
-
 JOIN producto pr
-
     ON pr.id = dp.producto_id
-
 WHERE dp.categoria_id IS DISTINCT FROM pr.categoria_id;
+```
 
-Resultado esperado:
+Se obtuvieron 0 filas. Cualquier diferencia futura requiere investigación; una
+mejora de rendimiento no es válida si cambia el resultado.
 
-0 filas.
+## 8. Pruebas realizadas y límites
 
-Cualquier fila indica corrupción o desincronización del dato redundante.
+La [evidencia del modelo oficial](../informes/evidencia_modelo_oficial.md)
+registra las ejecuciones del Bloque 2. Este cierre no ejecutó SQL nuevo.
 
-## 13. Pruebas del mecanismo
+- Trigger A: cambio de producto del detalle, categoría derivada: PASS.
+- Trigger B: cambio de categoría del producto, detalles sincronizados: PASS.
+- Trigger C: UPDATE directo de categoria_id, prevalece producto: PASS.
+- DIRECT_TAMPERING_PROTECTED = YES, con triggers habilitados y DML ordinario.
+- Pruebas A/B/C reversibles con BEGIN / ROLLBACK.
+- Auditoría global y EXCEPT de agregados y Top 5: 0 / 0 diferencias.
+- INSERT: ensayo de costo de 1000 detalles con y sin trigger, sin filas persistentes.
+- Concurrencia: dos UPDATE del mismo producto, segunda sesión bloqueada,
+  auditoría 0 al confirmar ambas transacciones.
 
-El mecanismo debe probarse de forma reversible.
+No se ensayó la carrera INSERT de detalle frente a UPDATE de categoría del
+producto. Las pruebas específicas de bajas lógicas reversibles y otros
+casos límite no se presentan como ejecutadas. La ausencia de filtros de
+baja/disponibilidad en la sincronización sigue siendo una propiedad del
+código; las pruebas realizadas no cubren todas las intercalaciones.
 
-Prueba A:
+Protocolo de lectura: cinco corridas EXPLAIN (ANALYZE, BUFFERS), todas
+conservadas, comparadas mediante mediana sin ocultar outliers. Los planes
+completos se consultan en la evidencia. La iteración anterior permanece en
+[el informe histórico](../informes/informe_u4_fnbc_desnormalizacion_historico.md)
+y no es baseline válido del modelo oficial.
 
-Insertar o modificar un detalle dentro de una transacción y comprobar
+## 9. Reversibilidad
 
-que categoria_id se complete automáticamente.
+El SQL documenta un DOWN manual, no automático, validado estáticamente
+pero NO ejecutado sobre la copia medida:
 
-Prueba B:
+1. Eliminar ambos triggers.
+2. Eliminar sus funciones.
+3. Eliminar la FK agregada.
+4. Eliminar detalle_pedido.categoria_id.
 
-Modificar temporalmente producto.categoria_id dentro de una transacción
+No se pierde información original al retirar la columna redundante:
+producto.categoria_id continúa como fuente de verdad.
 
-y comprobar que los detalles asociados se actualicen.
+## 10. Criterios de aceptación
 
-Finalizar las pruebas con ROLLBACK.
+- Modelo oficial: subtotal físico, eliminado y fecha DATE.
+- Misma semántica histórica y misma fecha en las dos consultas.
+- Backfill, NOT NULL, FK y dos caminos de sincronización conservados.
+- Aplicación sin autoridad para asignar la categoría redundante mediante
+  DML ordinario con triggers habilitados.
+- Auditoría y EXCEPT con 0 filas: PASS en el dataset ensayado.
+- Pruebas funcionales reversibles y reserva explícita de concurrencia.
+- Rendimiento y costo de escritura medidos sin reutilizar cifras anteriores;
+  aceptar la implementación experimental no obliga a adoptar el diseño.
+- DOWN documentado, sin modificar schema.sql ni evidencia histórica.
 
-No alterar permanentemente los datos del dataset para probar triggers.
+Implementación: [tp_desnormalizacion_top_categorias.sql](../sql/tp_desnormalizacion_top_categorias.sql).
 
-## 14. Reversibilidad
+## Resultado experimental
 
-El cambio debe ser reversible.
+PostgreSQL 17.11, foodstore_u4_oficial, 2026-09-20. Volumen vigente del día:
+20.275 pedidos y 50.272 detalles. Backfill: 550.000 filas, 0 NULL y 0
+desincronizaciones. usuario pertenece al modelo oficial; pedido.usuario_id
+permanece sin cambios.
 
-Documentar un plan DOWN que permita:
+| Corrida | Normalizada (ms) | Desnormalizada (ms) |
+|---|---:|---:|
+| 1 | 191.465 | 174.459 |
+| 2 | 188.192 | 177.794 |
+| 3 | 210.285 | 287.053 |
+| 4 | 237.785 | 196.507 |
+| 5 | 200.392 | 307.298 |
+| Mediana | 200.392 | 196.507 |
+| Mínimo | 188.192 | 174.459 |
+| Máximo | 237.785 | 307.298 |
 
-- eliminar los triggers de sincronización;
+Variación mediana: **-1.94 %**, marginal frente a la dispersión observada.
+Buffers hit + read del nodo raíz: **8382 → 13386 (+59.70 %)**.
+INSERT de 1000 detalles, promedio de dos corridas válidas tras un
+calentamiento: **21.3385 → 28.8015 ms (+34.97 %)**. Es costo incremental
+del trigger sobre el esquema ya desnormalizado, no todo el costo de la
+columna/FK. Propagación del producto 17 a 18 detalles: **57.540 ms**, una
+observación puntual, no mediana.
 
-- eliminar las funciones trigger;
+Las cachés, el orden fijo de las series y el estado físico posterior al
+backfill limitan la comparación. Los resultados son propios de esta
+máquina y dataset, no universales. No se seleccionan solo corridas favorables.
 
-- eliminar la FOREIGN KEY agregada;
+## Decisión
 
-- eliminar la columna detalle_pedido.categoria_id.
+**REJECTED_AFTER_MEASUREMENT** — candidato evaluado y descartado por
+relación costo/beneficio. La implementación experimental pasó consistencia,
+equivalencia, triggers y la concurrencia ensayada, pero el beneficio temporal
+es marginal frente al incremento de buffers, escrituras, dispersión y
+complejidad. Decisión humana final: **NO ADOPTAR**.
 
-No ejecutar el DOWN automáticamente.
-
-La eliminación de la columna redundante NO pierde información original,
-
-porque la fuente de verdad continúa siendo producto.categoria_id.
-
-Backup previo existente:
-
-backups/foodstore_u4_pre_u4.dump
-
-No versionar el dump.
-
-## 15. Archivo final
-
-La implementación posterior debe estar en:
-
-tp_desnormalizacion_top_categorias.sql
-
-Debe contener:
-
-- ALTER TABLE
-
-- backfill
-
-- constraints
-
-- funciones trigger
-
-- triggers
-
-- consulta desnormalizada
-
-- equivalencia bidireccional
-
-- auditoría de sincronización
-
-- documentación del plan DOWN
-
-## 16. Criterios de aceptación
-
-- El diseño parte del schema real.
-
-- No se inventan subtotal ni eliminado.
-
-- La adaptación de CURRENT_DATE queda documentada.
-
-- Se conservan las cinco mediciones baseline.
-
-- La mediana baseline queda documentada como 239.969 ms.
-
-- La decisión ataca un costo observado en EXPLAIN ANALYZE.
-
-- producto.categoria_id continúa siendo fuente de verdad.
-
-- detalle_pedido.categoria_id se mantiene automáticamente.
-
-- INSERT/UPDATE de detalle se sincroniza.
-
-- Cambio de categoría del producto se sincroniza.
-
-- Auditoría devuelve 0 filas.
-
-- Consulta normalizada y desnormalizada son equivalentes.
-
-- Se mide nuevamente con EXPLAIN ANALYZE.
-
-- Existe plan de reversión.
-
-- No se modifica schema.sql.
-
-- No se ejecuta SQL durante la creación de la spec.
+Conservar producto.categoria_id como fuente de verdad del modelo canónico,
+sin agregar permanentemente detalle_pedido.categoria_id a schema.sql.
+Se mantiene este diseño y su SQL como evidencia del experimento controlado;
+el rechazo justificado no constituye un fracaso académico.

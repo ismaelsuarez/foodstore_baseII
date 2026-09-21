@@ -196,7 +196,7 @@ USING (responsable_control_id)
 
 ## 8. Vista de compatibilidad
 
-Crear posteriormente una vista:
+Crear la vista de compatibilidad (validada en el Bloque 2):
 
 v_control_lote_almacen
 
@@ -210,35 +210,29 @@ que exponga exactamente:
 
 y reconstruya la relación original mediante JOIN.
 
-## 9. Tablas maestras para el TP
+## 9. Modelo oficial y tablas de apoyo
 
-El schema real actual de Food Store NO contiene:
+El modelo oficial de Food Store contiene `usuario`, incluido su borrado
+lógico mediante `eliminado`. Unidad 4 no crea, inserta ni elimina usuarios.
+`responsable_control_id` mantiene su FK hacia `usuario(id)`.
 
-- lote
+Solo `deposito` y `lote` son tablas maestras mínimas creadas por esta
+extensión académica en la copia de laboratorio, sin modificar schema.sql.
+El archivo raíz conserva el modelo histórico y no es el bootstrap de la
+copia oficial que requiere esta práctica.
 
-- deposito
+Antes de crear las tablas del ejercicio, consultar:
 
-- usuario
+```sql
+SELECT id
+FROM usuario
+WHERE id IN (801, 802)
+  AND eliminado = FALSE;
+```
 
-La consigna las asume existentes.
-
-Para que el TP sea reproducible desde GitHub, el script SQL deberá crear
-
-tablas maestras mínimas y aisladas exclusivamente para esta extensión:
-
-deposito
-
-usuario
-
-lote
-
-No modificar schema.sql.
-
-No inventar reglas de negocio adicionales.
-
-Estas tablas existirán solamente como soporte reproducible para la
-
-extensión académica de Unidad 4.
+El Bloque 2 confirmó exactamente dos usuarios. Al reproducir, el script
+incluye una guarda que aborta si falta alguno o está eliminado. No debe
+insertar usuarios auxiliares para suplir esta precondición.
 
 ## 10. Instancia mínima
 
@@ -276,7 +270,7 @@ Instancia original:
 
 El script final debe seguir esta secuencia:
 
-1. Crear las tablas maestras mínimas.
+1. Validar los dos usuarios preexistentes y crear solo deposito y lote.
 
 2. Crear control_lote_almacen original.
 
@@ -358,17 +352,27 @@ separadamente antes de implementarlo.
 
 El SQL final debe permitir rollback transaccional durante las pruebas.
 
-También deberá existir posteriormente un procedimiento/documentación
+El script documenta un DOWN manual, revisado estáticamente. No se ejecutó
 
-de reversión que permita volver al esquema previo sin pérdida.
+la reversión sobre la copia medida.
 
-El backup externo ya fue creado antes de iniciar:
-
-backups/foodstore_u4_pre_u4.dump
-
-No incluir el dump en Git si backups/ está ignorado.
+El DOWN elimina exclusivamente los objetos creados por Unidad 4, nunca
+la tabla base usuario. Antes de ejecutar, crear y verificar un backup de
+la copia oficial fuera del repositorio; el respaldo histórico no acredita
+protección de esta nueva base. No versionar el dump.
 
 ## 15. Criterios de aceptación
+
+**VALIDATION_STATUS: PASS_ON_OFFICIAL_MODEL**. PostgreSQL 17.11,
+foodstore_u4_oficial. El Bloque 2 confirmó diagnóstico de F2 = 0 violaciones
+observadas, conteos 3 / 3 y EXCEPT 0 / 0. La instancia respeta la regla;
+la dependencia proviene del negocio, no se deduce únicamente de esos datos.
+Los usuarios 801/802 se reutilizaron y la tabla usuario permaneció intacta.
+Ver [evidencia oficial](../informes/evidencia_modelo_oficial.md).
+Los criterios siguientes se conservan como contrato de aceptación:
+
+- Exactamente dos usuarios no eliminados (801 y 802) antes de crear tablas.
+- No crear, insertar ni eliminar usuario desde este laboratorio.
 
 - Dependencias funcionales correctas.
 

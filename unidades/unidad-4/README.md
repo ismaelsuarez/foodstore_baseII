@@ -1,97 +1,96 @@
 # Unidad 4 — FNBC y desnormalización controlada
 
-Trabajo sobre normalización avanzada, Forma Normal de Boyce-Codd,
-descomposición lossless y desnormalización controlada aplicada a Food
-Store.
+| Parte | Estado final |
+|---|---|
+| 1 — FNBC | **PASS** sobre el modelo oficial |
+| 2 — Desnormalización | **EXPERIMENTO VÁLIDO / CANDIDATO DESCARTADO** |
 
-## Contenido
+La implementación experimental mantuvo consistencia y equivalencia, pero
+su relación costo/beneficio no justifica adoptarla como diseño permanente.
+**REJECTED_AFTER_MEASUREMENT: no incorporar detalle_pedido.categoria_id a schema.sql.**
 
-- `sql/` — scripts SQL de esta unidad.
-- `specs/` — especificaciones utilizadas como contrato antes de generar SQL.
-- `informes/` — informe consolidado de ambas partes.
+## Documentación vigente
 
-## Artefactos
+1. [Informe vigente y decisión final](informes/informe_u4_fnbc_desnormalizacion.md).
+2. [Evidencia técnica completa](informes/evidencia_modelo_oficial.md): planes,
+   pruebas, conteos y límites del ensayo.
+3. [Spec FNBC](specs/u4_fnbc_control_lote.md) y [SQL FNBC](sql/tp_fnbc_control_lote.sql).
+4. [Spec del candidato](specs/u4_desnormalizacion_top_categorias.md) y
+   [SQL experimental](sql/tp_desnormalizacion_top_categorias.sql).
 
-- [specs/u4_fnbc_control_lote.md](specs/u4_fnbc_control_lote.md)
-- [specs/u4_desnormalizacion_top_categorias.md](specs/u4_desnormalizacion_top_categorias.md)
-- [sql/tp_fnbc_control_lote.sql](sql/tp_fnbc_control_lote.sql)
-- [sql/tp_desnormalizacion_top_categorias.sql](sql/tp_desnormalizacion_top_categorias.sql)
-- [informes/informe_u4_fnbc_desnormalizacion.md](informes/informe_u4_fnbc_desnormalizacion.md)
+## Parte 1 — FNBC: PASS
 
-## Parte 1 — FNBC
+Se conservaron las dependencias de negocio, las claves candidatas y la
+descomposición en responsable_control_deposito y control_lote_responsable.
+La vista v_control_lote_almacen reconstruyó las **3 filas originales**;
+el EXCEPT bidireccional produjo **0 / 0**. La descomposición es sin pérdida;
+R1 (F1) requiere el JOIN para verificarse y no queda preservada localmente por las PK.
 
-Trabaja sobre la relación académica `control_lote_almacen`: identifica
-sus dependencias funcionales, sus claves candidatas, demuestra que
-viola la Forma Normal de Boyce-Codd, la descompone en
-`responsable_control_deposito` y `control_lote_responsable`, y
-verifica que la descomposición es sin pérdida (lossless) mediante una
-vista de compatibilidad y `EXCEPT` bidireccional.
+**usuario pertenece al modelo oficial**: se reutilizaron los usuarios 801 y
+802 no eliminados. Unidad 4 no creó ni eliminó esa tabla ni modificó sus
+filas. lote y deposito son tablas maestras auxiliares de la extensión
+académica; las FK de responsables apuntan a usuario(id).
 
-El script `sql/tp_fnbc_control_lote.sql` crea tablas mínimas de apoyo
-(`lote`, `deposito`, `usuario`) porque esas entidades no forman parte
-del `schema.sql` base del proyecto — existen únicamente para hacer
-reproducible este ejercicio académico.
+## Parte 2 — Experimento válido, candidato descartado
 
-## Parte 2 — Desnormalización controlada
+detalle_pedido.categoria_id se probó exclusivamente en la copia descartable
+foodstore_u4_oficial; **no forma parte del esquema canónico**. El diseño
+experimental conserva backfill, NOT NULL, FK, dos triggers, auditoría y DOWN.
+La fuente única de verdad sigue siendo **producto.categoria_id**.
 
-Agrega `detalle_pedido.categoria_id` como dato redundante para
-acelerar el reporte "Top categorías por monto vendido".
-`producto.categoria_id` sigue siendo la única fuente de verdad; dos triggers mantienen la consistencia con `producto.categoria_id` como fuente de verdad: al insertar o cambiar el producto de un detalle, su categoría se deriva desde `producto`; y cuando cambia la categoría de un producto, el cambio se propaga a sus detalles. Además, existe
-una consulta de auditoría para detectar desincronización.
+| Medida | Normalizada / sin trigger | Candidato / con trigger | Variación |
+|---|---:|---:|---:|
+| Mediana de lectura, 5 corridas (ms) | 200.392 | 196.507 | -1.94 % |
+| Buffers compartidos hit + read | 8382 | 13386 | +59.70 % |
+| INSERT de 1000 detalles, promedio válido (ms) | 21.3385 | 28.8015 | +34.97 % |
 
-Esto se realizó sobre una copia de laboratorio (`foodstore_u4`) y **no**
-está integrado al `schema.sql` base actual.
+La reducción de mediana es marginal, no una mejora robusta. Aumentaron
+los buffers y la dispersión; el candidato agrega costo de escritura y
+complejidad. El INSERT mide el costo incremental del trigger, no todo el
+costo de la desnormalización. Propagación puntual: **57.540 ms para 18
+detalles del producto 17**, no una mediana.
 
-## Base canónica
+Equivalencia **0 / 0**, triggers A/B/C **PASS** y auditoría final **0**.
+Dos sesiones actualizaron el mismo producto: la segunda esperó un bloqueo
+y el resultado fue consistente. **No se ensayó INSERT concurrente de detalle
+contra UPDATE de categoría del producto**. El DOWN se revisó estáticamente,
+sin ejecutarlo. El rechazo es una decisión humana basada en evidencia,
+no un fracaso del experimento.
 
-El esquema base del proyecto continúa en:
+## Semántica oficial y reproducción del laboratorio
 
-- [../../schema.sql](../../schema.sql)
-- [../../datos_iniciales.sql](../../datos_iniciales.sql)
+El ensayo usó **PostgreSQL 17.11**, el 2026-09-20, en foodstore_u4_oficial,
+copia de foodstore_tp5_oficial. Hubo **20.275 pedidos y 50.272 detalles
+vigentes de CURRENT_DATE**; el backfill alcanzó **550.000 filas**.
 
-Desde `unidades/unidad-4/` la raíz del repositorio está dos niveles
-arriba.
+El modelo incluye usuario, pedido.usuario_id, subtotal físico y
+eliminado; pedido.fecha es **DATE**. Ambas consultas usan SUM(dp.subtotal),
+ped.eliminado = FALSE, dp.eliminado = FALSE y ped.fecha = CURRENT_DATE.
+No excluyen ventas por baja actual de producto/categoría ni por disponibilidad.
+La categoría sigue siendo la actual del producto, no una captura al vender.
 
-## Dataset de laboratorio
+Para reproducir, utilizar una nueva copia descartable oficial, verificar los
+usuarios 801/802 y el volumen del día, y seguir el protocolo y los scripts de
+carga/pruebas de la evidencia. No aplicar automáticamente los scripts a una
+base importante: el candidato modifica únicamente el laboratorio y sus DDL
+no son idempotentes. No se realizaron nuevas ejecuciones en este cierre.
+Los tiempos son específicos del dataset, máquina, cachés y estado físico del
+ensayo; no son garantías universales. Los empates en el corte del Top 5
+requieren atención porque el orden solicitado no incluye desempate.
 
-Unidad 4 reutilizó el dataset masivo de TP3. La copia canónica está en:
+[schema.sql raíz](../../schema.sql) y
+[datos_iniciales.sql raíz](../../datos_iniciales.sql) permanecen históricos:
+**no reconstruyen por sí solos la copia oficial medida**. No se modifican
+ni se propone integrar la columna redundante.
 
-[../unidad-2/tp3/sql/carga_masiva_tp3.sql](../unidad-2/tp3/sql/carga_masiva_tp3.sql)
+## Evidencia histórica
 
-No se duplica ese archivo acá.
+El [informe histórico](informes/informe_u4_fnbc_desnormalizacion_historico.md)
+corresponde a una iteración anterior basada en un modelo no alineado. Se
+conserva íntegro exclusivamente por trazabilidad; **sus métricas no justifican
+la decisión vigente**.
 
-## Evidencia medida
-
-- Baseline normalizado: mediana = 239.969 ms.
-- Desnormalizado: mediana = 220.722 ms.
-- Reducción aproximada de Execution Time: 8.02 %.
-- Speedup aproximado: 1.09x.
-- Buffers: aproximadamente 36.400 → 5.690 (reducción aproximada de
-  84.4 %).
-
-La mejora principal observada fue una reducción de trabajo lógico y de
-buffers, no una mejora extrema de tiempo — no se presentan estos
-valores como universales; corresponden al entorno y dataset de esta
-medición puntual.
-
-## Reversibilidad
-
-Ambos scripts documentan: la migración, la auditoría de consistencia,
-la validación de equivalencia y un plan de reversión / DOWN explícito.
-Fueron ejecutados sobre una base de laboratorio, no sobre la base
-productiva del proyecto.
-
-## Para un revisor / IA
-
-1. Leer primero este README.
-2. No asumir que los SQL de Unidad 4 forman parte del `schema.sql` base.
-3. No ejecutar ambos scripts automáticamente sobre una base importante.
-4. Leer las specs antes de evaluar la implementación.
-5. Consultar el informe para la evidencia real.
-6. No inventar columnas como `subtotal`, `eliminado`, `estado` u otras
-   que no existan en `schema.sql`.
-7. Preservar las mediciones históricas.
-8. Distinguir dato histórico de dato redundante.
-9. Verificar equivalencia con `EXCEPT` cuando corresponda.
-10. Verificar consistencia con la consulta de auditoría.
-
+La evidencia técnica del Bloque 2 también se conserva intacta. Su enlace
+congelado denominado «informe histórico» utiliza el nombre anterior, ahora
+ocupado por el informe vigente; el archivo histórico correcto es el que
+tiene el sufijo _historico.md, enlazado arriba.

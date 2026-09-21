@@ -1,724 +1,235 @@
-# Informe — Unidad 4
-
-## FNBC y Desnormalización Controlada — Food Store
-
-Integrantes:
-
-- Avalos Pablo
-
-- Blangetti Sofia
-
-- Suarez Ismael
-
----
-
-## 1. Objetivo
-
-El trabajo tuvo dos partes:
-
-1. Analizar y descomponer una relación que viola FNBC.
-
-2. Aplicar una desnormalización controlada basada en evidencia real
-
-   de EXPLAIN ANALYZE.
-
-Todas las pruebas se realizaron sobre la copia:
-
-foodstore_u4
-
-y nunca sobre una base productiva.
-
----
-
-## 2. Parte 1 — ControlLoteAlmacen
-
-Relación:
-
-ControlLoteAlmacen(
-
-    LoteID,
-
-    DepositoID,
-
-    ResponsableControlID
-
-)
-
-Reglas de negocio:
-
-F1:
-
-{LoteID, DepositoID} -> ResponsableControlID
-
-F2:
-
-ResponsableControlID -> DepositoID
-
----
-
-## 3. Clausuras y claves candidatas
-
-{LoteID, DepositoID}+
-
-= {LoteID, DepositoID, ResponsableControlID}
-
-{LoteID, ResponsableControlID}+
-
-= {LoteID, ResponsableControlID, DepositoID}
-
-ResponsableControlID+
-
-= {ResponsableControlID, DepositoID}
-
-LoteID+
-
-= {LoteID}
-
-DepositoID+
-
-= {DepositoID}
-
-Claves candidatas:
-
-- {LoteID, DepositoID}
-
-- {LoteID, ResponsableControlID}
-
-Todos los atributos son primos.
-
----
-
-## 4. Violación de FNBC
-
-La dependencia:
-
-ResponsableControlID -> DepositoID
-
-viola FNBC porque ResponsableControlID no es superclave.
-
-Su clausura es:
-
-{ResponsableControlID, DepositoID}
-
-y no permite obtener LoteID.
-
-FNBC exige que todo determinante de una dependencia funcional no
-
-trivial sea superclave.
-
----
-
-## 5. Anomalías
-
-Instancia de referencia:
-
-(501, 30, 801)
-
-(502, 30, 801)
-
-(503, 31, 802)
-
-Anomalía de actualización:
-
-801 aparece asociado al depósito 30 en más de una fila.
-
-Si cambia de depósito deben modificarse todas las filas.
-
-Una actualización parcial genera inconsistencia.
-
-Anomalía de inserción:
-
-No puede registrarse la relación maestro
-
-ResponsableControlID -> DepositoID
-
-para un responsable nuevo si todavía no existe un lote que controlar.
-
-Anomalía de borrado:
-
-Si se elimina la única fila correspondiente al responsable 802,
-
-también se pierde el único registro que indica que pertenece al depósito 31.
-
----
-
-## 6. Descomposición
-
-Tabla 1:
-
-responsable_control_deposito(
-
-    responsable_control_id PK,
-
-    deposito_id FK
-
-)
-
-Tabla 2:
-
-control_lote_responsable(
-
-    lote_id,
-
-    responsable_control_id,
-
-    PK(lote_id, responsable_control_id)
-
-)
-
-Vista de compatibilidad:
-
-v_control_lote_almacen
-
-El JOIN es sin pérdida porque:
-
-responsable_control_id
-
-es atributo común y clave primaria de responsable_control_deposito.
-
-Por lo tanto es superclave de al menos una de las relaciones resultantes,
-
-lo que garantiza la propiedad de descomposición sin pérdida.
-
----
-
-## 7. Verificación real — Parte 1
-
-Consulta diagnóstica ResponsableControlID -> DepositoID:
-
-0 filas
-
-Conteo:
-
-filas_original = 3
-
-filas_reconstruidas = 3
-
-EXCEPT original menos vista:
-
-0 filas
-
-EXCEPT vista menos original:
-
-0 filas
-
-Conclusión:
-
-la vista reconstruye exactamente la instancia original sin pérdida
-
-ni filas espurias.
-
----
-
-## 8. Preservación de dependencias
-
-Después de la descomposición:
-
-ResponsableControlID -> DepositoID
-
-queda preservada localmente en responsable_control_deposito.
-
-Pero:
-
-{LoteID, DepositoID} -> ResponsableControlID
-
-ya no puede validarse observando una única tabla.
-
-Esto es un costo posible de una descomposición a FNBC.
-
----
-
-## 9. Parte 2 — Contexto real
-
-La consigna teórica utiliza:
-
-dp.subtotal
-
-dp.eliminado
-
-ped.eliminado
-
-CURRENT_DATE
-
-El schema real no contiene esas columnas.
-
-Se adaptó correctamente:
-
-subtotal =
-
-dp.cantidad * dp.precio_unitario
-
-No se inventaron columnas.
-
-pedido.fecha es TIMESTAMPTZ.
-
-CURRENT_DATE durante la práctica era:
-
-2026-09-19
-
-pero el dataset contiene pedidos entre:
-
-2026-03-01 y 2026-04-11
-
-Pedidos de CURRENT_DATE:
-
-0
-
-Por lo tanto se utilizó:
-
-ped.fecha >= DATE '2026-04-11'
-
-AND ped.fecha < DATE '2026-04-12'
-
-Ese día:
-
-4160 pedidos
-
-10400 detalles
-
----
-
-## 10. Baseline — EXPLAIN ANALYZE
-
-Cinco mediciones reales:
-
-1. 234.451 ms
-
-2. 369.073 ms
-
-3. 231.651 ms
-
-4. 239.969 ms
-
-5. 266.980 ms
-
-Mediana:
-
-239.969 ms
-
-Plan principal:
-
-Parallel Seq Scan detalle_pedido
-
-Parallel Seq Scan pedido
-
-Parallel Hash Join
-
-Nested Loop hacia producto
-
-Index Scan producto_pkey
-
-producto_pkey:
-
-aprox. 10400 ejecuciones
-
-Buffers totales:
-
-aprox. 36400
-
-producto_pkey:
-
-aprox. 31200 buffers
-
-El Sort final:
-
-quicksort, aprox. 25 kB
-
-Conclusión:
-
-el Sort no era el cuello de botella principal.
-
----
-
-## 11. Desnormalización elegida
-
-Patrón:
-
-Agregar:
-
-detalle_pedido.categoria_id
-
-Fuente de verdad:
-
-producto.categoria_id
-
-Mantenimiento:
-
-triggers
-
-Objetivo:
-
-eliminar el JOIN detalle_pedido -> producto del reporte frecuente.
-
-Se eligió este patrón y no una vista materializada porque:
-
-- el panel requiere actualización frecuente;
-
-- una vista materializada introduce staleness entre refresh;
-
-- la columna redundante permite sincronización inmediata;
-
-- el patrón ataca directamente el JOIN identificado como costoso
-
-  en la medición de EXPLAIN ANALYZE.
-
----
-
-## 12. Mecanismos de sincronización
-
-A. trg_detalle_pedido_set_categoria
-
-Ante INSERT o cambio de producto_id en detalle_pedido:
-
-obtiene automáticamente producto.categoria_id y lo asigna.
-
-La aplicación no es responsable de decidir categoria_id.
-
-B. trg_producto_sync_categoria_detalle
-
-Si cambia producto.categoria_id:
-
-actualiza detalle_pedido.categoria_id en todas las filas cuyo
-
-producto_id corresponda al producto modificado.
-
-Costo documentado:
-
-un cambio de categoría puede provocar muchas escrituras sobre datos
-
-históricos.
-
----
-
-## 13. Validación funcional
-
-Backfill:
-
-500007 filas
-
-categoria_id NULL:
-
-0
-
-Auditoría inicial:
-
-0 filas
-
-Resultado consulta normalizada:
-
-Pizzas  = 45884942.00
-
-Bebidas = 28581501.00
-
-Resultado consulta desnormalizada:
-
-Pizzas  = 45884942.00
-
-Bebidas = 28581501.00
-
-EXCEPT original menos desnormalizada:
-
-0 filas
-
-EXCEPT desnormalizada menos original:
-
-0 filas
-
----
-
-## 14. Pruebas de triggers
-
-Prueba A:
-
-pedido 1 / producto 3 / categoría 2
-
-Se modificó temporalmente producto_id:
-
-3 -> 2
-
-Resultado:
-
-categoria_id = 1
-
-categoria_producto = 1
-
-ROLLBACK ejecutado.
-
-Prueba B:
-
-producto 1
-
-categoría temporal:
-
-1 -> 2
-
-detalles asociados:
-
-3
-
-detalles sincronizados:
-
-3
-
-desincronizados:
-
-0
-
-Auditoría global:
-
-0 filas
-
-ROLLBACK ejecutado.
-
-Auditoría permanente final:
-
-desincronizados = 0
-
----
-
-## 15. Efecto físico del backfill
-
-Después del UPDATE masivo de 500007 filas:
-
-detalle_pedido antes de compactación:
-
-61 MB
-
-7844 páginas
-
-0 filas muertas tras autovacuum
-
-Se realizó:
-
-VACUUM (FULL, ANALYZE) detalle_pedido;
-
-Después:
-
-33 MB
-
-4167 páginas
-
-500007 filas vivas
-
-0 filas muertas
-
-La medición preliminar de:
-
-291.049 ms
-
-NO se utilizó en el benchmark oficial porque fue realizada antes de
-
-compactar la expansión física provocada por el backfill.
-
-Esta medición no se oculta: se documenta aquí para transparencia.
-
----
-
-## 16. Mediciones después
-
-Cinco mediciones oficiales posteriores al VACUUM:
-
-1. 341.932 ms
-
-2. 220.722 ms
-
-3. 243.586 ms
-
-4. 217.185 ms
-
-5. 211.096 ms
-
-Mediana:
-
-220.722 ms
-
-Comparación:
-
-ANTES:  239.969 ms
-
-DESPUÉS: 220.722 ms
-
-Diferencia: 19.247 ms
-
-Reducción aproximada: 8.02 %
-
-Speedup aproximado: 1.09x
-
-Buffers:
-
-ANTES:  ~36400
-
-DESPUÉS: ~5690
-
-Reducción aproximada de buffers: ~84.4 %
-
----
-
-## 17. Cambio de plan
-
-ANTES:
-
-detalle_pedido
-
--> JOIN pedido
-
--> Nested Loop
-
--> producto_pkey x 10400
-
--> categoria
-
-DESPUÉS:
-
-detalle_pedido
-
--> Parallel Hash Join pedido
-
--> Hash Join categoria
-
-Desaparece completamente:
-
-- JOIN con producto
-
-- Nested Loop hacia producto
-
-- 10400 Index Scan sobre producto_pkey
-
----
-
-## 18. Evidencia representativa — EXPLAIN ANALYZE
-
-Estas salidas corresponden a ejecuciones reales realizadas durante
-
-la práctica. No se inventaron valores ni se modificaron los tiempos.
-
-### Antes de la desnormalización
-
-```text
-Limit
-  -> Sort
-       Sort Method: quicksort  Memory: 25kB
-       -> Finalize GroupAggregate
-            -> Gather Merge
-                 -> Partial HashAggregate
-                      -> Hash Join
-                           -> Nested Loop
-                                -> Parallel Hash Join
-                                     -> Parallel Seq Scan on detalle_pedido
-                                     -> Parallel Seq Scan on pedido
-                                          Filter:
-                                          fecha >= '2026-04-11'
-                                          AND fecha < '2026-04-12'
-                                          Rows Removed by Filter: 195845
-                                -> Index Scan using producto_pkey on producto
-                                     loops=10400
-                                     Buffers: shared hit=31201
-                           -> Seq Scan on categoria
-
-Buffers: shared hit=36401
-Execution Time: 234.451 ms
-```
-
-Esta es una ejecución representativa del plan baseline.
-
-Las cinco corridas y la mediana de 239.969 ms se encuentran en
-
-la sección 10. El valor 234.451 ms no se utiliza como mediana; se
-
-muestra únicamente para evidenciar la estructura real del plan.
-
-### Después de la desnormalización
-
-Tomado de la quinta medición oficial (211.096 ms):
-
-```text
-Limit
-  -> Sort
-       Sort Method: quicksort  Memory: 25kB
-       -> Finalize GroupAggregate
-            -> Gather Merge
-                 -> Partial HashAggregate
-                      -> Hash Join
-                           Hash Cond: (dp.categoria_id = c.id)
-                           -> Parallel Hash Join
-                                Hash Cond: (dp.pedido_id = ped.id)
-                                -> Parallel Seq Scan on detalle_pedido
-                                     Buffers: shared hit=496 read=3671
-                                -> Parallel Seq Scan on pedido
-                                     Filter:
-                                     fecha >= '2026-04-11'
-                                     AND fecha < '2026-04-12'
-                                     Rows Removed by Filter: 195845
-                           -> Seq Scan on categoria
-
-Buffers: shared hit=2019 read=3671
-Execution Time: 211.096 ms
-```
-
-Esta es una ejecución representativa posterior.
-
-Las cinco corridas y la mediana de 220.722 ms se encuentran en
-
-la sección 16.
-
-### Comparación de planes
-
-- Desaparece el Nested Loop hacia producto.
-
-- Desaparecen las 10400 búsquedas por producto_pkey.
-
-- El reporte pasa de cuatro tablas a tres.
-
-- El Sort continúa siendo pequeño y no domina el costo.
-
-- Los tiempos representativos individuales no sustituyen las medianas.
-
----
-
-## 19. Conclusión
-
-La mejora temporal fue moderada (~8 %).
-
-La reducción de buffers fue muy importante (~84 %).
-
-El plan quedó estructuralmente más simple.
-
-La desnormalización tiene costo de escritura y mayor complejidad
-
-de mantenimiento.
-
-No puede afirmarse que sea una mejora universal.
-
-Para este reporte y este dataset, la evidencia medida justifica la
-
-decisión.
-
----
-
-## 20. Reversibilidad
-
-La Parte 1 tiene plan DOWN documentado.
-
-La Parte 2 tiene plan DOWN documentado.
-
-producto.categoria_id nunca dejó de ser fuente de verdad.
-
-Eliminar detalle_pedido.categoria_id no pierde información original.
-
-Existe backup externo previo:
-
-backups/foodstore_u4_pre_u4.dump
-
-El dump no está incluido en Git.
-
----
-
-## 21. Artefactos relacionados
-
-../specs/u4_fnbc_control_lote.md
-
-../sql/tp_fnbc_control_lote.sql
-
-../specs/u4_desnormalizacion_top_categorias.md
-
-../sql/tp_desnormalizacion_top_categorias.sql
+# Unidad 4 — FNBC y desnormalización controlada
+## Food Store — Informe vigente sobre el modelo oficial
+
+**FNBC: PASS. Desnormalización: implementación experimental válida,
+candidato evaluado y descartado por relación costo/beneficio.**
+
+Este informe resume exclusivamente la
+[evidencia real del Bloque 2](evidencia_modelo_oficial.md), que conserva los
+planes completos y las salidas detalladas. No se ejecutaron nuevos benchmarks
+para el cierre documental. El [informe histórico](informe_u4_fnbc_desnormalizacion_historico.md)
+se preserva íntegro, sin utilizar sus métricas como evidencia vigente.
+
+## 1. Entorno y dataset
+
+- PostgreSQL **17.11**, Windows x86_64; ejecución: **2026-09-20**.
+- Copia descartable: **foodstore_u4_oficial**, clonada de foodstore_tp5_oficial.
+- Modelo oficial: `usuario`, `pedido.usuario_id`, `subtotal` físico,
+  `eliminado` y `pedido.fecha DATE`.
+- Totales: 8 categorías, 50.000 productos, 20.000 usuarios,
+  220.000 pedidos y 550.000 detalles.
+- CURRENT_DATE: **20.275 pedidos vigentes / 50.272 detalles vigentes**.
+- Backfill: **550.000 filas**; `categoria_id NULL = 0`;
+  desincronizaciones posteriores al backfill = **0**.
+
+Los resultados son específicos de este dataset, máquina y estado de caché;
+no son valores universales. Los índices heredados de TP5 se conservaron.
+La columna redundante existe únicamente en el laboratorio, no en schema.sql.
+
+## 2. Parte FNBC — ControlLoteAlmacen
+
+### Dependencias y claves candidatas
+
+| Regla de negocio | Dependencia funcional |
+|---|---|
+| F1 / R1 | {LoteID, DepositoID} → ResponsableControlID |
+| F2 / R2 | ResponsableControlID → DepositoID |
+
+Claves candidatas: **{LoteID, DepositoID}** y
+**{LoteID, ResponsableControlID}**. F2 viola FNBC porque
+ResponsableControlID no es superclave: su clausura no incluye LoteID.
+
+La descomposición genera `responsable_control_deposito` y
+`control_lote_responsable`. Es **sin pérdida (lossless)**: el atributo común
+responsable_control_id es clave de responsable_control_deposito. La vista
+`v_control_lote_almacen` reconstruye la relación mediante JOIN.
+F2 queda preservada localmente; F1 requiere verificar el JOIN y no queda
+garantizada únicamente por las PK de las tablas resultantes.
+
+### Validación real
+
+| Control | Resultado |
+|---|---:|
+| Diagnóstico de F2: violaciones observadas | 0 |
+| Filas originales | 3 |
+| Filas reconstruidas | 3 |
+| Original EXCEPT vista | 0 |
+| Vista EXCEPT original | 0 |
+
+El diagnóstico de 0 filas confirma que la instancia actual respeta la regla;
+**la dependencia proviene de la regla de negocio**, no se deduce únicamente
+de los datos. No debe confundirse ausencia de inconsistencias observadas
+con cumplimiento de FNBC por la relación original.
+
+`usuario` ya pertenece al modelo oficial. Se reutilizaron los usuarios 801
+y 802 no eliminados. Unidad 4 **no creó ni eliminó usuario**: OID, conteo
+y huella de contenido permanecieron iguales. `deposito` y `lote` son
+extensiones académicas del laboratorio.
+
+## 3. Candidato de desnormalización
+
+Hipótesis: evitar el JOIN a producto podría reducir el costo del reporte
+Top 5 por categoría. Se agregó experimentalmente
+`detalle_pedido.categoria_id`, derivada exclusivamente de
+**producto.categoria_id**, con backfill, NOT NULL y FK.
+
+| Mecanismo | Responsabilidad |
+|---|---|
+| fn_detalle_pedido_set_categoria / trg_detalle_pedido_set_categoria | Derivar la categoría en INSERT y UPDATE de producto_id o categoria_id |
+| fn_producto_sync_categoria_detalle / trg_producto_sync_categoria_detalle | Propagar cambios de categoría del producto a sus detalles |
+| Auditoría | Conciliar categoría redundante contra producto.categoria_id |
+| DOWN documentado | Retirar triggers, funciones, FK y columna redundante sin tocar producto.categoria_id |
+
+Las consultas usan `SUM(dp.subtotal)` y los filtros
+`dp.eliminado = FALSE`, `ped.eliminado = FALSE`, `ped.fecha = CURRENT_DATE`.
+No se filtra la baja actual de producto/categoría ni producto.disponible,
+para no ocultar ventas históricas. La atribución usa la categoría actual
+del producto, no una fotografía histórica de la categoría al vender.
+
+## 4. Lecturas: las diez corridas
+
+Protocolo: EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON), cinco corridas por
+variante. **No se descartó ninguna**, ni como calentamiento ni como outlier.
+Los tiempos corresponden a Execution Time. Los buffers son hit + read
+compartidos del nodo raíz; no se suman de nuevo los nodos hijos ni se
+interpretan como bloques únicos o accesos físicos al disco.
+
+| Corrida | Baseline normalizada (ms) | Buffers | Candidato (ms) | Buffers |
+|---|---:|---:|---:|---:|
+| 1 | 191.465 | 8382 | 174.459 | 13386 |
+| 2 | 188.192 | 8382 | 177.794 | 13386 |
+| 3 | 210.285 | 8382 | 287.053 | 13386 |
+| 4 | 237.785 | 8382 | 196.507 | 13386 |
+| 5 | 200.392 | 8382 | 307.298 | 13386 |
+| **Mediana** | **200.392** | **8382** | **196.507** | **13386** |
+| Mínimo | 188.192 | — | 174.459 | — |
+| Máximo | 237.785 | — | 307.298 | — |
+
+### Comparación e interpretación
+
+- Tiempo mediano: **200.392 → 196.507 ms**, **-1.94 %**.
+- Buffers: **8382 → 13386**, **+59.70 %**.
+- Mayor dispersión posterior: 287.053 y 307.298 ms superan incluso
+  la corrida más lenta del baseline (237.785 ms).
+
+La reducción mediana de 3.885 ms es pequeña y **no constituye evidencia de
+mejora robusta**. Seleccionar únicamente las dos corridas favorables del
+candidato alteraría la conclusión. Eliminar un JOIN no fue suficiente.
+
+Ambos planes incluyen Limit, ordenamiento en memoria, agregación
+parcial/final, Gather Merge, joins hash paralelos, Seq Scan paralelo del
+detalle e Index Only Scan del pedido. El candidato elimina el JOIN a
+producto, pero conserva el recorrido de detalle_pedido.
+
+El backfill modificó el estado físico: se ejecutó ANALYZE, no una
+compactación de la tabla antes de la serie posterior. Los accesos del
+recorrido de detalle aumentaron. Esto es compatible con los planes,
+**no una medición causal aislada**. El orden fijo de las series y las cachés
+también limitan la comparación. No se ejecutaron ensayos adicionales
+para seleccionar un resultado favorable.
+
+## 5. Costo de escritura y propagación
+
+INSERT de **1.000 detalles** con fixture equivalente, restricciones base
+habilitadas y BEGIN/ROLLBACK por corrida. Solo se deshabilitó temporalmente
+el trigger de categoría del detalle en la variante sin trigger.
+
+| Corrida | Sin trigger (ms) | Con trigger (ms) | Uso |
+|---|---:|---:|---|
+| 1 | 32.939 | 27.763 | Calentamiento |
+| 2 | 21.301 | 28.342 | Válida |
+| 3 | 21.376 | 29.261 | Válida |
+| Promedio de 2 y 3 | **21.3385** | **28.8015** | **+34.97 %** |
+
+Es el costo incremental del trigger sobre el esquema ya desnormalizado,
+no todo el costo de agregar columna y FK frente al original. No quedaron
+filas de prueba; las secuencias sí consumieron valores.
+
+Propagación: cambio de categoría del **producto 17**, **18 detalles**,
+**57.540 ms**. Es **una observación puntual, no una mediana**. Evidencia
+de costo de mantenimiento, no una predicción universal para otros volúmenes.
+
+## 6. Corrección, consistencia y concurrencia
+
+| Prueba | Resultado |
+|---|---|
+| Original menos desnormalizada | 0 filas |
+| Desnormalizada menos original | 0 filas |
+| Top 5 exacto, ambos sentidos | 0 / 0 |
+| Trigger A: detalle cambia de producto | PASS; categoría derivada correctamente |
+| Trigger B: producto cambia de categoría | PASS; detalles asociados sincronizados |
+| Trigger C: categoría del detalle manipulada directamente | PASS; se impuso nuevamente producto.categoria_id |
+| DIRECT_TAMPERING_PROTECTED | YES, DML ordinario con triggers habilitados |
+| Auditoría final global | 0 desincronizaciones |
+
+Las pruebas A/B/C terminaron con ROLLBACK. La protección no implica
+resistencia a un administrador que desactive los triggers. El EXCEPT
+completo valida todos los grupos; el Top 5 también coincidió en el dataset
+medido, sin garantizar una selección determinista ante futuros empates.
+
+**Concurrencia ensayada: PASS**. Dos sesiones controladas actualizaron
+producto.categoria_id sobre el **mismo producto 17**. La segunda esperó
+un bloqueo Lock / transactionid. Ambas confirmaron, la segunda restauró
+la categoría original y la auditoría final dio **0**.
+
+**No se probó INSERT concurrente de detalle_pedido contra UPDATE de
+producto.categoria_id.** El PASS se limita al intercalado observado y no
+garantiza integridad bajo cualquier carrera. El DOWN fue validado
+estáticamente, **no ejecutado** sobre la copia medida.
+
+## Decisión final
+
+**DECISIÓN = DESCARTAR LA DESNORMALIZACIÓN COMO CAMBIO PERMANENTE.**
+
+**Estado: REJECTED_AFTER_MEASUREMENT.** La propuesta demostró consistencia
+en las pruebas realizadas y dispone de una reversión documentada, pero el
+workload observado arroja:
+
+- Reducción mediana de solo **1.94 %**, sin mejora robusta.
+- **+59.70 %** de buffers y mayor dispersión de tiempos.
+- **+34.97 %** en el INSERT medido por mantenimiento del trigger.
+- Mayor complejidad y costo de propagar cambios de categoría.
+
+La decisión humana final es **NO ADOPTAR**. El modelo canónico debe conservar
+**producto.categoria_id**, sin agregar permanentemente
+**detalle_pedido.categoria_id**. La implementación experimental válida no
+equivale a una decisión de diseño aceptada.
+
+No se presenta como fracaso: es un experimento controlado que permitió
+decidir con evidencia. Se conserva el diseño y su SQL para trazabilidad
+académica, no como migración pendiente. El criterio es medir antes de
+optimizar y conservar una desnormalización solo si sus beneficios
+justifican claramente sus costos.
+
+## 7. Rúbrica técnica
+
+| Criterio | Estado | Evidencia o reserva |
+|---|---|---|
+| FNBC | PASS | F2 viola FNBC en la relación original |
+| Claves candidatas | PASS | Dos claves y clausuras documentadas |
+| Descomposición lossless | PASS | Atributo común clave en una relación |
+| EXCEPT FNBC | PASS | 0 / 0; conteos 3 / 3 |
+| Motivo medido | PASS | Cinco corridas por variante, sin ocultar outliers |
+| Dueño único del redundante | PASS | producto.categoria_id; prueba C satisfactoria |
+| Conciliación | PASS | Auditoría final 0 |
+| Reversibilidad | PASS | DOWN documentado y revisado estáticamente, no ejecutado |
+| Equivalencia | PASS | Agregados y Top 5: 0 / 0 |
+| Triggers | PASS | A/B/C; alcance de concurrencia limitado |
+| Costo de escritura | PASS | +34.97 %; propagación puntual documentada |
+| Concurrencia ensayada | PASS | Dos UPDATE del mismo producto; no carrera INSERT/UPDATE |
+| Decisión basada en evidencia | PASS | Candidato descartado por costo/beneficio |
+
+Rechazar justificadamente el candidato no constituye un FAIL académico.
+
+## 8. Trazabilidad y defensa
+
+La evidencia detallada del Bloque 2 permanece intacta. Su enlace congelado
+«informe histórico» apunta al nombre usado entonces; el histórico real
+ahora se encuentra en `informe_u4_fnbc_desnormalizacion_historico.md`.
+Los resultados anteriores no se mezclan con los del modelo oficial.
+
+Para defender el trabajo: explicar por qué F2 viola FNBC, por qué la
+descomposición es lossless pero no preserva localmente F1, cómo se mantiene
+el dato redundante, qué prueban EXCEPT y los ensayos concurrentes, y por
+qué consistencia correcta y eliminación de un JOIN no bastan para adoptar
+una optimización cuyo costo supera el beneficio observado.
