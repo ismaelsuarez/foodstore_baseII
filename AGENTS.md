@@ -2,135 +2,144 @@
 
 ## Propósito
 
-Proyecto académico PostgreSQL (UTN — Base de Datos II). No hay
-aplicación, backend, frontend ni test framework: todo el trabajo es
-SQL y documentación Markdown, organizado por unidad/TP bajo
-`unidades/`, con la integración de la Primera Entrega en `tpi/`.
+Proyecto académico PostgreSQL de UTN, con SQL y documentación Markdown.
+No hay aplicación, backend ni frontend: la batería es SQL/PL/pgSQL y se ejecuta
+con psql. Comenzar por [README](README.md) y, para la Primera Entrega, por
+[TPI](tpi/README.md), su [informe](tpi/informe_tecnico.md) y la
+[evidencia oficial](tpi/evidencia_modelo_oficial.md).
 
 ## Fuentes de verdad
 
-En orden de autoridad:
+Aplicar este orden de autoridad, sin reconstruir contratos desde memoria:
 
-1. `schema.sql` — esquema base canónico actual.
-2. `datos_iniciales.sql` — dataset inicial mínimo.
-3. `README.md` de la raíz — punto de entrada del proyecto completo.
-4. README local de cada unidad (`unidades/.../README.md`).
-5. `specs/` de cada unidad — contrato previo a la generación de SQL.
-6. `informes/` de cada unidad — evidencia real medida.
-7. `duia/` de cada unidad, cuando exista — trazabilidad de uso de IA y decisiones humanas.
+1. [schema.sql](schema.sql): estructura canónica vigente.
+2. [datos_iniciales.sql](datos_iniciales.sql): dataset inicial canónico.
+3. [tpi/modelo](tpi/modelo/): ER, modelo relacional y normalización.
+4. [Objetos programables](tpi/sql/objetos_programables.sql): comportamiento TPI.
+5. [tpi/pruebas](tpi/pruebas/): batería de verificación.
+6. README vigentes de raíz, TPI y unidades.
+7. Evidencia e informes: resultados observados y límites de cada ensayo.
 
-## Primera Entrega del TPI
+Las specs locales describen contratos del ejercicio; las DUIA documentan
+propuestas de IA, revisión y decisiones humanas. Una evidencia no autoriza
+por sí sola a modificar contratos ni a repetir el ensayo.
 
-Para evaluar la Primera Entrega, comenzar por
-[tpi/README.md](tpi/README.md) y usar
-[tpi/informe_tecnico.md](tpi/informe_tecnico.md) como mapa detallado
-de evidencias. El alcance principal es U1–U3; Unidad 4 permanece como
-trabajo posterior/complementario.
+## Modelo canónico
 
-Cuando la tarea sea sobre el TPI, aplicar este orden de autoridad:
+Las cinco tablas son categoria, usuario, producto, pedido y detalle_pedido.
+Todas tienen PK id BIGINT GENERATED ALWAYS AS IDENTITY y baja lógica mediante
+eliminado. Los ENUM son forma_pago, rol y estado_pedido; leer sus valores y
+defaults en el schema.
 
-1. `schema.sql` — autoridad estructural canónica.
-2. `datos_iniciales.sql` — dataset inicial canónico.
-3. `tpi/README.md` — cobertura y reproducción de la entrega.
-4. `tpi/modelo/` — ER, modelo relacional y normalización.
-5. `tpi/sql/` — consultas y objetos adicionales específicos del TPI.
-6. `tpi/pruebas/` — batería de verificación de esos objetos.
-7. Evidencia histórica de `unidades/` referenciada por el informe técnico.
-8. DUIA correspondientes — trazabilidad histórica.
+- usuario es una entidad real: incluye mail UNIQUE, celular, contrasena, rol
+  y baja lógica. No es una tabla auxiliar de Unidad 4.
+- categoria.nombre es UNIQUE; producto.nombre no lo es.
+- producto.disponible expresa disponibilidad comercial y no equivale a
+  producto.eliminado. Precio y stock no pueden ser negativos.
+- pedido.usuario_id referencia al usuario; fecha es DATE y created_at es
+  TIMESTAMPTZ. estado y total físico pertenecen al modelo oficial.
+- detalle_pedido.id es la PK. Las FK pedido_id y producto_id forman una clave
+  candidata alternativa mediante UNIQUE(pedido_id, producto_id) y NOT NULL,
+  no la PK. Incluye cantidad positiva, precio histórico y subtotal físico.
+  Las cuatro FK usan ON DELETE RESTRICT.
+- Las bajas posteriores de usuario, producto o categoría no deben destruir
+  el historial existente. No inventar políticas de cancelación o reposición.
 
-`tpi/` integra y complementa: no modifica el contrato de `schema.sql`.
-Los objetos TPI se instalan explícitamente; no son migraciones automáticas.
-No inventar campos para satisfacer consignas, no tratar scripts históricos
-como migraciones pendientes ni reescribir evidencia histórica sin una
-instrucción explícita.
+subtotal es una **REDUNDANCIA DERIVADA DELIBERADA** del modelo oficial.
+Con la regla {cantidad, precio_unitario} -> subtotal, el detalle cumple 1FN/2FN,
+pero no se presenta como 3FN/FNBC estricta. No eliminar la columna para aparentar
+normalización. pedido.total agrega filas de otra relación; su existencia no
+demuestra por sí sola una DF interna que viole FNBC de pedido.
+Consultar [normalización](tpi/modelo/normalizacion.md).
 
-## Regla crítica
+## Autoridades del comportamiento
 
-**No asumir que todo SQL bajo `unidades/` es una migración pendiente**
-sobre `schema.sql`. La mayoría son ejercicios académicos cerrados,
-evidencia histórica, consultas experimentales o scripts de laboratorio
-ejecutados sobre una copia de la base — no forman parte de la base
-canónica salvo que el README local de esa unidad diga lo contrario.
+| Responsabilidad | Autoridad |
+|---|---|
+| Registro de venta y descuento de stock | registrar_detalle_pedido |
+| Subtotal de una línea | fn_set_subtotal / trg_subtotal |
+| Total de detalles no eliminados | calcular_total_pedido y tres triggers AFTER por sentencia |
+| Vigencia en altas/reasignaciones | fn_validar_detalle_vigente / trg_detalle_vigente |
 
-## Antes de proponer SQL
+No duplicar definiciones de subtotal o total. El agregado usa el subtotal físico,
+no una segunda multiplicación. Los triggers de total emplean transition tables
+y recalculan ambos pedidos cuando una línea cambia de pedido.
 
-- Leer `schema.sql` real — no asumir columnas o tablas de memoria.
-- Verificar nombres de tablas y columnas reales antes de escribir una
-  consulta o un `ALTER TABLE`.
-- Revisar las restricciones (`CHECK`, `FOREIGN KEY`, `UNIQUE`) ya
-  existentes antes de proponer una nueva.
-- Revisar el README de la unidad involucrada.
-- Revisar la spec correspondiente, si existe, antes de generar o
-  modificar una implementación.
+El procedimiento bloquea en orden **pedido FOR UPDATE → usuario FOR SHARE →
+producto FOR UPDATE**. La transacción pertenece al llamante. DML directo del
+detalle no administra inventario; bajas, reactivaciones y DELETE no reponen
+stock automáticamente. No presentar esa ruta como API completa de venta.
 
-## Prohibiciones
+La instalación TPI define exactamente 7 rutinas y 5 triggers, listados en la
+[evidencia](tpi/evidencia_modelo_oficial.md). No instalar ni retirar objetos
+sin autorización de la tarea.
 
-- No inventar columnas que no existan en el esquema real.
-- No inventar resultados, tiempos ni planes de ejecución.
-- No modificar mediciones históricas ya documentadas.
-- No reescribir prompts históricos citados en una DUIA.
-- No ejecutar scripts destructivos sin autorización explícita.
-- No trabajar sobre una base importante para probar un laboratorio —
-  usar una copia.
-- No duplicar archivos canónicos (por ejemplo,
-  `unidades/unidad-2/tp3/sql/carga_masiva_tp3.sql` tiene una única
-  ubicación; otras unidades lo referencian, no lo copian).
-- No mover archivos sin actualizar las referencias de ruta que queden
-  rotas por el movimiento.
+## Historia protegida y unidades cerradas
 
-## Convenciones
+**TP1–TP4 son EVIDENCIA HISTÓRICA EVALUADA.** No modificar
+unidades/unidad-1/ ni unidades/unidad-2/ salvo instrucción explícita.
+Sus referencias históricas a cliente, activo o una PK compuesta describen
+una etapa anterior; no son el contrato vigente ni migraciones pendientes.
 
-- Identificadores en **español**, `snake_case`.
-- Tablas en singular (`categoria`, `cliente`, `producto`, `pedido`,
-  `detalle_pedido`).
-- Columnas de clave foránea: `<tabla_referenciada>_id`.
-- PostgreSQL como motor exclusivo — no asumir compatibilidad con otro
-  motor.
+- [Unidad 3](unidades/unidad-3/README.md): corregida y cerrada en da5f3e4.
+  Índices: idx_producto_stock_bajo, idx_pedido_fecha_reciente,
+  idx_usuario_mail_lower. Vistas: v_productos_vigentes, v_pedidos_resumen,
+  v_pedido_detalle, v_usuarios_publico. Materializada:
+  mv_facturacion_categoria_mes. Seguridad y refresh concurrente tienen
+  evidencia real propia. Sus índices candidatos no forman parte de los
+  tres índices mínimos del schema raíz.
+- [Unidad 4](unidades/unidad-4/README.md): corregida y cerrada en 95fbfbf.
+  FNBC PASS. Desnormalización: VALID_EXPERIMENT, pero
+  REJECTED_AFTER_MEASUREMENT / DO_NOT_ADOPT.
+  **detalle_pedido.categoria_id no es canónico**: no integrar ni instalar
+  automáticamente ese SQL experimental. producto.categoria_id sigue siendo
+  la fuente de verdad. lote y deposito son extensiones académicas;
+  los responsables del ensayo reutilizaron usuarios existentes.
 
-## Validación
+Los avisos de U3/U4 que describen el schema raíz como anterior reflejan el momento
+de esos cierres, previo a su reparación canónica. No prevalecen sobre el schema
+actual. El seed mínimo tampoco reproduce sus cargas masivas de laboratorio.
+No editar esos documentos protegidos para eliminar la cronología sin autorización.
 
-- **Equivalencia semántica:** `EXCEPT` bidireccional entre la consulta
-  original y su alternativa, o entre una vista/vista materializada y
-  su consulta manual equivalente.
-- **Rendimiento:** `EXPLAIN (ANALYZE, BUFFERS)`, con protocolo de
-  varias corridas descartando la primera como calentamiento cuando así
-  se documenta.
-- **Migraciones y laboratorios:** transacciones, consulta de auditoría
-  cuando corresponda, y plan de reversión documentado.
+## Validación y límites
 
-## Estructura
+- Motor exclusivo: PostgreSQL; validación registrada con **17.11**.
+- Probar solo en una base descartable explícitamente autorizada. Una tarea
+  documental no autoriza crear, borrar ni recrear bases.
+- Para reconstruir TPI, seguir [reproducción](tpi/README.md): schema, seed,
+  objetos, batería y consulta HAVING. Usar ON_ERROR_STOP=1; -1 solo para
+  schema y objetos, no para seed o batería que administran su transacción.
+- Batería acreditada: **29 grupos / 37 variantes / 30 NOTICE PASS**, exit 0.
+  P0099 pertenece exclusivamente al ensayo de atomicidad.
+- Concurrencia acreditada: tres escenarios de CALL con conexiones distintas
+  bajo READ COMMITTED, observando bloqueos y estado final. No garantiza
+  ausencia universal de deadlocks, DML directo concurrente, SERIALIZABLE,
+  reposición, cancelaciones o comportamiento bajo estrés.
+- Equivalencia: EXCEPT bidireccional. Rendimiento: planes y corridas reales
+  según el protocolo de cada unidad; no mezclar datasets ni tiempos históricos.
+- Separar fallos del producto e incidencias del arnés. Conservar diagnósticos;
+  no reescribir evidencia registrada para ajustarla a expectativas.
 
-Ver `.kiro/steering/structure.md` para el árbol completo. En resumen:
-`schema.sql`, `datos_iniciales.sql`, `README.md`, `AGENTS.md` y
-`.kiro/` viven en la raíz; los TPs históricos se organizan bajo
-`unidades/unidad-N/[tpX]/{sql,specs,informes,duia}/`, y `tpi/` reúne
-la capa integradora de la Primera Entrega.
+## Convenciones y prohibiciones
 
-## Contexto histórico
+- Español técnico, identificadores snake_case, tablas en singular y FK
+  <tabla_referenciada>_id. Usar eliminado para baja lógica vigente.
+- Leer schema, restricciones, spec local si existe y objetos afectados antes
+  de proponer SQL. No inventar columnas, ENUM, reglas ni resultados.
+- No tratar todo SQL bajo unidades/ como una migración automática.
+- No reescribir históricos evaluados, mediciones ni prompts DUIA sin instrucción
+  explícita. Mantener la diferencia entre propuesta de IA y ejecución real.
+- No incluir secretos ni rutas de credenciales. SEED_NO_AUTH es un marcador
+  académico, no una credencial real ni un mecanismo de autenticación.
+- No duplicar archivos canónicos de otras unidades. Al mover un archivo,
+  preservar historial con git mv y actualizar sus enlaces.
+- Respetar el alcance autorizado de cada bloque y preservar cambios previos.
+  No corregir silenciosamente SQL o evidencia ante un fallo de ejecución.
 
-Los informes y las DUIA son evidencia histórica de trabajo ya
-evaluado. No deben reescribirse para "actualizarlos" ni para que
-parezcan generados en el estado actual del repositorio — solo se
-corrigen errores de ruta cuando un archivo se reubica físicamente.
+## Git y estructura
 
-## Unidad 4
-
-Atención especial en esta unidad:
-
-- `usuario`, `lote` y `deposito` **no** forman parte del esquema base
-  (`schema.sql`) — son tablas mínimas creadas exclusivamente dentro del
-  laboratorio de Unidad 4 para hacerlo reproducible.
-- `detalle_pedido.categoria_id` tampoco forma parte del esquema base —
-  es una columna redundante agregada solo dentro de ese laboratorio.
-- Ambas extensiones pertenecen únicamente al laboratorio de Unidad 4,
-  ejecutado sobre una copia (`foodstore_u4`), no a la base canónica.
-- `producto.categoria_id` sigue siendo la única fuente de verdad en el
-  esquema de desnormalización controlada de esa unidad.
-
-## Git
-
-- Cambios pequeños y descriptivos.
-- No hacer `push` sin autorización explícita del usuario.
-- Verificar `git diff --check` antes de dar por cerrado un cambio.
-- Preservar historial usando `git mv` al reubicar archivos, en vez de
-  borrar y recrear.
+Ver [estructura](.kiro/steering/structure.md). Antes de cerrar un cambio,
+comprobar git status, alcance y git diff --check. Commit y staging requieren
+el alcance autorizado; nunca hacer push sin autorización explícita.
+Usar Conventional Commits sin Co-Authored-By ni atribución de IA en commits.
+La responsabilidad final de propuestas, pruebas y decisiones pertenece al equipo.

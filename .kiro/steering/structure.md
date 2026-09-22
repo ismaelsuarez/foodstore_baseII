@@ -1,117 +1,94 @@
-# Project Structure
+﻿# Food Store — Estructura y convenciones
 
-Árbol real actual (ver `README.md` de la raíz para el detalle expandido
-con archivos individuales):
+## Mapa del repositorio
 
-```
+```text
 foodStore/
-├── README.md            # Punto de entrada del proyecto completo
-├── AGENTS.md             # Guía técnica para agentes/IA
-├── schema.sql            # DDL: esquema base canónico actual
-├── datos_iniciales.sql   # DML: dataset inicial mínimo
-├── .kiro/
-│   └── steering/         # product.md, structure.md, tech.md
-├── tpi/                 # Capa integradora de la Primera Entrega
+├── README.md
+├── AGENTS.md
+├── schema.sql
+├── datos_iniciales.sql
+├── .kiro/steering/
+│   ├── product.md
+│   ├── tech.md
+│   └── structure.md
+├── tpi/
 │   ├── README.md
 │   ├── informe_tecnico.md
+│   ├── evidencia_modelo_oficial.md
 │   ├── modelo/
 │   │   ├── modelo_er.md
 │   │   ├── modelo_relacional.md
 │   │   └── normalizacion.md
 │   ├── sql/
-│   │   ├── consultas_cobertura_tpi.sql
-│   │   └── objetos_programables.sql
-│   └── pruebas/
-│       └── pruebas_objetos_programables.sql
+│   │   ├── objetos_programables.sql
+│   │   └── consultas_cobertura_tpi.sql
+│   └── pruebas/pruebas_objetos_programables.sql
 └── unidades/
-    ├── unidad-1/tp2/
-    ├── unidad-2/tp3/
-    ├── unidad-2/tp4/
-    ├── unidad-3/
-    └── unidad-4/
+    ├── unidad-1/tp2/             # Histórico evaluado
+    ├── unidad-2/tp3/             # Histórico evaluado
+    ├── unidad-2/tp4/             # Histórico evaluado
+    ├── unidad-3/                # TP5 oficial corregido
+    └── unidad-4/                # FNBC y candidato experimental descartado
 ```
 
-## Qué permanece en la raíz y por qué
+## Autoridad y lectura
 
-`schema.sql` y `datos_iniciales.sql` son la fundación canónica: todas
-las unidades dependen de ellos, así que viven donde cualquier
-reconstrucción mínima del proyecto los espera, en la raíz. `README.md`
-y `AGENTS.md` son los puntos de entrada para un humano o una IA que
-recién llega al repositorio, y `.kiro/` es la configuración de
-steering de la herramienta Kiro — ambos también pertenecen a la raíz
-por convención de la herramienta y por ser transversales a todas las
-unidades. El trabajo histórico específico de una unidad o TP vive bajo
-`unidades/`; `tpi/` integra y complementa la evidencia de U1–U3 para la
-Primera Entrega, sin constituir una nueva unidad académica ni reemplazar
-los TPs históricos. Su README mapea y reproduce la entrega, el informe
-técnico la justifica, y `modelo/`, `sql/` y `pruebas/` reúnen sus
-artefactos específicos. Sus objetos adicionales se instalan explícitamente,
-sin modificar la fundación canónica.
+El [esquema raíz](../../schema.sql) y el [seed](../../datos_iniciales.sql) definen
+la base oficial; el [modelo TPI](../../tpi/modelo/modelo_relacional.md) la explica.
+[README TPI](../../tpi/README.md) guía la reproducción,
+[informe técnico](../../tpi/informe_tecnico.md) interpreta y
+[evidencia](../../tpi/evidencia_modelo_oficial.md) conserva resultados reales.
+Los objetos TPI se instalan explícitamente; no convierten SQL histórico en
+migraciones pendientes. [AGENTS](../../AGENTS.md) fija las reglas para cambios.
 
-## Estructura interna de cada unidad/TP
+Las unidades organizan sus artefactos en README, `sql/`, `specs/`, `informes/`
+y `duia/` cuando existe. U4 no tiene una DUIA propia. TP1–TP4, bajo U1/U2,
+son **EVIDENCIA HISTÓRICA EVALUADA**: no se modifican salvo instrucción explícita.
+La carga masiva histórica de TP3 permanece en su ubicación original, no se
+copia ni se presenta como carga compatible con el modelo oficial actual.
 
-Cada carpeta de unidad/TP bajo `unidades/` sigue el mismo patrón (con
-variaciones menores cuando una unidad no generó cierto tipo de
-artefacto):
+## Unidad 3: nombres vigentes
 
-- `README.md` — punto de entrada de esa unidad: qué hay, qué es
-  seguro ejecutar, y en qué orden.
-- `sql/` — scripts SQL: índices, vistas, laboratorios de migración,
-  consultas principales y alternativas. No todo lo que hay acá es una
-  migración sobre la base canónica — cada README local aclara la
-  clasificación de cada script (dataset de laboratorio, definición de
-  objeto vigente, evidencia histórica, o consulta experimental).
-- `specs/` — especificaciones escritas como contrato antes de generar
-  el SQL correspondiente.
-- `informes/` — evidencia real: mediciones, planes de `EXPLAIN
-  ANALYZE`, resultados de verificación de equivalencia.
-- `duia/` — Declaración de Uso de IA de esa unidad (cuando existe).
+| Área | Artefactos / objetos |
+|---|---|
+| SQL | indices.sql, queries.sql, views.sql, materializadas.sql, seguridad.sql |
+| Índices | idx_producto_stock_bajo, idx_pedido_fecha_reciente, idx_usuario_mail_lower |
+| Vistas | v_productos_vigentes, v_pedidos_resumen, v_pedido_detalle, v_usuarios_publico |
+| Materializada | mv_facturacion_categoria_mes |
+| Specs de índices | indice_producto_stock_bajo.md, indice_pedido_fecha_reciente.md, indice_usuario_mail_lower.md |
+| Specs de vistas | vista_productos_vigentes.md, vista_pedidos_resumen.md, vista_pedido_detalle.md, vista_usuarios_publico.md |
+| Spec materializada | vista_materializada_facturacion_categoria_mes.md |
 
-Unidad 4 no tiene un directorio `duia/` propio porque en esa unidad no
-se documentó una DUIA específica.
+Entrada: [README U3](../../unidades/unidad-3/README.md).
+Documentos vigentes: informe_mediciones.md, evidencia_modelo_oficial.md y duia.md
+bajo sus respectivas carpetas. informe_mediciones_historico.md y
+duia_historica.md son trazabilidad anterior, no resultados vigentes.
 
-## Dependencia canónica entre unidades
+## Unidad 4: límite del laboratorio
 
-`unidades/unidad-2/tp3/sql/carga_masiva_tp3.sql` es la única copia
-canónica del dataset masivo de laboratorio. Fue creado durante TP3 y
-es reutilizado, sin duplicarse, por:
+[README U4](../../unidades/unidad-4/README.md) distingue FNBC PASS del candidato
+VALID_EXPERIMENT / REJECTED_AFTER_MEASUREMENT / DO_NOT_ADOPT. Se preservan las
+specs y SQL del experimento, su evidencia, informe vigente e informe histórico.
+`usuario` pertenece al modelo oficial; `lote` y `deposito` son extensiones
+académicas. No instalar automáticamente `detalle_pedido.categoria_id` ni los
+triggers experimentales sobre el esquema canónico.
 
-- **Unidad 3**, para las mediciones de índices, vistas y vista
-  materializada.
-- **Unidad 4**, para el laboratorio de desnormalización controlada.
+## Convenciones del contrato vigente
 
-Ningún otro archivo del repositorio debe contener una copia de ese
-script — las unidades que lo necesitan lo referencian por su ruta
-canónica en su propio README.
-
-## Convenciones (aplican dentro de cada `sql/`)
-
-### Nomenclatura
-- Todos los identificadores (tablas, columnas, restricciones, índices)
-  en **español**, minúsculas, `snake_case`.
-- Tablas en sustantivo singular: `categoria`, `cliente`, `producto`,
-  `pedido`, `detalle_pedido` (base canónica); cada unidad documenta
-  las tablas adicionales que introduce, si las hay.
-- Columnas de clave foránea: `<tabla_referenciada>_id`.
-- Nombres de restricciones:
-  - Claves primarias: `pk_<tabla>` (nombradas solo cuando son compuestas).
-  - Claves foráneas: `fk_<tabla>_<tabla_referenciada>`.
-  - `CHECK`: `chk_<tabla>_<columna>`.
-  - Índices: `idx_<tabla>_<columna>`.
-
-### Diseño del esquema base (`schema.sql`)
-- Toda tabla de la base canónica usa `BIGINT GENERATED ALWAYS AS
-  IDENTITY PRIMARY KEY`, excepto `detalle_pedido`, que usa clave
-  primaria compuesta (`pedido_id`, `producto_id`).
-- `categoria`, `cliente` y `producto` incluyen `created_at TIMESTAMPTZ
-  NOT NULL DEFAULT now()`; `pedido` usa `fecha` como marca temporal de
-  la operación; `detalle_pedido` no incluye `created_at`.
-- `precio_unitario` en `detalle_pedido` guarda el precio al momento de
-  la venta (denormalizado por diseño, no una FK al precio actual).
-- `activo BOOLEAN` se usa para soft-delete en `categoria` y `producto`.
-- Todas las claves foráneas usan `ON DELETE RESTRICT`.
-
-### Datos iniciales (`datos_iniciales.sql`)
-- Las referencias a otras filas usan subconsultas sobre claves
-  naturales (por ejemplo, `WHERE nombre = 'Pizzas'`, `WHERE email =
-  '...'`), no IDs numéricos hardcodeados.
+- Identificadores en español, `snake_case`; tablas singulares: categoria,
+  usuario, producto, pedido y detalle_pedido.
+- Toda tabla tiene PK `id`; el detalle también UK `(pedido_id, producto_id)`.
+  No confundir clave primaria con candidata alternativa.
+- FK `<tabla>_id`, restricciones `fk_...`, `chk_...` y
+  `uq_detalle_pedido_pedido_producto`; usar los nombres reales de schema.sql.
+  Las PK simples usan los nombres asignados por PostgreSQL, no una convención
+  inventada de nombres explícitos.
+- `eliminado` en todas las tablas; `disponible` solamente expresa la condición
+  comercial de producto. `fecha DATE` en pedido y `created_at TIMESTAMPTZ` en todas.
+- Subtotal físico derivado dentro de la línea; total físico agregado entre
+  líneas vigentes. No duplicar las autoridades de mantenimiento del TPI.
+- El seed usa RETURNING para pedidos; los nombres de producto solo identifican
+  filas dentro del dataset controlado, no constituyen claves del modelo.
+- No incorporar contraseñas reales ni logs temporales como documentación.
+  Preservar evidencia medida y diferenciarla de propuestas o validación pendiente.

@@ -1,286 +1,461 @@
-# Informe Técnico — TPI Food Store — Primera Entrega
+﻿# Informe técnico — TPI Food Store — Modelo oficial
 
-## 1. Introducción
+**La integración vigente pasó instalación, pruebas funcionales, tres escenarios
+concurrentes y consulta HAVING en PostgreSQL 17.11.** El resultado tiene límites
+explícitos y conserva una incidencia no productiva del arnés de pruebas. Este
+informe interpreta la [evidencia consolidada](evidencia_modelo_oficial.md); no
+reemplaza sus registros ni acredita ejecuciones nuevas durante el cierre.
 
-La entrega integra el trabajo de Avalos Pablo, Blangetti Sofia y Suarez
-Ismael. El [README del TPI](README.md) ofrece el mapa de los nueve objetivos
-y la reproducción mínima. Este informe explica qué se implementó, cómo se
-verificó y qué evidencia respalda cada conclusión, sin copiar los informes
-históricos completos.
+## 1. Introducción y alcance
 
-## 2. Alcance de la primera entrega
+Trabajo de Avalos Pablo, Blangetti Sofia y Suarez Ismael, Base de Datos II.
+La Primera Entrega integra U1–U3 y los complementos del TPI. U4 es trabajo
+académico posterior/complementario, no una migración obligatoria ni un reemplazo
+de la cobertura requerida. El [README TPI](README.md) contiene navegación,
+mapa de objetivos y reproducción exacta desde PowerShell.
 
-El alcance principal comprende las Unidades 1, 2 y 3. Unidad 4 es trabajo
-posterior/complementario: no se utiliza para cubrir faltantes de esta entrega.
-El motor requerido es PostgreSQL 16+; el repositorio histórico documenta
-PostgreSQL 17, pero no se atribuye una versión exacta a las verificaciones
-TPI sin un registro específico.
+Se distinguen tres niveles:
 
-| Aporte | Implementación y evidencia reutilizada |
+| Nivel | Fuente y uso |
 |---|---|
-| Unidad 1 / TP2 | Restricciones de integridad, experimentos multisesión y protocolo de seguridad: [README](../unidades/unidad-1/tp2/README.md), [spec](../unidades/unidad-1/tp2/specs/spec_restricciones.md), [SQL histórico](../unidades/unidad-1/tp2/sql/restricciones_integridad.sql). |
-| Unidad 2 / TP3 | Carga de laboratorio, agregaciones, subconsultas y optimización: [README](../unidades/unidad-2/tp3/README.md), [informe de consultas](../unidades/unidad-2/tp3/informes/informe_consultas_tp3.md), [informe de optimización](../unidades/unidad-2/tp3/informes/informe_optimizacion_tp3.md). |
-| Unidad 2 / TP4 | JOIN analíticos, ranking y comparación de alternativas: [README](../unidades/unidad-2/tp4/README.md), [informe de consultas](../unidades/unidad-2/tp4/informes/informe_consultas_tp4.md), [optimización de JOIN](../unidades/unidad-2/tp4/informes/informe_optimizacion_joins_tp4.md). |
-| Unidad 3 | Índices, tres vistas, una vista materializada y mediciones: [README](../unidades/unidad-3/README.md), [specs](../unidades/unidad-3/specs/), [informe de mediciones](../unidades/unidad-3/informes/informe_mediciones.md). |
-| Integración TPI | Modelado y normalización explícitos, consulta HAVING, función/trigger, procedimiento, batería transaccional y documentación navegable. |
+| Contrato vigente | [schema.sql](../schema.sql), [seed](../datos_iniciales.sql), [modelo](modelo/modelo_relacional.md) y [objetos TPI](sql/objetos_programables.sql) |
+| Evidencia vigente | [TPI](evidencia_modelo_oficial.md), [informe U3](../unidades/unidad-3/informes/informe_mediciones.md), [informe U4](../unidades/unidad-4/informes/informe_u4_fnbc_desnormalizacion.md) |
+| Evidencia histórica evaluada | TP1–TP4, preservados íntegramente; no se presentan sus scripts como compatibles automáticamente con el schema actual |
 
-## 3. Modelo de datos
+La alineación posterior con DER/material oficial corrigió U3 (`da5f3e4`,
+`fix(tp5): alinear con modelo oficial y validar resultados`) y U4 (`95fbfbf`,
+`fix(u4): alinear modelo oficial y cerrar evaluacion`). El esquema raíz y la
+integración TPI actuales continúan esa reparación sin reescribir TP1–TP4.
+No se atribuye a esos trabajos históricos una estructura que no tenían.
 
-El [modelo ER](modelo/modelo_er.md) representa exclusivamente `categoria`,
-`cliente`, `producto`, `pedido` y `detalle_pedido`, con todos sus atributos,
-claves, cardinalidades y participación. Cada producto referencia una
-categoría y cada pedido un cliente: relaciones 1:N con FK obligatoria en
-el lado N. Una categoría puede carecer de productos y un cliente de pedidos.
+## 2. Modelo oficial, ER y transformación relacional
 
-La relación conceptual `pedido N:M producto` se transforma en dos relaciones
-1:N mediante `detalle_pedido`. Su PK `(pedido_id, producto_id)` admite como
-máximo una línea por pareja; `cantidad` y `precio_unitario` describen esa
-asociación. No existe un identificador sustituto para el detalle. El
-[modelo relacional](modelo/modelo_relacional.md) documenta la transformación,
-dominios y restricciones reales; un pedido puede existir sin detalles.
+El [ER](modelo/modelo_er.md) y el [modelo relacional](modelo/modelo_relacional.md)
+representan exactamente las cinco entidades actuales.
 
-## 4. Normalización
-
-El [análisis de normalización](modelo/normalizacion.md) justifica 1FN, 2FN,
-3FN y FNBC/BCNF para las cinco relaciones respecto de las DF documentadas,
-respaldadas por claves, `UNIQUE`, estructura y semántica explícita.
-`categoria` tiene claves candidatas `id` y `nombre`; `cliente`, `id` y
-`email`; `producto` y `pedido`, `id`; el detalle, la pareja completa.
-No se infieren reglas de negocio desconocidas ni unicidad de `producto.nombre`.
-
-En el detalle, `(pedido_id, producto_id) → cantidad, precio_unitario`:
-ningún componente aislado determina esos atributos. `producto.precio` es
-el precio actual; `detalle_pedido.precio_unitario` conserva el precio de
-la línea al venderse. No se presupone `producto_id → precio_unitario` ni
-se considera ese dato histórico una redundancia incorrecta. Su representación
-no implica una prohibición general de editar manualmente líneas históricas.
-
-## 5. Implementación SQL
-
-[schema.sql](../schema.sql) es el DDL canónico: tipo `forma_pago`, cinco
-tablas, identidades, PK, FK, `UNIQUE`, `CHECK` e índices de acceso.
-[datos_iniciales.sql](../datos_iniciales.sql) es la carga DML inicial.
-Ambos permanecen sin cambios por la integración.
-
-Los objetos nuevos se instalan explícitamente desde
-[objetos_programables.sql](sql/objetos_programables.sql), sobre la fundación
-canónica y dentro de una transacción externa. No se crean tablas ni columnas.
-El DOWN documentado elimina primero trigger, luego función y procedimiento;
-no se ejecuta automáticamente ni revierte ventas previamente confirmadas.
-El SQL histórico de restricciones de TP2 no se reaplica: sus restricciones
-ya están en el esquema actual. Los demás laboratorios tampoco son una
-cadena de migraciones pendientes.
-
-## 6. Consultas y análisis
-
-| Capacidad | Evidencia y criterio |
+| Entidad | Contrato destacado |
 |---|---|
-| JOIN, COUNT, AVG y GROUP BY | Consulta A de [TP3](../unidades/unidad-2/tp3/sql/consultas_tp3_ia.sql): preserva categorías sin productos activos mediante `LEFT JOIN` y filtro de producto en `ON`. |
-| Subconsulta correlacionada | Consulta B de [TP3](../unidades/unidad-2/tp3/sql/consultas_tp3_ia.sql): compara el precio con el promedio de su categoría. [Spec](../unidades/unidad-2/tp3/specs/spec_consultas_tp3.md). |
-| SUM y función de ventana | Consulta A de [TP4](../unidades/unidad-2/tp4/sql/consultas_tp4_ia.sql): `RANK() OVER` sobre gasto total, conservando puestos compartidos ante empates. [Spec](../unidades/unidad-2/tp4/specs/spec_consultas_tp4.md). |
-| HAVING explícito | [Consulta TPI](sql/consultas_cobertura_tpi.sql): `cliente JOIN pedido`, `COUNT(p.id)`, `GROUP BY` y `HAVING COUNT(p.id) > 1`. |
+| `categoria` | Agrupación del catálogo; nombre único, descripción y baja lógica |
+| `usuario` | Nombre, apellido, mail único, celular, contrasena, rol y baja lógica |
+| `producto` | Precio de catálogo, stock, imagen, disponibilidad y categoría obligatoria |
+| `pedido` | Usuario obligatorio, fecha DATE, estado, total físico y forma de pago |
+| `detalle_pedido` | PK `id`, FK a pedido/producto, UK conjunta, cantidad, precio histórico y subtotal físico |
 
-`HAVING` filtra después de agregar; `WHERE` no puede sustituir ese filtro
-sobre `COUNT` en el mismo nivel. El umbral es una condición del ejercicio,
-no un resultado anticipado. No se agregó `ROW_NUMBER()` artificialmente:
-`RANK()` ya cubre ventanas y respeta los empates requeridos.
+Todas tienen `id BIGINT GENERATED ALWAYS AS IDENTITY`, `eliminado` y
+`created_at TIMESTAMPTZ`. `pedido.fecha` es **DATE**, no la marca temporal
+administrativa. `disponible` expresa disponibilidad comercial; `eliminado`,
+baja lógica: no son equivalentes.
 
-Los informes de consultas de TP3 y TP4 documentan equivalencia mediante
-`EXCEPT` bidireccional: completa para sus consultas A y limitada a una
-muestra determinista de 100 productos exteriores para sus consultas B,
-manteniendo el promedio sobre todos los productos activos de la categoría.
-No se presenta esa muestra como una comprobación exhaustiva.
+Las relaciones son categoría 1:N producto, usuario 1:N pedido, pedido 1:N
+detalle y producto 1:N detalle. Las FK NOT NULL obligan a cada hijo a tener
+exactamente un padre; el padre admite cero o muchos hijos. Una FK no obliga
+al pedido a tener líneas. La relación N:M pedido–producto se resuelve mediante
+la entidad asociativa con **PK propia `id`** y
+`UNIQUE(pedido_id, producto_id)`: un producto aparece como máximo una vez en un
+pedido, también considerando líneas eliminadas lógicamente.
 
-## 7. Vistas y objetos programables
+## 3. Normalización y redundancias deliberadas
 
-Las definiciones verificadas de [Unidad 3](../unidades/unidad-3/sql/views.sql)
-son `v_productos_vigentes` (catálogo con producto y categoría activos),
-`v_pedidos_cliente` (datos mínimos del cliente, sin teléfono ni fecha de
-creación) y `v_detalle_pedido_producto` (historial y subtotal calculado como
-`cantidad * precio_unitario`, no una columna física del detalle).
+El [análisis de DF](modelo/normalizacion.md) separa restricciones, reglas de
+dominio y redundancias. No deriva claves de coincidencias del seed.
 
-[mv_facturacion_categoria_mes](../unidades/unidad-3/sql/materializadas.sql)
-almacena el agregado por categoría y mes. Su índice único sobre
-`(categoria_id, mes)` prepara `REFRESH CONCURRENTLY`, pero el
-[README U3](../unidades/unidad-3/README.md) aclara que ese refresh no se
-ejecutó en el TP. La política propuesta de 60 minutos admite atraso;
-no equivale a una actualización automática ni a información en tiempo real.
-
-Los [objetos específicos del TPI](sql/objetos_programables.sql) separan:
-
-- `fn_validar_producto_activo_detalle()` y `trg_detalle_producto_activo`:
-  validan actividad con `FOR SHARE` antes de `INSERT` o `UPDATE OF producto_id`,
-  también por rutas directas. Si el producto no existe, la función devuelve
-  `NEW` y deja que la FK rechace la referencia. No administran inventario.
-- `registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)`: valida parámetros y
-  existencia del pedido; lee precio, stock y actividad con `FOR UPDATE`;
-  rechaza inactividad, stock insuficiente o pareja duplicada; inserta el
-  precio leído como dato histórico y luego descuenta stock. Se invoca con
-  `CALL` en las [pruebas](pruebas/pruebas_objetos_programables.sql).
-
-El INSERT del procedimiento también dispara el trigger: ambas validaciones
-de actividad son intencionales y protegen rutas distintas. El trigger no
-valida `categoria.activo`, regla de catálogo que no se estableció como
-condición de venta. `UPDATE OF producto_id` puede activarse incluso si el
-valor asignado coincide con el anterior.
-
-## 8. Integridad y reglas de negocio
-
-Las capas se complementan; el procedimiento no reemplaza los constraints.
-
-| Capa | Definición real / responsabilidad |
-|---|---|
-| PK | `id` en cuatro tablas; `pk_detalle_pedido` sobre `(pedido_id, producto_id)`, garantía definitiva frente a duplicados. |
-| FK | `fk_producto_categoria`, `fk_pedido_cliente`, `fk_detalle_pedido_pedido` y `fk_detalle_pedido_producto`, todas con `ON DELETE RESTRICT`. |
-| UNIQUE | `categoria.nombre` y `cliente.email`, ambos `NOT NULL`; no se supone unicidad de nombres de producto. |
-| CHECK | `chk_producto_precio`: `precio >= 0`; `chk_producto_stock`: `stock >= 0`; `chk_detalle_pedido_cantidad`: `cantidad > 0`; `chk_detalle_pedido_precio_unitario`: `precio_unitario >= 0`. |
-| Trigger | Impide insertar o reasignar una línea hacia un producto existente inactivo. |
-| Procedimiento | Ofrece la ruta controlada de registro y descuento de stock con errores explícitos. |
-
-Fuente de constraints: [schema.sql](../schema.sql). Los SQLSTATE productivos
-son `22023` (parámetros), `23503` (referencia), `23505` (duplicado) y
-`23514` (regla de actividad o stock); los mensajes distinguen cada motivo.
-
-## 9. Transacciones, atomicidad y concurrencia
-
-**Evidencia histórica:** el [informe de concurrencia U1](../unidades/unidad-1/tp2/informes/informe_concurrencia.md)
-documenta lecturas no repetibles y fantasmas bajo `READ COMMITTED`, su
-estabilidad bajo `REPEATABLE READ` y espera entre dos sesiones con
-`SELECT ... FOR UPDATE`, liberada al confirmar. Incluye `COMMIT` y
-`ROLLBACK`. `SERIALIZABLE` se analiza conceptualmente; no se presenta aquí
-como un experimento ejecutado. El [protocolo de seguridad](../unidades/unidad-1/tp2/informes/protocolo_seguridad.md)
-registra además carga reversible y posterior confirmación.
-
-**Evidencia TPI:** el INSERT de detalle y el UPDATE de stock pertenecen a la
-misma transacción llamante, sin `COMMIT` ni `ROLLBACK` internos. El caso I
-verifica ambos cambios, provoca después `P0099` y comprueba que el bloque
-con `EXCEPTION` revirtió detalle y stock juntos. El rollback general limpia
-el resto de los datos de prueba.
-
-Por diseño, `FOR UPDATE` mantiene bloqueada la fila del producto para
-evitar descuentos simultáneos basados en el mismo stock previo; `FOR SHARE`
-coordina la validación del trigger con actualizaciones del producto.
-La batería de una sesión demuestra atomicidad e integridad, **no una
-ejecución multisesión de dos CALL**; no reemplaza los experimentos de U1.
-
-## 10. Baja lógica e índices
-
-`categoria.activo` y `producto.activo` permiten marcar baja lógica sin
-borrar la fila ni romper referencias históricas. El borrado físico es una
-operación diferente, restringida por las FK si existen filas dependientes.
-
-El catálogo y las consultas de vigencia filtran actividad; la vista histórica
-del detalle no lo hace. La materializada conserva los filtros de producto
-y categoría activos del reporte original: no debe confundirse con un
-reporte histórico sin filtros, y refleja cambios solo después de refrescarse.
-
-[idx_producto_stock_bajo](../unidades/unidad-3/sql/indices.sql) usa claves
-`(stock ASC, nombre ASC)`, `INCLUDE (id, precio)` y predicado parcial
-`WHERE activo = TRUE`. El umbral `stock <= 5` pertenece a la consulta,
-no al predicado del índice. La baja modifica la pertenencia lógica al índice.
-En la medición histórica todos los productos estaban activos: el predicado
-no reducía entonces la cantidad de entradas; no se atribuye la mejora a
-una exclusión de inactivos que no existían en ese dataset.
-
-## 11. Optimización de consultas
-
-Promedios estables transcritos del [informe de mediciones U3](../unidades/unidad-3/informes/informe_mediciones.md):
-tres ejecuciones con `EXPLAIN (ANALYZE, BUFFERS)`, descartando calentamiento
-y promediando las dos restantes, sobre `foodstore_tp5` con carga masiva de
-TP3. No son mediciones de `foodstore_tpi` ni predicciones para otro entorno.
-
-| Caso | Antes | Después | Evidencia |
-|---|---|---|---|
-| Stock bajo | 10.030 ms; Seq Scan + Sort | 0.2675 ms; Index Only Scan, sin Sort | [U3, sección 3](../unidades/unidad-3/informes/informe_mediciones.md) |
-| Pedidos por fecha | 12.8805 ms; Seq Scan + Sort | 0.313 ms; Index Only Scan, sin Sort | [U3, sección 4](../unidades/unidad-3/informes/informe_mediciones.md) |
-| Email normalizado con `lower(email)` | 10.272 ms; Seq Scan | 0.1075 ms; Index Scan de expresión | [U3, sección 5](../unidades/unidad-3/informes/informe_mediciones.md) |
-| Facturación por categoría/mes | 1131.224 ms; JOIN y agregación originales | 0.060 ms; lectura de la vista materializada | [U3, sección 12](../unidades/unidad-3/informes/informe_mediciones.md) |
-
-Las [consultas de referencia](../unidades/unidad-3/sql/queries.sql) y el
-informe conservan planes y buffers. Las tres vistas convencionales y la
-materializada obtuvieron cero diferencias en ambos sentidos mediante
-`EXCEPT`; las vistas convencionales encapsulan criterios, no se presentan
-como mejoras de rendimiento por sí mismas. La materializada reduce lectura
-a cambio de almacenamiento y actualización diferida. Se descartó un índice
-cubridor de email por sobreindexación; tampoco se atribuye causalmente a
-los índices la diferencia favorable del benchmark de escritura.
-
-## 12. Pruebas y resultados
-
-**Procedencia:** los siguientes resultados TPI fueron comunicados
-expresamente por el equipo para esta entrega. Las ejecuciones se realizaron
-externamente mediante `psql` y se revisaron antes de versionar los archivos;
-no fueron ejecutadas por Codex ni repetidas durante esta documentación.
-
-| Etapa | Resultado real informado |
-|---|---|
-| [HAVING](sql/consultas_cobertura_tpi.sql), con `ON_ERROR_STOP=1` | Ana Gómez: 2 pedidos; Luis Paz: 2 pedidos. |
-| Instalación de ensayo | `BEGIN`, `CREATE FUNCTION`, `CREATE TRIGGER`, `CREATE PROCEDURE`, `ROLLBACK`; verificación posterior: 0 objetos TPI persistidos. |
-| Instalación posterior real | Función y procedimiento instalados en `foodstore_tpi`; trigger instalado y habilitado. |
-| [Batería TPI](pruebas/pruebas_objetos_programables.sql) | 13 grupos / 15 variantes; todos los `PASS` alcanzados, incluido el de batería completa. |
-| Limpieza | `ROLLBACK` final ejecutado; categoría de prueba restante = 0 y cliente de prueba restante = 0. |
-| Objetos después del rollback | Función instalada = TRUE; procedimiento instalado = TRUE; trigger instalado y habilitado = TRUE. |
-
-La batería crea datos propios con IDs obtenidos por `RETURNING`, valida
-los objetos antes de comenzar y verifica: CALL válido; cantidades cero,
-negativa y NULL; stock insuficiente; inactividad por procedimiento e INSERT
-directo; duplicados por procedimiento y PK directa; UPDATE a inactivo;
-pedido/producto inexistentes y FK directa; precio histórico; atomicidad.
-Captura únicamente errores esperados, sin `WHEN OTHERS`; en PK/FK directas
-comprueba además el nombre del constraint. Los errores inesperados se propagan.
-El rollback no elimina los objetos previamente instalados ni garantiza
-retroceder secuencias: los huecos de identidad son normales.
-
-## 13. Uso de Inteligencia Artificial
-
-En esta integración, según la trazabilidad comunicada por el equipo:
-
-| Herramienta | Finalidad |
-|---|---|
-| Claude | Auditoría del repositorio y revisión de cobertura. |
-| Codex | Generación controlada de artefactos, revisión estática de SQL y documentación. |
-| ChatGPT | Análisis, revisión y coordinación de la secuencia de implementación y pruebas. |
-
-La generación/propuesta y la auditoría no equivalen a ejecución ni aceptación.
-Las decisiones fueron revisadas por el equipo; la validación final y las
-ejecuciones SQL relevantes mediante `psql` permanecieron bajo control humano.
-
-La evidencia histórica también respalda Kiro para especificación y OpenCode
-para generación, junto con revisiones de ChatGPT donde cada DUIA lo indica.
-Se conservan sin reescribir: U1 [parte 1](../unidades/unidad-1/tp2/duia/duia_parte1.md),
-[parte 2](../unidades/unidad-1/tp2/duia/duia_parte2.md) y
-[parte 3](../unidades/unidad-1/tp2/duia/duia_parte3.md);
-[TP3](../unidades/unidad-2/tp3/duia/duia_tp3.md);
-[TP4](../unidades/unidad-2/tp4/duia/duia_tp4.md);
-[Unidad 3](../unidades/unidad-3/duia/duia.md).
-
-## 14. Decisiones aceptadas y descartadas
-
-| Decisión | Estado | Motivo |
+| Relación | Claves candidatas respaldadas | Formas normales con las DF identificadas |
 |---|---|---|
-| Mantener `schema.sql` como contrato y agregar `tpi/` sin reescribir historia | Aceptada | Integrar evidencia sin cambios retroactivos. |
-| SQLSTATE estándar en objetos productivos | Aceptada | Errores identificables de parámetros, referencia, duplicado y regla de negocio. |
-| `FOR UPDATE` para stock y `FOR SHARE` en el trigger | Aceptada | Coordinar operaciones sobre la fila del producto. |
-| `precio_unitario` histórico y PK compuesta como garantía definitiva | Aceptada | Preservar precio de venta y unicidad de la pareja. |
-| Pruebas dentro de `BEGIN`/`ROLLBACK` | Aceptada | Aserciones reproducibles sin dejar filas permanentes. |
-| Reutilizar `RANK() OVER` existente | Aceptada | Ya demuestra ventanas y respeta empates. |
-| Inventar columnas, agregar `estado`, `eliminado`, `total` o `subtotal` físico | Descartada | No pertenecen al esquema canónico. |
-| Modificar el esquema base para satisfacer artificialmente la rúbrica | Descartada | Los faltantes se resuelven con la capa integradora. |
-| SQLSTATE productivos `P1001`/`P1002` | Descartada | Se utilizan códigos estándar. |
-| Agregar `ROW_NUMBER()` solo para duplicar evidencia | Descartada | No aporta cobertura faltante. |
-| `ON CONFLICT DO NOTHING` para ocultar duplicados | Descartada | La operación debe fallar explícitamente. |
-| `COMMIT`/`ROLLBACK` internos en el procedimiento | Descartada | La transacción pertenece al llamante. |
-| Afirmar concurrencia multisesión desde una prueba de una sesión | Descartada | Excede la evidencia obtenida. |
-| JSONB o transition tables sin requisito funcional | No implementada | No son necesarios para esta entrega. |
+| usuario | `{id}`, `{mail}` | 1FN, 2FN, 3FN y FNBC |
+| categoria | `{id}`, `{nombre}` | 1FN, 2FN, 3FN y FNBC |
+| producto | `{id}` | 1FN, 2FN, 3FN y FNBC |
+| pedido | `{id}` | 1FN, 2FN, 3FN y FNBC para sus DF internas |
+| detalle_pedido | `{id}`, `{pedido_id, producto_id}` | 1FN/2FN; no 3FN/FNBC estrictas al incluir la DF del subtotal |
 
-`P0099` existe únicamente como excepción deliberada del test de atomicidad,
-después del CALL; no es un SQLSTATE de los objetos productivos.
+En detalle, `id`, `pedido_id` y `producto_id` son primos. La regla conceptual
+`{cantidad, precio_unitario} → subtotal` tiene determinante que no es superclave
+y dependiente no primo. Por eso impide 3FN/FNBC estrictas, aunque no hay una
+DF parcial de un no primo respecto de una parte propia de la clave compuesta.
+**Subtotal es REDUNDANCIA DERIVADA DELIBERADA**, exigida por el modelo oficial;
+no se elimina para aparentar una normalización más alta.
 
-## 15. Conclusiones
+`subtotal` se deriva dentro de una línea. En cambio, `pedido.total` es un
+**agregado físico entre filas de otra relación**: suma los subtotales de las
+líneas vigentes, o cero si no hay ninguna. Esa regla cruzada no demuestra por
+sí sola una DF interna problemática entre atributos no clave de pedido.
+Ambos datos requieren consistencia, pero no son el mismo tipo de dependencia.
 
-La primera entrega permite recorrer los nueve objetivos desde evidencia
-concreta de U1–U3 y los complementos mínimos del TPI. Se mantienen separados
-el contrato canónico, los laboratorios históricos y los objetos integradores.
-Las cifras de optimización conservan su contexto; los resultados TPI tienen
-procedencia explícita y no se atribuyen a una ejecución de IA. La revisión
-y aceptación académica final corresponden al equipo y a la cátedra.
+El schema impone no negatividad, no la igualdad derivada. La capa programable
+instalada posteriormente mantiene subtotal y total; los textos de la fase
+estructural que describen esa capa como futura no constituyen evidencia de
+que siga pendiente su instalación.
+
+## 4. Integridad y seed
+
+El catálogo se verificó después de instalar el schema: **3 ENUM, 5 tablas,
+40 columnas, 5 PK sobre id, 4 FK, 6 CHECK y 3 índices base explícitos**.
+
+- ENUM `forma_pago`: EFECTIVO, TARJETA, TRANSFERENCIA.
+- ENUM `rol`: ADMIN, USUARIO; default de usuario: USUARIO.
+- ENUM `estado_pedido`: PENDIENTE, CONFIRMADO, TERMINADO, CANCELADO; default:
+  PENDIENTE, decisión de implementación para altas.
+- FK `fk_producto_categoria`, `fk_pedido_usuario`,
+  `fk_detalle_pedido_pedido`, `fk_detalle_pedido_producto`: `ON DELETE RESTRICT`.
+- UNIQUE de `usuario.mail`, `categoria.nombre` y
+  `uq_detalle_pedido_pedido_producto`. No se declara unicidad case-insensitive.
+- CHECK de precio/stock de producto, total de pedido, cantidad positiva,
+  precio unitario y subtotal del detalle no negativos.
+- Índices base: `idx_producto_categoria`, `idx_pedido_usuario`,
+  `idx_producto_nombre_vig`. No incluyen los candidatos U3 como instalación
+  mínima ni crean claves nuevas.
+
+El seed contiene **3 usuarios / 2 categorías / 3 productos / 5 pedidos /
+7 detalles**. Todos los pedidos son TERMINADO por convención explícita del
+seed, no por un estado recuperado de una iteración anterior.
+
+| Usuario | Fecha | Total real |
+|---|---|---:|
+| Ana Gómez | 2026-03-01 | 2800.00 |
+| Luis Paz | 2026-03-01 | 1500.00 |
+| Ana Gómez | 2026-03-05 | 3150.00 |
+| Marta Ruiz | 2026-03-06 | 6200.00 |
+| Luis Paz | 2026-03-07 | 1050.00 |
+
+Usuario y fecha distinguen esas filas solo en el dataset controlado, no son
+una clave candidata. El seed calcula subtotales con precio histórico y
+reconcilia totales; no vuelve a descontar stock por ventas pasadas. Es una
+fotografía inicial. `SEED_NO_AUTH` es exclusivamente un marcador académico,
+no una credencial real ni un mecanismo de autenticación.
+
+Muzzarella cuesta actualmente **1050**, pero conserva una línea histórica a
+**1000**. El ejemplo muestra por qué no se asume
+`producto_id → precio_unitario` en el detalle: el precio puede variar entre
+ventas. Una baja posterior de usuario, producto o categoría no destruye las
+filas históricas ni justifica ocultarlas de sus reportes.
+
+## 5. Objetos programables: autoridades únicas
+
+[objetos_programables.sql](sql/objetos_programables.sql) instala exactamente
+**7 rutinas y 5 triggers**, sin tablas ni columnas adicionales.
+
+| Objeto | Tipo | Responsabilidad |
+|---|---|---|
+| `calcular_total_pedido(bigint)` | Función SQL STABLE | Sumar subtotal físico no eliminado; devuelve cero sin líneas |
+| `fn_set_subtotal()` | Función trigger | Derivar subtotal de cantidad y precio unitario |
+| `fn_validar_detalle_vigente()` | Función trigger | Validar pedido, usuario y producto al insertar/reasignar referencias |
+| `fn_recalcular_total_insert()` | Función trigger | Recalcular pedidos de NEW TABLE |
+| `fn_recalcular_total_update()` | Función trigger | Recalcular unión de pedidos de OLD/NEW TABLE |
+| `fn_recalcular_total_delete()` | Función trigger | Recalcular pedidos de OLD TABLE |
+| `registrar_detalle_pedido(bigint,bigint,integer)` | Procedimiento | Registrar venta con precio histórico, validaciones y descuento de stock |
+| `trg_subtotal` | BEFORE, por fila | Invocar la autoridad de subtotal |
+| `trg_detalle_vigente` | BEFORE, por fila | Invocar validación de vigencia |
+| `trg_total_detalle_insert` | AFTER INSERT, por sentencia | Invocar recálculo con transition table nueva |
+| `trg_total_detalle_update` | AFTER UPDATE, por sentencia | Invocar recálculo con transition tables anterior/nueva |
+| `trg_total_detalle_delete` | AFTER DELETE, por sentencia | Invocar recálculo con transition table anterior |
+
+**STOCK:** el procedimiento. **SUBTOTAL:** `fn_set_subtotal` / `trg_subtotal`.
+**TOTAL:** `calcular_total_pedido` y triggers AFTER. **VIGENCIA DE NUEVAS
+LÍNEAS:** `fn_validar_detalle_vigente` / `trg_detalle_vigente`.
+
+El BEFORE completa precio NULL desde catálogo, conserva un precio explícito
+y sobrescribe una manipulación directa del subtotal. Ante cambio de producto,
+si el precio no cambió respecto de OLD, adopta el precio del nuevo producto;
+si es explícito y distinto, lo conserva. Un valor igual al anterior no permite
+distinguir si el llamante lo escribió expresamente.
+
+Los AFTER recalculan una vez por pedido afectado en cada sentencia. UPDATE
+incluye pedidos de origen y destino para cubrir movimientos de líneas;
+INSERT, baja/reactivación y DELETE físico mantienen el agregado. La función
+de total no multiplica de nuevo ni filtra entidades padre por bajas posteriores.
+
+La vigencia se valida en nuevas líneas o cambios efectivos de pedido/producto,
+no al cambiar solo `eliminado`. Esto permite modificar la baja de una línea
+histórica sin invalidarla por una baja posterior de sus padres. FK/UNIQUE/CHECK
+siguen siendo autoridades estructurales; las validaciones no las sustituyen.
+
+## 6. Transacciones, stock y atomicidad
+
+`CALL registrar_detalle_pedido` valida parámetros y vigencia, fija el precio
+histórico bajo lock, inserta sin pasar subtotal, deja que los triggers mantengan
+los derivados y descuenta stock. La duplicación del par se rechaza incluso si
+la línea anterior está eliminada; UNIQUE es la garantía declarativa definitiva.
+
+Orden de locks del procedimiento: **pedido FOR UPDATE → usuario FOR SHARE →
+producto FOR UPDATE**. El pedido serializa CALL sobre un mismo pedido; el
+producto protege la lectura de stock antes del descuento. Este orden no
+constituye una prueba universal de ausencia de deadlocks.
+
+El procedimiento no confirma ni revierte internamente: la transacción pertenece
+al llamante. La batería verificó detalle, subtotal, total y stock dentro de un
+subbloque; provocó `P0099` y comprobó la reversión conjunta. **P0099 pertenece
+solo al test**, no a los objetos productivos. Estos usan `22023`, `23503`,
+`23505` y `23514` para parámetros, referencias, duplicados y reglas de negocio.
+
+DML directo de detalle **no administra stock**. Baja/reactivación, DELETE o
+cambio directo de producto no reponen ni concilian inventario: no se inventó
+una política de cancelación o reposición. La ruta soportada de venta es el CALL.
+El DOWN comentado retira exclusivamente triggers, funciones y procedimiento;
+no borra tablas, datos, ENUM ni índices base y no se ejecuta automáticamente.
+
+## 7. Ejecución funcional y batería
+
+Entorno registrado: **PostgreSQL 17.11, x86_64-windows, msvc-19.44.35228,
+64-bit**, base descartable **foodstore_tpi_oficial**. La instalación real de
+schema, seed y objetos terminó con exit code 0 y se contrastó con catálogo.
+La [batería](pruebas/pruebas_objetos_programables.sql) ejecutó **29 grupos /
+37 variantes**, produjo **30 NOTICE PASS** (29 de grupos y uno global) y
+terminó con **exit code 0**, sin errores SQL inesperados.
+
+> PASS: batería completa de objetos programables del modelo oficial
+
+| Familia de pruebas | Propiedades verificadas |
+|---|---|
+| Venta y rechazos | CALL válido, cantidades inválidas, stock insuficiente, producto eliminado/no disponible, pedido y usuario eliminados |
+| Integridad declarativa | Duplicados, FK, CHECK y mail UNIQUE, con nombres de constraints donde corresponde |
+| Precio/subtotal | Precio NULL, histórico explícito, cambios de cantidad/precio/producto, protección ante subtotal manipulado |
+| Total y líneas | Total cero, baja/reactivación, DELETE, movimiento entre pedidos, función de agregado y operaciones masivas |
+| Reversibilidad | Atomicidad conjunta, rollback de fixtures y conservación de objetos |
+
+Se capturan exclusivamente los SQLSTATE esperados; un error inesperado hace
+fallar la ejecución. Después del rollback quedaron cero fixtures; conteos,
+stocks y totales del seed permanecieron iguales, al igual que las huellas de
+sus cinco tablas. Los doce objetos siguieron instalados y habilitados cuando
+corresponde. Reconciliaciones globales: **0 subtotales / 0 totales inconsistentes**.
+Las secuencias pueden conservar huecos.
+
+Esta batería es de **una sesión**. No demuestra por sí sola concurrencia: la
+validación multisesión siguiente fue independiente y posterior. Los comentarios
+estáticos previos en los scripts no reemplazan esta evidencia de ejecución.
+
+## 8. Concurrencia real ensayada
+
+Cada escenario empleó dos procesos psql independientes y una tercera conexión
+de monitoreo. Se usó explícitamente **READ COMMITTED**. B comenzó después de
+observar a A con la transacción abierta tras el CALL; en los tres casos se
+registró **Lock / transactionid**, no solo una demora percibida.
+
+| Escenario | Intercalado y respuesta de B | Estado final verificado |
+|---|---|---|
+| Mismo producto / pedidos distintos | Stock inicial 5; A vende 4, B intenta 4; tras esperar, B recibe `23514` por stock insuficiente | Stock 1; total A 400; B sin detalles y total 0 |
+| Mismo pedido / productos distintos | A vende 2 × 200; B vende 3 × 300; B espera y ambos CALL confirman | Subtotales 400/900; total almacenado y calculado 1300; stocks 8/7 |
+| Mismo pedido / mismo producto | A vende 2 × 150; B intenta una unidad; espera y recibe `23505` por duplicado | Una línea, subtotal/total 300, stock 8; sin segundo descuento |
+
+**CONCURRENCY_VALIDATION: PASS, tres escenarios de tres.** En estos ensayos el
+lock de producto evitó sobreventa; el del pedido serializó las modificaciones
+y evitó pérdida de actualización del total y doble registro. No se extrapola
+este resultado a todas las operaciones o intercalados posibles.
+
+### Incidencia del harness de cleanup
+
+**NON_PRODUCT_TEST_HARNESS_INCIDENT**, SQLSTATE **42601**, archivo temporal
+`21_cleanup.sql`. Después de finalizar los tres ensayos, el helper intentó
+abrir un bloque PL/pgSQL con sintaxis inválida (`BEGIN;`). PostgreSQL lo rechazó
+antes de eliminar filas y la transacción quedó revertida.
+
+No fue un fallo del schema, de los objetos productivos ni de la batería
+versionada, y no alteró los resultados concurrentes. Se ejecutó únicamente
+`24_safe_cleanup.sql`, **sin repetir escenarios**. Eliminó 4 detalles, 4 pedidos,
+4 productos, 1 usuario y 1 categoría, exclusivamente fixtures. Luego se
+verificaron cero fixtures, seed intacto, doce objetos presentes y conciliación
+0/0. El error afectó el arnés y requirió atención: no se oculta ni se minimiza.
+
+Se separan **PRODUCT_OBJECT_FAILURES: 0** y **TEST_HARNESS_INCIDENTS: 1** del
+resultado productivo PASS. El estado global FAIL del resumen inicial agrupaba
+ambos niveles; la [evidencia consolidada](evidencia_modelo_oficial.md) registra
+esa clasificación y su procedencia sin borrar el incidente.
+
+## 9. Consultas y cobertura histórica
+
+La [consulta vigente HAVING](sql/consultas_cobertura_tpi.sql) agrupa `usuario`
+con `pedido`, conserva `p.eliminado = FALSE` mediante WHERE antes de agrupar y
+selecciona grupos con `HAVING COUNT(p.id) > 1`. Es decir, excluye los pedidos
+eliminados y conserva los no eliminados. No filtra usuarios eliminados para
+preservar historia; tampoco filtra estados ni une detalle, evitando multiplicar
+pedidos por número de líneas.
+
+Resultado real del Bloque 8: **Ana Gómez 2, Luis Paz 2; dos filas, exit code 0,
+cero errores SQL**. Marta tiene un pedido y no supera el umbral. HAVING actúa
+después de GROUP BY y no se reemplaza por un WHERE sobre COUNT en el mismo nivel.
+
+| Evidencia histórica evaluada | Aporte académico que se conserva |
+|---|---|
+| [TP2 / U1](../unidades/unidad-1/tp2/README.md), [concurrencia](../unidades/unidad-1/tp2/informes/informe_concurrencia.md) | Integridad, transacciones y experimentos de aislamiento de aquella etapa |
+| [TP3 / U2](../unidades/unidad-2/tp3/README.md), [consultas](../unidades/unidad-2/tp3/informes/informe_consultas_tp3.md) | JOIN, agregaciones y subconsulta correlacionada |
+| [TP4 / U2](../unidades/unidad-2/tp4/README.md), [consultas](../unidades/unidad-2/tp4/informes/informe_consultas_tp4.md) | JOIN analíticos y función de ventana RANK con empates |
+
+Estos ejercicios pertenecen a una versión anterior del modelo. Se mantienen
+como evidencia evaluada, no como SQL actualizado ni una secuencia de migración.
+La consulta HAVING actual complementa esa cobertura sin duplicar ventanas o
+inventar nuevas reglas para aumentar artificialmente el número de casos.
+
+## 10. Unidad 3: índices y costo de escritura
+
+Resultados del [informe vigente U3](../unidades/unidad-3/informes/informe_mediciones.md),
+no del seed TPI: PostgreSQL 17.11, `foodstore_tp5_oficial`, 8 categorías,
+50.000 productos, 20.000 usuarios, 200.000 pedidos y 500.000 detalles.
+Protocolo: tres ejecuciones por caso, primera de calentamiento y promedio
+estable de las dos restantes. Los tiempos son específicos del dataset/máquina;
+dos corridas válidas no son una garantía estadística ni universal.
+
+| Índice aceptado para el TP | Antes, ms | Después, ms | Mejora observada | Plan final |
+|---|---:|---:|---:|---|
+| `idx_producto_stock_bajo` | 9.4390 | 0.2975 | 31.73x | Index Only Scan |
+| `idx_pedido_fecha_reciente` | 264.3715 | 1.2250 | 215.81x | Index Only Scan |
+| `idx_usuario_mail_lower` | 10.8865 | 0.1360 | 80.05x | Bitmap Heap Scan + Bitmap Index Scan |
+
+Stock bajo usa `eliminado = FALSE`, no disponibilidad: un producto no disponible
+puede requerir reposición. Pedidos recientes utiliza fecha DATE y eliminación
+lógica; la cobertura INCLUDE se observó, no se supuso. La unicidad exacta de
+mail no implica UNIQUE sobre `lower(mail)`: esa expresión no incorpora una
+regla de negocio nueva.
+
+INSERT de 1.000 filas con rollback mostró costos adicionales:
+
+| Tabla indexada | Antes → después, ms | Variación |
+|---|---|---:|
+| producto | 16.9725 → 19.5120 | +14.96 % |
+| pedido | 9.5240 → 10.4330 | +9.54 % |
+| usuario | 7.6655 → 14.7085 | +91.88 % |
+
+`idx_usuario_mail_lower_covering` fue descartado: **999.424 bytes** del simple
+frente a **2.621.440 bytes**, **2.62x**, para una consulta de una fila y sin
+beneficio temporal adicional medido. La aceptación del índice simple depende
+de la carga asumida de pocas altas frente a búsquedas interactivas frecuentes;
+esa frecuencia no fue medida y la decisión debe revisarse si cambia el uso.
+
+## 11. Unidad 3: cuatro vistas, seguridad y materializada
+
+Definiciones: [views.sql](../unidades/unidad-3/sql/views.sql).
+
+| Vista vigente | Semántica | Filas; EXCEPT en ambos sentidos |
+|---|---|---|
+| `v_productos_vigentes` | Producto y categoría no eliminados; no exige disponible | 43.299; 0/0 |
+| `v_pedidos_resumen` | Pedido vigente con usuario; no oculta historia por baja del usuario | 198.059; 0/0 |
+| `v_pedido_detalle` | Detalle vigente, producto y subtotal físico; no filtra baja del producto | 495.327; 0/0 |
+| `v_usuarios_publico` | Usuario vigente; expone id/nombre/apellido/mail/rol, no contrasena ni celular | 19.802; 0/0 |
+
+La igualdad mediante EXCEPT acredita conjuntos iguales en esa carga, no una
+prueba universal ni mejora de rendimiento automática de las vistas.
+
+En el ensayo se creó temporalmente `rol_soporte NOLOGIN`; después se aplicó
+[seguridad.sql](../unidades/unidad-3/sql/seguridad.sql), que concede SELECT a
+la vista pero no crea el rol. Se comprobó lectura permitida. El acceso directo
+a `usuario.contrasena` y `usuario.celular` fue
+rechazado con **42501**. El rol temporal se eliminó al finalizar. No hay un rol
+de despliegue configurado por esta evidencia; privilegios heredados futuros
+requieren verificación propia. La proyección pública no elimina columnas del
+modelo base ni sustituye el control de permisos.
+
+[mv_facturacion_categoria_mes](../unidades/unidad-3/sql/materializadas.sql) usa
+`SUM(dp.subtotal)`, excluye pedidos/detalles eliminados y no filtra la baja
+actual de producto/categoría ni disponibilidad para conservar historia.
+
+- Comparación homogénea: **1188.4945 → 0.2230 ms**, mismo ordenamiento.
+- **0.1220 ms** pertenece al orden `categoria_id, mes`; no se usa para aquella
+  comparación homogénea.
+- 192 filas; EXCEPT 0/0 antes y después del refresh.
+- `idx_mv_facturacion_categoria_mes_unique`, UNIQUE sobre `(categoria_id, mes)`,
+  permitió `REFRESH MATERIALIZED VIEW CONCURRENTLY`: **PASS real**.
+
+El refresh fue una ejecución manual de prueba, no un planificador instalado.
+La propuesta heredada de cada 60 minutos sigue pendiente de ratificación
+operativa; admite staleness y no garantiza un atraso máximo de una hora.
+Las lecturas medidas no incluyen costo de construcción ni refresh.
+
+## 12. Unidad 4: FNBC y candidato descartado
+
+Fuente: [informe vigente U4](../unidades/unidad-4/informes/informe_u4_fnbc_desnormalizacion.md).
+**FNBC: PASS.** ControlLoteAlmacen conserva las DF
+`{LoteID, DepositoID} → ResponsableControlID` y
+`ResponsableControlID → DepositoID`. Esta última viola FNBC porque su
+determinante no es superclave. La descomposición en
+`responsable_control_deposito` y `control_lote_responsable` es lossless; F2
+queda preservada localmente, pero F1 requiere comprobar el JOIN. Se observaron
+3 filas originales/reconstruidas y EXCEPT 0/0. Las DF provienen de reglas de
+negocio, no se deducen únicamente del diagnóstico sin violaciones.
+
+`usuario` pertenece al modelo oficial. Se reutilizaron 801/802 en el laboratorio;
+solo `lote` y `deposito` son extensiones académicas. El seed TPI mínimo no
+suministra esos usuarios ni reconstruye el volumen de U4.
+
+El candidato `detalle_pedido.categoria_id` mantuvo a `producto.categoria_id`
+como fuente de verdad mediante triggers, auditoría y DOWN documentado.
+Consistencia, equivalencia, protección de manipulación y el ensayo concurrente
+de dos cambios del mismo producto pasaron. No se ensayó allí la carrera
+INSERT de detalle contra UPDATE de categoría del producto.
+
+| Medida U4 | Baseline → candidato | Cambio |
+|---|---|---:|
+| Mediana de cinco corridas, ms | 200.392 → 196.507 | -1.94 % |
+| Buffers | 8382 → 13386 | +59.70 % |
+| INSERT de detalles sin/con trigger, ms | 21.3385 → 28.8015 | +34.97 % |
+
+La mejora temporal fue marginal, con mayor dispersión, buffers, costo de
+escritura y complejidad. **VALID_EXPERIMENT**, pero
+**REJECTED_AFTER_MEASUREMENT / DO_NOT_ADOPT**. No se incorpora
+`detalle_pedido.categoria_id` al modelo canónico. Un experimento correcto puede
+justificar rechazar un diseño; no se considera fracaso académico.
+
+Los avisos en README/evidencia de U3/U4 sobre el esquema raíz de aquella fase
+corresponden a su contexto de ejecución: la raíz fue alineada después. El
+schema vigente es ahora oficial; su seed mínimo sigue sin reproducir las
+cargas de laboratorio. No se modifican retrospectivamente esos registros.
+
+## 13. Uso de IA y responsabilidad
+
+La trazabilidad diferencia propuesta, auditoría, coordinación, ejecución y
+aceptación. Las herramientas no producen resultados experimentales por el
+solo hecho de generar SQL: **PostgreSQL, invocado mediante psql bajo control
+y autorización del equipo, produjo los resultados**. En los bloques corregidos
+Codex asistió en la implementación y la orquestación autorizada de comandos;
+no se presenta esa asistencia como medición manual del estudiante ni como
+resultado calculado por una IA. La responsabilidad final pertenece al equipo.
+
+| Participación registrada | Alcance |
+|---|---|
+| Kiro | Especificación original, según DUIA históricas |
+| OpenCode | Generación inicial de candidatos a partir de specs |
+| Claude | Auditoría/revisión de cobertura, según trazabilidad previa comunicada por el equipo |
+| ChatGPT | Análisis, revisión y coordinación comunicados para la integración |
+| Codex | Implementación controlada, revisión estática, asistencia documental y ejecución de comandos autorizados |
+| Equipo | Contrato oficial, límites, revisión, decisiones finales y aceptación |
+
+No se atribuye a una herramienta acceso directo al DER/material externo si
+solo recibió el contrato aportado por el usuario. Las
+[DUIA de U1](../unidades/unidad-1/tp2/duia/),
+[TP3](../unidades/unidad-2/tp3/duia/duia_tp3.md),
+[TP4](../unidades/unidad-2/tp4/duia/duia_tp4.md) y la
+[DUIA vigente U3](../unidades/unidad-3/duia/duia.md) conservan la procedencia
+por etapa, sin reescribir prompts ni ocultar la corrección posterior del modelo.
+
+## 14. Limitaciones y decisiones
+
+No se demostró ausencia universal de deadlocks, concurrencia segura de DML
+directo, SERIALIZABLE, reposición automática por bajas, cancelaciones, carga
+masiva concurrente, comportamiento bajo estrés ni rendimiento con alta
+concurrencia. El TPI acredita tres escenarios READ COMMITTED y una batería
+funcional, no seguridad universal de toda escritura posible. Un UPDATE directo
+a `pedido.total` tampoco se presenta como protegido contra toda manipulación:
+la autoridad automática actúa ante cambios de detalles.
+
+| Decisión | Estado y razón |
+|---|---|
+| Modelo oficial, PK propia del detalle y UK del par | Aceptada; compatibilidad estructural y regla de unicidad explícita |
+| Subtotal y total físicos con autoridades únicas | Aceptada; contrato oficial con consistencia en capa programable |
+| Precio histórico separado del catálogo | Aceptada; preserva condiciones de cada línea |
+| CALL con orden de locks y transacción del llamante | Aceptada; stock y total correctos en los ensayos realizados |
+| Historia U1/U2 intacta y resultados nuevos separados | Aceptada; trazabilidad verificable sin reconstrucción retroactiva |
+| Tres índices U3 | Aceptados para el workload medido, con costos de escritura y reservas |
+| Covering de mail U3 | Descartado por tamaño sin beneficio adicional medido |
+| Columna redundante de categoría U4 | Descartada tras medir costo/beneficio |
+| Duplicar cálculo de total en el procedimiento | No adoptado; única función de agregado invocada por triggers AFTER |
+| Reposición/cancelación y garantías universales | No implementadas ni inferidas sin contrato/evidencia |
+
+## 15. Conclusiones y siguiente verificación
+
+La entrega vigente alinea modelo, integridad, derivados, pruebas y documentación
+con el contrato oficial. Los resultados funcionales y concurrentes se apoyan
+en evidencia real diferenciada de la historia; la incidencia de cleanup
+permanece explícita. U3 aporta mejoras observadas con costos, y U4 demuestra
+que consistencia experimental no obliga a aceptar una optimización.
+
+La reproducción se encuentra en el [README](README.md); resultados detallados
+y procedencia, en la [evidencia](evidencia_modelo_oficial.md). Este cierre no
+ejecuta PostgreSQL ni altera esa evidencia. Corresponde realizar la auditoría
+final de la entrega antes de decidir su commit; no se declara una aprobación
+académica universal ni un commit realizado.

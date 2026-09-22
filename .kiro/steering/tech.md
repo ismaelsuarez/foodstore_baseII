@@ -1,67 +1,75 @@
-# Tech Stack
+﻿# Food Store — Tecnología y contratos de ejecución
 
-## Base de datos
+## Entorno validado
 
-- **Motor:** PostgreSQL 17.
-- **Cliente:** `psql`.
-- **Control de versiones:** Git.
-- **Shell de ejemplo:** PowerShell (los comandos de este repositorio
-  usan su sintaxis; adaptar según el shell real si es distinto).
+PostgreSQL **17.11**, x86_64-windows, msvc-19.44.35228, 64-bit. Herramientas:
+SQL, PL/pgSQL, `psql`, PowerShell y Git. No hay ORM, backend, frontend ni
+framework externo de pruebas. La base TPI `foodstore_tpi_oficial` es descartable.
 
-No hay backend, frontend, ORM ni framework de testing: todo el
-proyecto es SQL y documentación Markdown.
+## Esquema mínimo oficial
 
-## Características de PostgreSQL en uso
+La autoridad es [schema.sql](../../schema.sql), no los scripts históricos.
 
-### Base canónica (`schema.sql`)
-- Tipo `ENUM` propio (`forma_pago`: `EFECTIVO`, `TARJETA`, `TRANSFERENCIA`).
-- `GENERATED ALWAYS AS IDENTITY` para claves primarias autogeneradas.
-- `TIMESTAMPTZ` para toda columna de fecha/hora (con zona horaria).
-- `NUMERIC` para valores monetarios.
-- Restricciones `CHECK` y `FOREIGN KEY` nombradas explícitamente.
-- `ON DELETE RESTRICT` en todas las claves foráneas de la base canónica.
-- Índices sobre columnas de clave foránea usadas en búsquedas frecuentes.
+| Tipo / mecanismo | Contrato vigente |
+|---|---|
+| PK | Las cinco tablas usan `id BIGINT GENERATED ALWAYS AS IDENTITY` |
+| Fecha comercial | `pedido.fecha DATE NOT NULL DEFAULT CURRENT_DATE` |
+| Marca técnica | `created_at TIMESTAMPTZ NOT NULL DEFAULT now()` en las cinco tablas |
+| Importes | `NUMERIC(12,2)` en precio, precio_unitario, subtotal y total |
+| Baja lógica | `eliminado BOOLEAN NOT NULL DEFAULT FALSE` en todas las tablas |
+| Disponibilidad | `producto.disponible BOOLEAN NOT NULL DEFAULT TRUE`, independiente de la baja |
+| FK | Cuatro, NOT NULL, todas con ON DELETE RESTRICT |
+| Unicidad | usuario.mail, categoria.nombre y el par pedido/producto del detalle |
+| CHECK | Precio y stock no negativos; total no negativo; cantidad positiva; precio_unitario y subtotal no negativos |
 
-### Artefactos de laboratorio (bajo `unidades/`)
-Cada unidad introdujo, sobre su propia copia de la base, un subconjunto
-de estas técnicas — el README local de cada unidad indica cuáles:
+ENUM y valores exactos:
 
-- Índices B-tree parciales (`WHERE ...`) y de expresión (`lower(...)`).
-- Índices con `INCLUDE` para cobertura (`Index Only Scan`).
-- `CREATE OR REPLACE VIEW` para vistas convencionales.
-- `CREATE MATERIALIZED VIEW ... WITH DATA` + índice `UNIQUE` para
-  permitir `REFRESH ... CONCURRENTLY`.
-- Triggers y funciones `PL/pgSQL` para mantener sincronizada una
-  columna redundante (Unidad 4).
-- `EXPLAIN (ANALYZE, BUFFERS)` como herramienta de medición real.
-- Transacciones (`BEGIN` / `COMMIT` / `ROLLBACK`) para migraciones y
-  pruebas reversibles.
+- `forma_pago`: EFECTIVO, TARJETA, TRANSFERENCIA; sin default en pedido.
+- `rol`: ADMIN, USUARIO; usuario.rol NOT NULL DEFAULT USUARIO.
+- `estado_pedido`: PENDIENTE, CONFIRMADO, TERMINADO, CANCELADO;
+  pedido.estado NOT NULL DEFAULT PENDIENTE.
 
-**Distinción importante:** las técnicas de la sección "Base canónica"
-están vigentes en `schema.sql` para toda la base de datos. Las técnicas
-de "Artefactos de laboratorio" viven exclusivamente dentro del
-`sql/` de cada unidad, aplicadas sobre una copia — no están fusionadas
-al esquema base salvo que el README de esa unidad diga lo contrario.
+Índices base: `idx_producto_categoria`, `idx_pedido_usuario`,
+`idx_producto_nombre_vig`. Las PK/UNIQUE generan además sus índices de soporte.
+Los candidatos de U3 no forman parte de este mínimo. La columna redundante de
+U4 `detalle_pedido.categoria_id` no se incorpora al contrato.
 
-## Comandos seguros desde la raíz
+## Capa programable TPI
 
-```powershell
-# Crear la base y aplicar la fundación canónica
-createdb -U postgres foodstore
+[objetos_programables.sql](../../tpi/sql/objetos_programables.sql) instala
+**7 rutinas y 5 triggers** aparte del DDL base:
 
-psql -U postgres -d foodstore -v ON_ERROR_STOP=1 -f .\schema.sql
+| Responsabilidad | Autoridad |
+|---|---|
+| Subtotal de línea | fn_set_subtotal / trg_subtotal, BEFORE por fila |
+| Vigencia de nuevas líneas o reasignaciones | fn_validar_detalle_vigente / trg_detalle_vigente |
+| Total de líneas vigentes | calcular_total_pedido, función SQL STABLE, y tres triggers AFTER por sentencia |
+| Stock de una venta | registrar_detalle_pedido, procedimiento PL/pgSQL |
 
-psql -U postgres -d foodstore -v ON_ERROR_STOP=1 -f .\datos_iniciales.sql
-```
+Las funciones fn_recalcular_total_insert/update/delete usan transition tables
+para recalcular una vez cada pedido afectado por sentencia; UPDATE incluye
+pedidos anteriores y nuevos. El cálculo único de total suma subtotal físico,
+no vuelve a definir la multiplicación de la línea.
 
-O desde `psql` interactivo:
+El procedimiento bloquea en orden **pedido FOR UPDATE → usuario FOR SHARE →
+producto FOR UPDATE**. La transacción pertenece al caller. No contiene cierre
+transaccional propio; detalle, subtotal, total y stock revierten juntos si falla.
+DML directo de detalles no ofrece serialización completa del stock ni reposición.
 
-```sql
-\i schema.sql
-\i datos_iniciales.sql
-```
+## Reproducción y verificación
 
-Esto reconstruye únicamente la base canónica. **No** ejecuta ningún
-script de `unidades/` automáticamente — cada unidad documenta, en su
-propio README, cómo reproducir su volumen de datos y sus objetos
-adicionales, y en qué orden hacerlo de forma segura.
+Seguir [README TPI](../../tpi/README.md) desde la raíz y detenerse ante cualquier
+error. Usar siempre `ON_ERROR_STOP=1`: schema y objetos con `-1`; seed y batería
+sin `-1`, porque administran sus propias transacciones. La consulta HAVING es
+solo lectura. No publicar credenciales ni ejecutar laboratorios sobre bases
+importantes. El seed se instala antes de los objetos programables.
+
+Evidencia real: 29 grupos / 37 variantes / 30 NOTICE PASS, exit code 0 y tres
+escenarios concurrentes READ COMMITTED con bloqueo observado. No extrapolar a
+SERIALIZABLE, ausencia universal de deadlocks, DML directo concurrente ni estrés.
+
+U3 utiliza índices parciales/de expresión/INCLUDE, cuatro vistas, seguridad y
+materializada con índice UNIQUE para REFRESH CONCURRENTLY. U4 mantiene SQL
+experimental de sincronización por triggers, **descartado como diseño permanente**.
+Sus EXPLAIN, EXCEPT y resultados pertenecen a sus copias y datasets específicos;
+no son garantías de rendimiento universal ni migraciones automáticas.

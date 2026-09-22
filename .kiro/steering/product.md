@@ -1,68 +1,57 @@
-# Food Store
+﻿# Food Store — Producto y alcance académico
 
-Food Store es un proyecto relacional académico de PostgreSQL (UTN —
-Base de Datos II). Modela el flujo básico de comercio de un local de
-comidas: catálogo de productos organizado por categorías, gestión de
-clientes, y procesamiento de pedidos con su detalle ítem por ítem.
+Food Store modela un comercio de comidas para Base de Datos II (UTN). El contrato
+vigente está en [schema.sql](../../schema.sql); el proyecto entrega SQL y
+Markdown, no una aplicación productiva.
 
-## Flujo de comercio base
+## Dominio vigente
 
-- **Categorías** — agrupaciones de productos (por ejemplo, Pizzas,
-  Bebidas).
-- **Productos** — artículos a la venta, con precio, stock y categoría.
-- **Clientes** — identificados por email.
-- **Pedidos** — vinculados a un cliente, con una forma de pago.
-- **Detalle de pedido** — líneas que componen cada pedido (cantidad y
-  precio unitario al momento de la venta).
+| Entidad | Función |
+|---|---|
+| `categoria` | Agrupar productos; nombre único y eliminación lógica |
+| `usuario` | Identidad, nombre/apellido, mail único, celular, contrasena, rol y eliminación lógica |
+| `producto` | Catálogo con precio, stock, categoría, disponibilidad y eliminación lógica separadas |
+| `pedido` | Usuario, fecha DATE, estado, forma de pago y total físico |
+| `detalle_pedido` | Línea con id propio, cantidad, precio histórico y subtotal físico |
 
-Esto sigue siendo, en `schema.sql` y `datos_iniciales.sql`, la base
-canónica del proyecto.
+Todas las entidades tienen `eliminado` y `created_at`. El detalle posee PK `id`
+y `UNIQUE(pedido_id, producto_id)`. La cantidad expresa las unidades de esa
+línea; una baja posterior de una entidad padre no debe destruir historia.
+`disponible` es una condición comercial, no sinónimo de eliminación lógica.
 
-## Evolución pedagógica del proyecto
+El precio de catálogo puede cambiar sin alterar el histórico de una línea.
+El subtotal es una redundancia derivada deliberada, mantenida por trigger; el
+total agrega subtotales vigentes. La ruta de venta soportada es
+`registrar_detalle_pedido`, responsable del descuento de stock. Las escrituras
+directas de detalles no administran inventario completo.
 
-A partir de esa base, el proyecto avanzó a través de distintas
-unidades/TP de la materia, cada una agregando una capa de trabajo
-académico sin modificar el modelo de comercio base salvo cuando la
-propia unidad lo requirió explícitamente:
+## Evolución y decisiones
 
-- **Integridad y concurrencia** (Unidad 1): restricciones adicionales
-  sobre `detalle_pedido`, escenarios de concurrencia entre
-  transacciones, y lectura crítica de scripts potencialmente
-  peligrosos, bajo un protocolo de seguridad documentado.
-- **Consultas y optimización** (Unidad 2, TP3 y TP4): generación de
-  volumen de datos de laboratorio, consultas analíticas con JOIN y
-  agregación, variantes de consulta para comparación, y lectura de
-  planes reales (`EXPLAIN ANALYZE`) para justificar decisiones de
-  optimización.
-- **Índices, vistas y vistas materializadas** (Unidad 3): diseño de
-  índices B-tree (simples, compuestos, parciales, de expresión),
-  vistas convencionales para encapsular reglas de negocio y aplicar
-  minimización de datos, y una vista materializada para un reporte
-  analítico costoso — todo medido con `EXPLAIN (ANALYZE, BUFFERS)` y
-  verificado con `EXCEPT` bidireccional.
-- **Normalización avanzada** (Unidad 4): demostración de una violación
-  de la Forma Normal de Boyce-Codd (FNBC) sobre una relación académica,
-  su descomposición sin pérdida, y — como contraste deliberado — una
-  desnormalización controlada (columna redundante mantenida por
-  triggers) para acelerar un reporte, con su costo y sus riesgos
-  documentados explícitamente.
+- **TP1–TP4 / U1–U2:** EVIDENCIA HISTÓRICA EVALUADA sobre una iteración anterior.
+  Se preservan, no se reescriben como si siempre hubieran usado el modelo actual.
+- **U3:** modelo oficial corregido y validado, commit `da5f3e4`. Tres índices,
+  cuatro vistas, seguridad real y materializada con refresh concurrente probado.
+- **U4:** FNBC PASS. Desnormalización VALID_EXPERIMENT, pero
+  REJECTED_AFTER_MEASUREMENT / DO_NOT_ADOPT: beneficio temporal marginal frente a
+  mayor costo. `detalle_pedido.categoria_id` no pertenece al modelo canónico.
+- **TPI:** reconstrucción oficial y 12 objetos validados en PostgreSQL 17.11.
+  Batería 29 grupos / 37 variantes / 30 NOTICE PASS; tres escenarios concurrentes
+  PASS bajo READ COMMITTED y consulta HAVING con Ana y Luis, dos pedidos cada uno.
 
-## Medición y revisión asistida por IA
+El TPI integra principalmente U1–U3; U4 es complementaria. Las cargas de los
+laboratorios corregidos son diferentes del seed mínimo. No se instala SQL de
+las unidades como una cadena automática de migraciones.
 
-A lo largo de estas unidades se usaron distintas herramientas de IA
-(documentadas caso por caso en cada Declaración de Uso de IA — DUIA)
-para proponer especificaciones, generar SQL candidato y ayudar a
-redactar informes.
+## Evidencia y responsabilidad
 
-Ninguna decisión final quedó delegada a la IA sin revisión humana.
-Cuando correspondió al tipo de ejercicio, las propuestas fueron ejecutadas
-y verificadas realmente sobre PostgreSQL mediante técnicas como
-`EXPLAIN (ANALYZE, BUFFERS)`, `EXCEPT` bidireccional, transacciones y
-consultas de auditoría antes de aceptar las conclusiones. Las propuestas
-descartadas también se conservaron cuando formaban parte de la evidencia
-académica.
+La [evidencia TPI](../../tpi/evidencia_modelo_oficial.md) registra resultados;
+el [informe técnico](../../tpi/informe_tecnico.md) los interpreta. Los
+[informes U3](../../unidades/unidad-3/informes/informe_mediciones.md) y
+[U4](../../unidades/unidad-4/informes/informe_u4_fnbc_desnormalizacion.md)
+son las fuentes de sus mediciones y decisiones vigentes.
 
-Este es un proyecto académico/educativo, no un producto comercial: el
-foco es demostrar comprensión de integridad, concurrencia,
-optimización, indexado y normalización sobre una base de datos real,
-no construir una aplicación de e-commerce funcional.
+La IA asistió especificación, propuestas, auditoría e implementación según las
+DUIA; PostgreSQL ejecutó las pruebas autorizadas. El equipo revisa y decide.
+No inventar resultados ni atribuir a un ensayo garantías universales: no se
+probó concurrencia segura de DML directo, ausencia universal de deadlocks,
+SERIALIZABLE, reposición/cancelaciones ni rendimiento bajo estrés.

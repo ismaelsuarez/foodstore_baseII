@@ -1,80 +1,147 @@
-# TPI Food Store — Primera Entrega
+﻿# TPI Food Store — Primera Entrega
 
-## Objetivo y alcance
-
-Esta carpeta integra la evidencia de las **Unidades 1, 2 y 3** y completa
-los faltantes de la primera entrega, sin reemplazar ni reescribir los TPs
-históricos. [schema.sql](../schema.sql) y
-[datos_iniciales.sql](../datos_iniciales.sql) siguen siendo la base canónica.
-Los objetos programables de `tpi/` son artefactos específicos del TPI.
+**Modelo oficial y ejecución real validados en PostgreSQL 17.11.** La entrega
+integra las Unidades 1–3, preserva los TP1–TP4 evaluados y documenta Unidad 4
+como trabajo complementario. La [evidencia consolidada](evidencia_modelo_oficial.md)
+registra instalación, pruebas funcionales, tres escenarios concurrentes y HAVING;
+el [informe técnico](informe_tecnico.md) interpreta sus resultados y límites.
 
 **Integrantes:** Avalos Pablo, Blangetti Sofia y Suarez Ismael.
 
-**Motor:** PostgreSQL 16+; cliente `psql`. El proyecto histórico documenta
-PostgreSQL 17, sin convertir esa versión en requisito obligatorio del TPI.
+## Modelo vigente y archivos principales
 
-**Lectura ampliada:** [Informe técnico](informe_tecnico.md).
+La autoridad estructural es [schema.sql](../schema.sql), con cinco entidades:
+`categoria`, `usuario`, `producto`, `pedido` y `detalle_pedido`.
+
+- Todas tienen PK `id` y baja lógica `eliminado`; `producto.disponible` expresa
+  una condición comercial diferente.
+- `pedido` referencia `usuario_id`, usa `fecha DATE`, estado y total físico.
+- El detalle tiene identidad propia y `UNIQUE(pedido_id, producto_id)`; conserva
+  cantidad, precio histórico y subtotal físico.
+- El subtotal es una **redundancia derivada deliberada**: el detalle cumple
+  1FN/2FN, pero no 3FN/FNBC estrictas considerando la DF del subtotal. El total
+  es un agregado entre relaciones, no por sí solo una DF interna problemática.
+
+| Archivo | Función |
+|---|---|
+| [Modelo ER](modelo/modelo_er.md) | Entidades, atributos, cardinalidades y participación |
+| [Modelo relacional](modelo/modelo_relacional.md) | Tipos, claves y restricciones del schema |
+| [Normalización](modelo/normalizacion.md) | DF, claves candidatas y redundancias deliberadas |
+| [Seed](../datos_iniciales.sql) | Fotografía inicial: 3 usuarios, 2 categorías, 3 productos, 5 pedidos y 7 detalles |
+| [Objetos programables](sql/objetos_programables.sql) | 7 rutinas y 5 triggers: subtotal, total, vigencia y venta con stock |
+| [Batería](pruebas/pruebas_objetos_programables.sql) | 29 grupos / 37 variantes, fixtures reversibles |
+| [Consulta HAVING](sql/consultas_cobertura_tpi.sql) | Usuarios con más de un pedido no eliminado |
+| [Evidencia](evidencia_modelo_oficial.md) | Resultados reales y procedencia; no sustituye el análisis |
 
 ## Mapa de cobertura
 
-| # | Objetivo | Evidencia principal |
-|---|----------|--------------------|
-| 1 | Modelo ER: entidades, atributos, claves, cardinalidades y participación | [Diagrama y explicación](modelo/modelo_er.md) |
-| 2 | ER → relacional: 1:N y N:M mediante tabla intermedia | [Modelo relacional](modelo/modelo_relacional.md) |
-| 3 | DF, 1FN, 2FN, 3FN y FNBC/BCNF | [Normalización del modelo base](modelo/normalizacion.md) |
-| 4 | DDL completo | [Esquema canónico](../schema.sql) |
-| 5 | DML, JOIN, agregaciones, subconsultas, GROUP BY, HAVING y ventanas | [Carga inicial](../datos_iniciales.sql), [TP3](../unidades/unidad-2/tp3/sql/consultas_tp3_ia.sql), [RANK() de TP4](../unidades/unidad-2/tp4/sql/consultas_tp4_ia.sql), [HAVING del TPI](sql/consultas_cobertura_tpi.sql) |
-| 6 | Vistas, función PL/pgSQL, procedimiento y CALL | [Vistas U3](../unidades/unidad-3/sql/views.sql), [objetos TPI](sql/objetos_programables.sql), [pruebas con CALL](pruebas/pruebas_objetos_programables.sql) |
-| 7 | CHECK, UNIQUE, FK y trigger de negocio | [Constraints](../schema.sql), [función y trigger](sql/objetos_programables.sql), [pruebas](pruebas/pruebas_objetos_programables.sql) |
-| 8 | COMMIT, ROLLBACK, aislamiento, concurrencia y atomicidad | [Concurrencia U1](../unidades/unidad-1/tp2/informes/informe_concurrencia.md), [protocolo](../unidades/unidad-1/tp2/informes/protocolo_seguridad.md), [atomicidad TPI](pruebas/pruebas_objetos_programables.sql) |
-| 9 | Baja lógica y efecto sobre consultas e índices | [Vistas](../unidades/unidad-3/sql/views.sql), [índice parcial](../unidades/unidad-3/sql/indices.sql), [mediciones U3](../unidades/unidad-3/informes/informe_mediciones.md) |
+| # | Objetivo | Evidencia y alcance |
+|---|---|---|
+| 1 | ER, atributos, claves y cardinalidades | [Modelo ER vigente](modelo/modelo_er.md) |
+| 2 | Transformación relacional y N:M | [Modelo relacional](modelo/modelo_relacional.md): detalle con PK propia y UK del par |
+| 3 | DF y formas normales | [Normalización](modelo/normalizacion.md), sin afirmar FNBC universal |
+| 4 | DDL completo | [Schema oficial](../schema.sql): 3 ENUM, 5 tablas, PK/FK/UK/CHECK e índices base |
+| 5 | DML, JOIN, agregaciones, subconsultas, HAVING y ventanas | [Seed vigente](../datos_iniciales.sql), [HAVING vigente](sql/consultas_cobertura_tpi.sql); [TP3](../unidades/unidad-2/tp3/README.md) y [TP4](../unidades/unidad-2/tp4/README.md) como evidencia histórica evaluada |
+| 6 | Vistas, funciones, triggers, procedimiento y CALL | [Cuatro vistas U3](../unidades/unidad-3/sql/views.sql), [objetos TPI](sql/objetos_programables.sql) y [pruebas](pruebas/pruebas_objetos_programables.sql) |
+| 7 | Integridad declarativa y de negocio | [Schema](../schema.sql), [batería](pruebas/pruebas_objetos_programables.sql) y [evidencia funcional](evidencia_modelo_oficial.md) |
+| 8 | Transacciones, aislamiento, atomicidad y concurrencia | [Evidencia TPI](evidencia_modelo_oficial.md): rollback y tres ensayos multisesión; [U1](../unidades/unidad-1/tp2/informes/informe_concurrencia.md) como antecedente histórico |
+| 9 | Baja lógica, índices y reportes | [U3 vigente](../unidades/unidad-3/informes/informe_mediciones.md), [HAVING](sql/consultas_cobertura_tpi.sql) y triggers de total |
 
-## Reproducción en laboratorio
+**Historia protegida:** TP1–TP4 pertenecen a una iteración anterior del modelo.
+Son evidencia histórica evaluada, no scripts convertidos retroactivamente ni
+migraciones pendientes para el schema actual. U3 fue alineada en `da5f3e4`;
+U4 en `95fbfbf`. El esquema raíz y el TPI actuales continúan esa alineación.
 
-Comandos para **PowerShell desde la raíz del repositorio**, sobre una base
-nueva y vacía. Ejecutar cada paso solamente si el anterior terminó sin error.
-Si `foodstore_tpi` ya está preparada, no repetir su creación, carga ni
-instalación: ejecutar solo las consultas o pruebas que se deseen verificar.
+## Reproducción funcional en laboratorio
+
+Comandos para **PowerShell desde la raíz del repositorio**, con PostgreSQL
+17.11 y autenticación local ya configurada. Esta secuencia es para una base
+**nueva, inexistente** llamada `foodstore_tpi_oficial`. Si ya existe la base
+validada, **no ejecutar la creación ni reinstalar**: detenerse y acordar un
+nuevo ensayo. No se incluye ningún borrado ni recreación automática.
 
 ```powershell
-createdb -U postgres foodstore_tpi
-psql -U postgres -d foodstore_tpi -v ON_ERROR_STOP=1 -1 -f .\schema.sql
-psql -U postgres -d foodstore_tpi -v ON_ERROR_STOP=1 -1 -f .\datos_iniciales.sql
-psql -U postgres -d foodstore_tpi -v ON_ERROR_STOP=1 -1 -f .\tpi\sql\objetos_programables.sql
-psql -U postgres -d foodstore_tpi -v ON_ERROR_STOP=1 -f .\tpi\pruebas\pruebas_objetos_programables.sql
-psql -U postgres -d foodstore_tpi -v ON_ERROR_STOP=1 -f .\tpi\sql\consultas_cobertura_tpi.sql
+createdb -w -h 127.0.0.1 -p 5432 -U postgres foodstore_tpi_oficial
+if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear la base; detener la instalación.' }
+
+psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR_STOP=1 -1 -f .\schema.sql
+if ($LASTEXITCODE -ne 0) { throw 'Falló schema.sql.' }
+
+psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR_STOP=1 -f .\datos_iniciales.sql
+if ($LASTEXITCODE -ne 0) { throw 'Falló datos_iniciales.sql.' }
+
+psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR_STOP=1 -1 -f .\tpi\sql\objetos_programables.sql
+if ($LASTEXITCODE -ne 0) { throw 'Falló la instalación de objetos.' }
+
+psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR_STOP=1 -f .\tpi\pruebas\pruebas_objetos_programables.sql
+if ($LASTEXITCODE -ne 0) { throw 'Falló la batería; no continuar.' }
+
+psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR_STOP=1 -f .\tpi\sql\consultas_cobertura_tpi.sql
+if ($LASTEXITCODE -ne 0) { throw 'Falló la consulta HAVING.' }
 ```
 
-La instalación usa `-1` para no dejar objetos parcialmente creados y
-`CREATE` simple: falla si ya existen. La batería administra su propio
-`BEGIN`/`ROLLBACK`, por eso no lleva `-1`. Revierte sus datos, no los objetos
-previamente instalados; las secuencias pueden conservar huecos normales.
-El DOWN está comentado en el SQL de objetos y **no se ejecuta automáticamente**.
+`-1` corresponde solo a schema y objetos. El seed administra su propio
+`BEGIN/COMMIT`; la batería usa `BEGIN/ROLLBACK` y debe correr sin otras
+escrituras. `CREATE` simple y la guarda del seed hacen visibles las
+instalaciones repetidas. Ante un error, detenerse y diagnosticar, no parchear
+ni continuar automáticamente.
 
-Esta ruta reproduce la base y la integración TPI, no instala todas las
-vistas ni reproduce los benchmarks históricos. Para esos laboratorios,
-seguir los README de [TP2](../unidades/unidad-1/tp2/README.md),
-[TP3](../unidades/unidad-2/tp3/README.md),
-[TP4](../unidades/unidad-2/tp4/README.md) y
-[Unidad 3](../unidades/unidad-3/README.md). No ejecutar todos los SQL en cadena.
+El seed precede a los objetos y no reproduce cronológicamente ventas: el stock
+es una fotografía inicial. `SEED_NO_AUTH` es un marcador académico, no una
+credencial real ni autenticación implementada. La batería revierte sus fixtures,
+no los objetos instalados; las secuencias IDENTITY pueden conservar huecos.
+El DOWN comentado no se ejecuta automáticamente.
 
-## Verificaciones TPI realizadas
+Esta secuencia **no reproduce concurrencia multisesión** ni instala U3/U4.
+Los tres ensayos requieren conexiones independientes y monitoreo según la
+[evidencia](evidencia_modelo_oficial.md). El seed mínimo tampoco reconstruye
+las cargas masivas medidas de U3/U4 ni proporciona los usuarios 801/802 de U4.
 
-Resultados comunicados expresamente por el equipo para esta integración:
-las pruebas fueron ejecutadas externamente mediante `psql` y revisadas
-antes de versionar los archivos. No son ejecuciones de Codex ni una nueva
-ejecución realizada al redactar estos documentos.
+## Resultados reales resumidos
 
-| Verificación | Resultado registrado |
+Fuente: [evidencia de Bloques 6, 7 y 8](evidencia_modelo_oficial.md), sobre
+`foodstore_tpi_oficial`, PostgreSQL **17.11**. Este cierre documental no repite
+las ejecuciones.
+
+| Verificación | Resultado |
 |---|---|
-| Consulta HAVING con `ON_ERROR_STOP=1` | Ana Gómez: **2 pedidos**; Luis Paz: **2 pedidos**. |
-| Ensayo de instalación transaccional | `BEGIN` → `CREATE FUNCTION` → `CREATE TRIGGER` → `CREATE PROCEDURE` → `ROLLBACK`; **0 objetos TPI persistidos** tras revertir. |
-| Instalación posterior en `foodstore_tpi` | Función y procedimiento instalados; trigger instalado y habilitado. |
-| Batería de objetos | **13 grupos / 15 variantes**; todos los `PASS` alcanzados y `ROLLBACK` final ejecutado. |
-| Limpieza y conservación de objetos | Categoría de prueba: **0**; cliente de prueba: **0**; función: **TRUE**; procedimiento: **TRUE**; trigger instalado y habilitado: **TRUE**. |
+| Schema, seed y objetos | PASS; catálogo contrastado, 12 objetos presentes |
+| Batería de una sesión | 29 grupos / 37 variantes; 30 NOTICE PASS, exit code 0 |
+| NOTICE global | `PASS: batería completa de objetos programables del modelo oficial` |
+| Atomicidad y operación masiva | PASS; detalle, subtotal, total y stock revierten juntos |
+| Concurrencia real | 3/3 escenarios PASS bajo READ COMMITTED, con espera `Lock / transactionid` observada |
+| HAVING | Ana Gómez: 2 pedidos; Luis Paz: 2 pedidos; 2 filas, exit code 0 |
+| Limpieza y conciliación | Cero fixtures; seed y 12 objetos intactos; cero inconsistencias de subtotal/total |
 
-La batería prueba atomicidad en una sesión, **no dos CALL concurrentes**.
-La evidencia multisesión permanece en el informe histórico de Unidad 1.
+La batería cubre ventas válidas, rechazos, integridad declarativa, precio
+histórico, subtotal, total, modificaciones directas controladas, bajas y
+reactivaciones, DELETE, movimientos entre pedidos y sentencias masivas.
+La concurrencia se ensayó después, separadamente: sobreventa, total del mismo
+pedido y duplicado de pareja. El helper temporal de cleanup registró una
+incidencia no productiva, explicada sin ocultarla en el
+[informe técnico](informe_tecnico.md) y la evidencia.
 
-> Ejecutar los scripts de prueba únicamente sobre una base de laboratorio,
-> sin escrituras concurrentes y nunca sobre una base importante.
+## Unidades 3 y 4: decisiones vigentes
+
+- **U3:** tres índices aceptados para la carga evaluada, cuatro vistas equivalentes,
+  seguridad de `v_usuarios_publico` probada y materializada con
+  `REFRESH CONCURRENTLY` exitoso. Consultar [informe vigente U3](../unidades/unidad-3/informes/informe_mediciones.md)
+  para métricas y costos de escritura; no son resultados del seed mínimo TPI.
+- **U4:** FNBC PASS. La desnormalización fue `VALID_EXPERIMENT`, pero quedó
+  `REJECTED_AFTER_MEASUREMENT` / `DO_NOT_ADOPT`. `detalle_pedido.categoria_id`
+  no pertenece al esquema canónico. Véase [informe vigente U4](../unidades/unidad-4/informes/informe_u4_fnbc_desnormalizacion.md).
+
+## Límites y lectura posterior
+
+La ruta de negocio que administra stock es `CALL registrar_detalle_pedido`.
+DML directo del detalle mantiene derivados mediante triggers, pero **no**
+administra inventario. No hay política de reposición por bajas, cancelación
+ni DELETE. No se acreditaron ausencia universal de deadlocks, seguridad
+concurrente de DML directo, SERIALIZABLE, carga masiva concurrente ni
+rendimiento bajo estrés o alta concurrencia.
+
+Los comentarios de validación pendiente en scripts/modelos registran su fase
+de autoría anterior; la ejecución posterior se acredita en la evidencia, no
+por reescribir esos artefactos durante este cierre. El
+[informe técnico](informe_tecnico.md) amplía decisiones, uso de IA, resultados
+y reservas. La [raíz](../README.md) permite recorrer el proyecto completo.

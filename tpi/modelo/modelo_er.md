@@ -1,88 +1,128 @@
 # Modelo Entidad-Relación — Food Store
 
-Este modelo representa exclusivamente las cinco tablas y todos los atributos
-de [schema.sql](../../schema.sql). Documenta el modelo base sin modificarlo
-ni incorporar extensiones de los laboratorios históricos.
+El modelo vigente contiene las cinco entidades y los 40 atributos de
+[schema.sql](../../schema.sql). Los tipos exactos, defaults y restricciones
+están en el [modelo relacional](modelo_relacional.md).
 
 ## Diagrama ER
 
 ```mermaid
 erDiagram
     categoria ||..o{ producto : agrupa
-    cliente ||..o{ pedido : realiza
-    pedido ||--o{ detalle_pedido : contiene
-    producto ||--o{ detalle_pedido : participa
+    usuario ||..o{ pedido : realiza
+    pedido ||..o{ detalle_pedido : contiene
+    producto ||..o{ detalle_pedido : participa
 
     categoria {
         bigint id PK
         varchar nombre UK
-        boolean activo
+        varchar descripcion
+        boolean eliminado
         timestamptz created_at
     }
-    cliente {
+    usuario {
         bigint id PK
         varchar nombre
-        varchar email UK
-        varchar telefono
+        varchar apellido
+        varchar mail UK
+        varchar celular
+        varchar contrasena
+        rol rol
+        boolean eliminado
         timestamptz created_at
     }
     producto {
         bigint id PK
-        bigint categoria_id FK
         varchar nombre
-        varchar descripcion
         numeric precio
+        varchar descripcion
         integer stock
-        boolean activo
+        varchar imagen
+        boolean disponible
+        bigint categoria_id FK
+        boolean eliminado
         timestamptz created_at
     }
     pedido {
         bigint id PK
-        bigint cliente_id FK
-        timestamptz fecha
+        date fecha
+        estado_pedido estado
+        numeric total
         forma_pago forma_pago
+        bigint usuario_id FK
+        boolean eliminado
+        timestamptz created_at
     }
     detalle_pedido {
-        bigint pedido_id PK, FK
-        bigint producto_id PK, FK
+        bigint id PK
         integer cantidad
         numeric precio_unitario
+        numeric subtotal
+        bigint pedido_id FK
+        bigint producto_id FK
+        boolean eliminado
+        timestamptz created_at
     }
 ```
 
-`PK` identifica la clave primaria; `FK`, una clave foránea; `UK`, una
-restricción de unicidad. Los dos atributos marcados `PK` en `detalle_pedido`
-forman una sola clave compuesta, no dos claves independientes.
+`PK` indica clave primaria; `FK`, referencia; `UK`, unicidad. Las cinco PK
+son `id`, generadas por identidad. En detalle existe además una restricción
+conjunta `UNIQUE(pedido_id, producto_id)`: ninguna FK es individualmente
+única y ninguna integra la PK.
 
-`||` significa exactamente uno y `o{`, cero o muchos. Las líneas discontinuas
-son relaciones no identificantes: la FK no integra la PK del hijo. Las
-líneas continuas son identificantes: ambas FK integran la PK de la asociación.
-El diagrama simplifica longitudes y precisión; los tipos exactos están en el
-[modelo relacional](modelo_relacional.md).
+`||` significa exactamente uno y `o{`, cero o muchos. Las cuatro líneas
+discontinuas son relaciones no identificantes: las FK no forman parte de
+la PK del hijo. Mermaid abrevia longitudes y precisión; los tipos exactos
+se documentan en el modelo relacional.
 
 ## Cardinalidades y participación
 
 | Relación 1:N | Participación del hijo | Participación del padre |
 |---|---|---|
-| `categoria` → `producto` | Cada producto debe pertenecer exactamente a una categoría: `categoria_id` es `NOT NULL` y FK. | Una categoría puede no tener productos o tener muchos. |
-| `cliente` → `pedido` | Cada pedido debe pertenecer exactamente a un cliente: `cliente_id` es `NOT NULL` y FK. | Un cliente puede no tener pedidos o tener muchos. |
-| `pedido` → `detalle_pedido` | Cada detalle debe pertenecer exactamente a un pedido: `pedido_id` es `NOT NULL` y FK. | Un pedido puede existir sin detalles o tener muchos. |
-| `producto` → `detalle_pedido` | Cada detalle debe pertenecer exactamente a un producto: `producto_id` es `NOT NULL` y FK. | Un producto puede no aparecer todavía en pedidos o aparecer en muchos. |
+| `categoria` → `producto` | Cada producto pertenece exactamente a una categoría: `categoria_id` es FK NOT NULL. | Una categoría puede tener cero o muchos productos. |
+| `usuario` → `pedido` | Cada pedido pertenece exactamente a un usuario: `usuario_id` es FK NOT NULL. | Un usuario puede tener cero o muchos pedidos. |
+| `pedido` → `detalle_pedido` | Cada detalle pertenece exactamente a un pedido: `pedido_id` es FK NOT NULL. | Un pedido puede tener cero o muchos detalles. |
+| `producto` → `detalle_pedido` | Cada detalle pertenece exactamente a un producto: `producto_id` es FK NOT NULL. | Un producto puede aparecer en cero o muchos detalles. |
 
-Las FK garantizan la existencia del padre para cada hijo, pero no obligan al
-padre a tener hijos. Por eso no se impone una participación mínima de uno
-del lado de los productos de una categoría o de los detalles de un pedido.
+Las FK garantizan la existencia del padre para cada hijo, pero no obligan
+al padre a tener hijos. Todas usan `ON DELETE RESTRICT`, sin borrado en cascada.
 
 ## Relación conceptual N:M
 
-Un `pedido` puede contener varios productos y un `producto` puede participar
-en varios pedidos: `pedido N:M producto`. Físicamente se resuelve mediante
-`detalle_pedido`, que registra la asociación y sus atributos `cantidad` y
-`precio_unitario`.
+`pedido N:M producto` se resuelve mediante `detalle_pedido`, una entidad
+asociativa con identidad propia `id`. Su clave candidata alternativa
+`{pedido_id, producto_id}` está respaldada por UNIQUE y ambas columnas NOT NULL.
 
-La PK `(pedido_id, producto_id)` permite como máximo una línea de un mismo
-producto en cada pedido. La cantidad de unidades pertenece a esa línea.
-No existe una FK directa entre `pedido` y `producto` ni un identificador
-adicional para el detalle. El pasaje está desarrollado en el
-[modelo relacional](modelo_relacional.md) y su análisis de dependencias en
+El mismo producto puede aparecer como máximo una vez dentro de un pedido;
+`cantidad` representa las unidades de esa línea. La unicidad también alcanza
+las filas con baja lógica: no es una restricción parcial. No existe una FK
+directa entre pedido y producto.
+
+## Semántica de los atributos
+
+- **Usuario y minimización:** `contrasena` y `celular` pertenecen al modelo
+  base. La vista pública de Unidad 3 las omite para minimizar datos, pero
+  eso no elimina estas columnas de la entidad.
+- **Disponibilidad y baja lógica:** `producto.disponible` expresa una
+  condición comercial/operativa; `eliminado` expresa baja lógica. No son sinónimos.
+- **Fechas:** `pedido.fecha` es DATE; los cinco `created_at` son TIMESTAMPTZ
+  y registran una marca temporal técnica.
+- **Importes:** `detalle_pedido.subtotal` y `pedido.total` son físicos. El
+  primero deriva de cantidad y precio histórico de la línea; el segundo
+  agrega subtotales de detalles vigentes. El esquema todavía no mantiene
+  automáticamente estas reglas: corresponden a la siguiente capa programable.
+- **Historia:** la baja lógica de usuario, producto o categoría no borra
+  físicamente sus filas ni debe destruir la historia de pedidos. No se añaden
+  reglas de cancelación, reposición de stock o reactivación no definidas.
+
+## Alcance histórico
+
+TP1–TP4 documentan etapas anteriores y permanecen como evidencia histórica
+evaluada; no se afirma que siempre hayan usado esta estructura. La autoridad
+vigente del TPI es `schema.sql`.
+
+La columna experimental `detalle_pedido.categoria_id` de Unidad 4 **no forma
+parte del modelo canónico**. Su estado es `VALID_EXPERIMENT` /
+`REJECTED_AFTER_MEASUREMENT` / `DO_NOT_ADOPT`; no se incorpora al diagrama.
+El análisis de redundancias físicas oficiales está en
 [normalización](normalizacion.md).

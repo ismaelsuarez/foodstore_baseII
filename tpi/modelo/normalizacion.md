@@ -1,166 +1,220 @@
-# Normalización del Modelo Base — Food Store
+# Normalización del Modelo Oficial — Food Store
 
-Las cinco relaciones del modelo base satisfacen 1FN, 2FN, 3FN y FNBC
-respecto de las dependencias funcionales documentadas a continuación.
-El análisis se limita a [schema.sql](../../schema.sql), su estructura,
-claves y `UNIQUE`, y a la semántica explícita del
-[README raíz](../../README.md). No afirma que no puedan existir otras
-reglas de negocio no documentadas.
+La autoridad vigente es [schema.sql](../../schema.sql), representada en el
+[ER](modelo_er.md) y el [modelo relacional](modelo_relacional.md).
+**No todas las relaciones cumplen FNBC si se incluye la regla de negocio
+del subtotal.** El detalle contiene una redundancia derivada deliberada;
+pedido almacena un agregado físico cuya consistencia cruza relaciones.
 
-## Criterio de análisis
+## Criterio y fuentes de dependencias
 
-Una dependencia funcional (DF) `X → Y` significa que un valor de `X`
-determina un único valor de `Y` dentro de la relación. Una clave candidata
+Una dependencia funcional (DF) `X → Y` establece que un valor de `X`
+determina un único valor de `Y` dentro de una relación. Una clave candidata
 es una superclave mínima. Un atributo primo pertenece a alguna clave
-candidata; uno no primo no pertenece a ninguna, aunque sea una FK.
+candidata, no solo a la PK elegida.
 
-- **1FN:** atributos con valores escalares, sin grupos repetitivos.
-- **2FN:** 1FN y ningún atributo no primo depende de una parte propia de
-  una clave candidata compuesta.
-- **3FN:** para cada DF no trivial `X → A`, `X` es superclave o `A` es primo.
-- **FNBC / BCNF:** en cada DF no trivial el determinante es superclave.
+| Nivel | Fuente | Alcance |
+|---|---|---|
+| A. DF por restricciones | PK y UNIQUE con NOT NULL de `schema.sql` | Garantías estructurales actuales |
+| B. Reglas del dominio | Subtotal como cantidad por precio histórico; total de detalles vigentes | Reglas conceptuales que la capa programable debe mantener |
+| C. Redundancias deliberadas | Subtotal físico y total físico del modelo oficial | Se conservan y requieren consistencia; no se eliminan para ocultar el resultado del análisis |
 
-Se estudian las DF de cada relación, no las de una combinación de tablas.
-Las FK expresan referencias, no unicidad del lado hijo. Ni los `DEFAULT`
-ni coincidencias accidentales del dataset establecen nuevas DF. Los campos
-opcionales `telefono` y `descripcion` admiten `NULL`; esto no los convierte
-en listas ni en claves candidatas.
+El esquema todavía no impone automáticamente la igualdad del subtotal ni
+la conciliación del total. Los CHECK de no negatividad no equivalen a esas
+reglas. Se distingue el contrato estructural actual del dominio que debe
+mantenerse en la siguiente fase.
 
-## 1. categoria
+- **1FN:** atributos escalares, sin grupos repetitivos.
+- **2FN:** 1FN y ausencia de dependencia parcial de un atributo no primo
+  respecto de una parte propia de cualquier clave candidata compuesta.
+- **3FN:** en cada DF no trivial `X → A`, `X` es superclave o `A` es primo.
+- **FNBC:** en cada DF no trivial el determinante es superclave.
 
-Relación: `categoria(id, nombre, activo, created_at)`.
+Las FK no implican unicidad del lado hijo. Defaults y coincidencias del
+seed tampoco crean DF. Los campos opcionales `descripcion`, `celular` e
+`imagen` admiten NULL, sin representar listas ni claves. El análisis usa
+atributos escalares y DF identificadas; no inventa reglas a partir de una muestra.
 
-- **Claves candidatas:** `{id}` por PK y `{nombre}` por `UNIQUE NOT NULL`.
-- **Atributos primos:** `id`, `nombre`.
-- **Atributos no primos:** `activo`, `created_at`.
-- **DF:** `id → nombre, activo, created_at` y
-  `nombre → id, activo, created_at`.
+## 1. usuario
 
-| Forma normal | Justificación |
-|---|---|
-| 1FN | Cada fila tiene atributos escalares y no contiene grupos repetitivos de productos. |
-| 2FN | Ambas claves candidatas son simples: no tienen componentes propios no vacíos que originen dependencias parciales. |
-| 3FN | Los determinantes de las DF identificadas son claves candidatas; no se documentan dependencias transitivas entre atributos no primos. |
-| FNBC | Tanto `id` como `nombre` determinan la relación completa y son superclaves. |
+Relación: `usuario(id, nombre, apellido, mail, celular, contrasena, rol, eliminado, created_at)`.
 
-## 2. cliente
+- **Claves candidatas:** `{id}` por PK; `{mail}` por UNIQUE NOT NULL.
+- **Primos:** `id`, `mail`.
+- **No primos:** `nombre`, `apellido`, `celular`, `contrasena`, `rol`,
+  `eliminado`, `created_at`.
+- **DF respaldadas:** `id → resto de atributos`; `mail → resto de atributos`.
 
-Relación: `cliente(id, nombre, email, telefono, created_at)`.
+| Forma normal | Resultado | Fundamento |
+|---|---|---|
+| 1FN | CUMPLE | Valores escalares, sin colecciones de pedidos en una fila. |
+| 2FN | CUMPLE | Las dos claves son simples, sin dependencias parciales. |
+| 3FN | CUMPLE | Todos los determinantes identificados son superclaves. |
+| FNBC | CUMPLE | `id` y `mail` son claves candidatas. |
 
-- **Claves candidatas:** `{id}` por PK y `{email}` por `UNIQUE NOT NULL`.
-- **Atributos primos:** `id`, `email`.
-- **Atributos no primos:** `nombre`, `telefono`, `created_at`.
-- **DF:** `id → nombre, email, telefono, created_at` y
-  `email → id, nombre, telefono, created_at`.
+No se asume `celular → usuario` ni `{nombre, apellido} → usuario`. Tampoco
+se declara clave a `lower(mail)`. El ENUM de rol restringe valores pero
+no identifica usuarios. La vista pública U3 omite `contrasena` y `celular`
+sin retirarlos del modelo base.
 
-| Forma normal | Justificación |
-|---|---|
-| 1FN | Nombre, correo, teléfono y fecha son atributos escalares; no se almacena un grupo repetitivo de pedidos. |
-| 2FN | Las dos claves candidatas son simples; no presentan dependencias parciales. |
-| 3FN | Cada determinante identificado es una clave candidata; no se respalda una DF entre los atributos no primos. |
-| FNBC | `id` y `email` son superclaves y determinan todos los atributos. |
+## 2. categoria
 
-No se supone que `nombre` o `telefono` identifiquen al cliente: no tienen
-`UNIQUE` ni una regla de negocio documentada que permita afirmarlo.
+Relación: `categoria(id, nombre, descripcion, eliminado, created_at)`.
+
+- **Claves candidatas:** `{id}` por PK; `{nombre}` por UNIQUE NOT NULL.
+- **Primos:** `id`, `nombre`.
+- **No primos:** `descripcion`, `eliminado`, `created_at`.
+- **DF respaldadas:** `id → resto`; `nombre → resto`.
+
+| Forma normal | Resultado | Fundamento |
+|---|---|---|
+| 1FN | CUMPLE | Atributos escalares, sin grupos de productos en una columna. |
+| 2FN | CUMPLE | Ambas claves son simples. |
+| 3FN | CUMPLE | Los determinantes identificados son superclaves. |
+| FNBC | CUMPLE | `id` y `nombre` determinan la relación completa. |
 
 ## 3. producto
 
-Relación: `producto(id, categoria_id, nombre, descripcion, precio, stock, activo, created_at)`.
+Relación: `producto(id, nombre, precio, descripcion, stock, imagen, disponible, categoria_id, eliminado, created_at)`.
 
-- **Clave candidata respaldada:** `{id}` por PK.
-- **Atributo primo:** `id`.
-- **Atributos no primos:** `categoria_id`, `nombre`, `descripcion`,
-  `precio`, `stock`, `activo`, `created_at`.
-- **DF:** `id → categoria_id, nombre, descripcion, precio, stock, activo, created_at`.
+- **Clave candidata respaldada:** `{id}`.
+- **Primo:** `id`.
+- **No primos:** `nombre`, `precio`, `descripcion`, `stock`, `imagen`,
+  `disponible`, `categoria_id`, `eliminado`, `created_at`.
+- **DF respaldada:** `id → resto`.
 
-| Forma normal | Justificación |
-|---|---|
-| 1FN | Todos los atributos son escalares; se referencia una categoría, no una colección almacenada en una celda. |
-| 2FN | La clave candidata documentada es simple; no hay dependencia parcial respecto de ella. |
-| 3FN | `id` es superclave y no se documentan dependencias entre atributos no primos; los atributos propios de la categoría están en otra relación. |
-| FNBC | El determinante de la DF identificada es la clave candidata `id`. |
+| Forma normal | Resultado | Fundamento |
+|---|---|---|
+| 1FN | CUMPLE | Todos los atributos son escalares. |
+| 2FN | CUMPLE | La clave candidata identificada es simple. |
+| 3FN | CUMPLE | La DF identificada tiene determinante superclave. |
+| FNBC | CUMPLE | El determinante es `id`, clave candidata. |
 
-`producto.nombre` no tiene `UNIQUE`, por lo que no se lo considera clave
-candidata. `categoria_id` es una FK y puede repetirse; tampoco es clave del
-producto. No se infiere que la categoría determine su precio o stock.
+`nombre` no es UNIQUE y no se supone `nombre → resto`. `categoria_id`
+puede repetirse y no determina al producto ni su precio o stock.
+`disponible` expresa condición comercial/operativa; `eliminado` expresa
+baja lógica. No son sinónimos ni uno determina al otro.
 
 ## 4. pedido
 
-Relación: `pedido(id, cliente_id, fecha, forma_pago)`.
+Relación: `pedido(id, fecha, estado, total, forma_pago, usuario_id, eliminado, created_at)`.
 
-- **Clave candidata respaldada:** `{id}` por PK.
-- **Atributo primo:** `id`.
-- **Atributos no primos:** `cliente_id`, `fecha`, `forma_pago`.
-- **DF:** `id → cliente_id, fecha, forma_pago`.
+- **Clave candidata respaldada:** `{id}`.
+- **Primo:** `id`.
+- **No primos:** `fecha`, `estado`, `total`, `forma_pago`, `usuario_id`,
+  `eliminado`, `created_at`.
+- **DF interna respaldada:** `id → resto`.
 
-| Forma normal | Justificación |
-|---|---|
-| 1FN | Cliente, fecha y forma de pago son valores escalares; las líneas se representan por separado. |
-| 2FN | La clave candidata es simple y no admite dependencias parciales respecto de sus componentes. |
-| 3FN | El determinante identificado es superclave; no se documenta una DF entre cliente, fecha y forma de pago. |
-| FNBC | `id` determina todos los atributos y es clave candidata. |
+| Forma normal | Resultado | Fundamento |
+|---|---|---|
+| 1FN | CUMPLE | Datos escalares; las líneas están en otra relación. |
+| 2FN | CUMPLE | La clave candidata es simple. |
+| 3FN | CUMPLE con las DF internas identificadas | El determinante es superclave. |
+| FNBC | CUMPLE con las DF internas identificadas | `id` determina el resto. |
 
-No se supone que un cliente tenga una única fecha o forma de pago.
-La combinación `(cliente_id, fecha, forma_pago)` tampoco es una clave
-candidata respaldada por el esquema.
+Ni `usuario_id`, `fecha`, `forma_pago`, `estado`, ni sus combinaciones son
+claves respaldadas. La fecha comercial es DATE y `created_at` es TIMESTAMPTZ.
+Que el seed use ciertas fechas y formas de pago no establece unicidad.
+
+### Total: agregado entre relaciones
+
+`pedido.total` es un **DATO AGREGADO FÍSICO** y una redundancia deliberada.
+Debe representar la suma de `detalle_pedido.subtotal` para el pedido y las
+líneas con `eliminado = FALSE`; sin líneas vigentes, el resultado conceptual
+es cero. No se elimina porque pertenece al modelo oficial.
+
+Esta regla cruza relaciones y por sí sola no demuestra una DF interna
+entre atributos no clave de pedido. Por ello, la presencia de total no
+basta para declarar una violación de FNBC. Sí obliga a mantener consistencia
+mediante la futura capa programable: el DEFAULT 0 y `CHECK(total >= 0)`
+no realizan la conciliación.
 
 ## 5. detalle_pedido
 
-Relación: `detalle_pedido(pedido_id, producto_id, cantidad, precio_unitario)`.
+Relación: `detalle_pedido(id, cantidad, precio_unitario, subtotal, pedido_id, producto_id, eliminado, created_at)`.
 
-- **Clave candidata documentada:** `{pedido_id, producto_id}`, por la PK.
-- **Atributos primos:** `pedido_id`, `producto_id`.
-- **Atributos no primos:** `cantidad`, `precio_unitario`.
-- **DF principal:** `(pedido_id, producto_id) → cantidad, precio_unitario`.
+- **Claves candidatas:** `{id}` por PK; `{pedido_id, producto_id}` por
+  `uq_detalle_pedido_pedido_producto` más ambas columnas NOT NULL.
+- **Primos:** `id`, `pedido_id`, `producto_id`.
+- **No primos:** `cantidad`, `precio_unitario`, `subtotal`, `eliminado`,
+  `created_at`.
+- **DF por claves:** `id → resto`; `{pedido_id, producto_id} → resto`.
+- **DF conceptual del dominio:** `{cantidad, precio_unitario} → subtotal`,
+  cuando se mantiene `subtotal = cantidad * precio_unitario`.
 
-Un pedido admite varios productos, con cantidades y precios distintos;
-por tanto, `pedido_id` solo no determina `cantidad` ni `precio_unitario`.
-Un producto puede venderse en pedidos distintos con cantidades y precios
-distintos; por tanto, `producto_id` solo tampoco los determina.
+El par pedido/producto es una clave candidata alternativa, **no la PK**.
+Un pedido admite productos con cantidades y precios diferentes; un producto
+puede venderse en pedidos distintos con cantidades y precios diferentes.
+No se identifica una DF parcial de un no primo respecto de `pedido_id`
+o `producto_id` por separado.
 
-Ambos atributos no primos describen la línea identificada por la pareja
-completa. No existe una dependencia parcial documentada sobre un componente
-aislado de la clave compuesta. Ninguno de esos componentes es por sí solo
-clave candidata de la relación.
+### Formas normales del detalle
 
-| Forma normal | Justificación |
-|---|---|
-| 1FN | Cada fila representa una pareja pedido/producto con cantidad y precio escalares; no hay listas de productos dentro de una fila. |
-| 2FN | `cantidad` y `precio_unitario` dependen de la clave completa, no de un componente aislado. |
-| 3FN | La pareja es superclave y no se documenta una DF entre `cantidad` y `precio_unitario` ni otra dependencia transitiva problemática. |
-| FNBC | El determinante no trivial identificado es la clave candidata completa `(pedido_id, producto_id)`. |
+| Forma normal | Resultado | Fundamento |
+|---|---|---|
+| 1FN | CUMPLE | Atributos escalares; cada fila representa una línea identificable. |
+| 2FN | CUMPLE respecto de ambas claves identificadas | No hay DF parcial respaldada de un no primo sobre una parte propia de la clave compuesta. Tener PK simple no elimina la necesidad de analizar la clave alternativa. |
+| 3FN | NO CUMPLE estrictamente al incluir la regla del subtotal | `{cantidad, precio_unitario}` no es superclave y `subtotal` no es primo. |
+| FNBC | NO CUMPLE estrictamente al incluir la regla del subtotal | La misma DF tiene un determinante que no es superclave. |
 
-## Precio histórico frente a precio actual
+Distintos detalles pueden compartir cantidad y precio sin ser la misma fila;
+ese par no identifica el detalle. La DF del subtotal es una regla conceptual
+de negocio, **no una garantía ya implementada por `schema.sql`**.
+Considerando solo las DF de claves actualmente impuestas por el DDL no
+aparece esa violación; el análisis completo no debe omitir la regla del
+dominio para obtener artificialmente una conclusión favorable.
 
-`producto.precio` es el precio actual del producto.
-`detalle_pedido.precio_unitario` es el precio registrado para esa línea al
-momento de la venta, como explicita el [README raíz](../../README.md).
-Son hechos distintos: el precio de catálogo puede cambiar entre ventas.
+### Subtotal: redundancia derivada deliberada
 
-[datos_iniciales.sql](../../datos_iniciales.sql) ilustra esta semántica:
-Muzzarella tiene precio actual `1050.00`, una línea de venta a `1000.00`
-y otras a `1050.00`. Estos valores se leen del archivo; no son resultados
-de una ejecución realizada para este documento.
+Clasificación: **REDUNDANCIA DERIVADA DELIBERADA**.
 
-Por eso no se asume `producto_id → precio_unitario` en `detalle_pedido` ni
-se califica ese atributo como redundancia incorrecta. Permite preservar el
-importe histórico aunque cambie `producto.precio`. El esquema no obliga a
-sincronizar ambos precios ni impide modificar manualmente el precio de una
-línea: representación histórica no equivale a inmutabilidad automática.
+El subtotal físico es obligatorio en el modelo oficial. No se propone
+eliminarlo ni sustituirlo permanentemente por una expresión en consultas.
+Requiere mantenimiento automático de cantidad por precio histórico de la
+misma fila. La fase posterior deberá implementar un mecanismo equivalente
+a `fn_set_subtotal` y su trigger; no se afirma que ya esté instalado o
+adaptado en el TPI actual.
 
-## Conclusión y alcance
+El CHECK presente solo garantiza subtotal no negativo. Cambios de cantidad
+o precio pueden dejarlo inconsistente si no se mantiene. El
+[seed](../../datos_iniciales.sql) calcula sus subtotales explícitamente y
+reconcilia sus totales como una fotografía inicial; esa carga no reemplaza
+la futura lógica de operaciones posteriores.
 
-Respecto de las DF documentadas, todas las relaciones cumplen 1FN, 2FN,
-3FN y FNBC. Los determinantes no triviales identificados son claves
-candidatas; sus ampliaciones son superclaves. No se identifica una DF con
-determinante que no sea superclave que obligue a descomponer estas tablas.
+## Precio histórico frente a precio de catálogo
 
-La conclusión no reemplaza el relevamiento de futuras reglas de negocio.
-Si aparecen nuevas DF justificadas, deberá revisarse el análisis: no se
-deduce su inexistencia de una muestra de datos ni del uso de una PK simple.
+`producto.precio` representa el precio actual; `detalle_pedido.precio_unitario`
+representa el precio histórico de esa línea. No se asume
+`producto_id → precio_unitario` dentro de detalle: el mismo producto puede
+haberse vendido a precios diferentes en pedidos distintos.
 
-Como material complementario, la
-[spec de FNBC de Unidad 4](../../unidades/unidad-4/specs/u4_fnbc_control_lote.md)
-estudia una violación de FNBC en `control_lote_almacen`, con reglas propias.
-Es un caso separado de laboratorio y no se utiliza para justificar la
-normalización del modelo base analizado aquí.
+El seed ilustra la intención con Muzzarella: catálogo `1050.00` y una línea
+histórica a `1000.00`. Es un ejemplo leído del archivo, no una definición
+de DF ni un resultado de ejecución para este bloque. La representación
+histórica no equivale a una prohibición automática de modificar precios.
+
+## Síntesis y alcance
+
+| Relación | 1FN | 2FN | 3FN | FNBC |
+|---|---|---|---|---|
+| usuario | Cumple | Cumple | Cumple | Cumple |
+| categoria | Cumple | Cumple | Cumple | Cumple |
+| producto | Cumple | Cumple | Cumple | Cumple |
+| pedido | Cumple | Cumple | Cumple con las DF internas identificadas | Cumple con las DF internas identificadas |
+| detalle_pedido | Cumple | Cumple | No estricta al incluir la regla del subtotal | No estricta al incluir la regla del subtotal |
+
+Subtotal deriva dentro de una fila; total agrega filas de otra relación.
+Ambos son físicos y requieren mantenimiento, pero no representan el mismo
+tipo de dependencia funcional.
+
+El borrado lógico mediante `eliminado` no retira físicamente las filas.
+Bajas posteriores de usuario, producto o categoría no deben destruir la
+historia de pedidos. Este análisis no introduce reglas adicionales de
+cancelación, reposición de stock o reactivación.
+
+TP1–TP4 se conservan como evidencia histórica de etapas anteriores, sin
+afirmar que siempre tuvieron el modelo actual. La columna experimental
+`detalle_pedido.categoria_id` de Unidad 4 no integra el esquema canónico:
+`VALID_EXPERIMENT` / `REJECTED_AFTER_MEASUREMENT` / `DO_NOT_ADOPT`.
+Ese candidato rechazado es distinto de las redundancias físicas exigidas
+por el modelo oficial. No se ejecutó PostgreSQL para este análisis.

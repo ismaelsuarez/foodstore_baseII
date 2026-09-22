@@ -1,304 +1,153 @@
-# Food Store — Base de Datos II
+﻿# Food Store — Base de Datos II
 
-## 1. Presentación
+Proyecto académico de PostgreSQL de la UTN: modelado, integridad, transacciones,
+concurrencia, consultas y evaluación de optimizaciones. **El contrato vigente es
+el modelo oficial definido en [schema.sql](schema.sql)**. No hay aplicación,
+backend ni frontend; los entregables son SQL y documentación.
 
-Food Store es un proyecto académico de PostgreSQL, desarrollado
-progresivamente a lo largo de distintas unidades y trabajos prácticos
-de la materia Base de Datos II. No es una aplicación productiva: es un
-ejercicio de modelado, integridad, concurrencia, optimización de
-consultas, indexado, vistas y normalización avanzada sobre un esquema
-relacional de comercio (categorías, clientes, productos, pedidos y
-detalle de pedido).
+## Ruta de lectura
 
-## Primera Entrega del TPI
-
-La integración específica de la **Primera Entrega del TPI** cubre los
-nueve objetivos requeridos mediante evidencia de las Unidades 1–3 y
-complementos mínimos en `tpi/`. No reemplaza ni altera los trabajos
-históricos.
-
-| Recurso | Propósito |
+| Recurso | Para qué consultarlo |
 |---|---|
-| [tpi/README.md](tpi/README.md) | Punto de entrada: mapa de los nueve objetivos, reproducción y resultados. |
-| [tpi/informe_tecnico.md](tpi/informe_tecnico.md) | Justificación, implementación, pruebas y decisiones. |
+| [TPI — Primera Entrega](tpi/README.md) | Cobertura, reproducción exacta desde PowerShell y resultados resumidos |
+| [Informe técnico TPI](tpi/informe_tecnico.md) | Interpretación de decisiones, pruebas y limitaciones |
+| [Evidencia oficial TPI](tpi/evidencia_modelo_oficial.md) | Resultados reales de ejecución funcional, concurrencia y HAVING |
+| [Modelo relacional](tpi/modelo/modelo_relacional.md) | Columnas, tipos, claves y restricciones vigentes |
+| [AGENTS.md](AGENTS.md) | Contrato de trabajo para futuros agentes |
 
-## 2. Integrantes
+Integrantes: **Avalos Pablo, Blangetti Sofia y Suarez Ismael**.
 
-- Avalos Pablo
-- Blangetti Sofia
-- Suarez Ismael
+## Modelo canónico vigente
 
-## 3. Tecnología
+| Entidad | Responsabilidad |
+|---|---|
+| `categoria` | Agrupación del catálogo; nombre único y baja lógica |
+| `usuario` | Identidad, nombre, apellido, mail único, celular, contrasena, rol y baja lógica |
+| `producto` | Precio actual, stock, categoría, disponibilidad comercial y baja lógica separadas |
+| `pedido` | Usuario, fecha `DATE`, estado, total físico, forma de pago y baja lógica |
+| `detalle_pedido` | Identidad propia, pedido/producto, cantidad, precio histórico, subtotal físico y baja lógica |
 
-- PostgreSQL 17
-- SQL para PostgreSQL
-- `psql` como cliente de línea de comandos
-- Git para control de versiones
+Las cinco tablas tienen `id BIGINT GENERATED ALWAYS AS IDENTITY` como PK,
+`eliminado` y `created_at TIMESTAMPTZ`. El detalle tiene además
+`UNIQUE(pedido_id, producto_id)`; sus FK no constituyen la PK. Las cuatro
+relaciones son 1:N, obligatorias del lado hijo, con `ON DELETE RESTRICT`.
+`disponible` y `eliminado` no son sinónimos.
 
-Características de PostgreSQL realmente presentes en `schema.sql`:
+El subtotal es una **redundancia derivada deliberada**. Considerando la regla
+`{cantidad, precio_unitario} → subtotal`, el detalle cumple 1FN y 2FN, pero no se
+presenta como 3FN/FNBC estricta. El total es un agregado físico entre filas de
+otra relación; su existencia no prueba por sí sola una DF interna problemática
+en pedido. Véase [normalización](tpi/modelo/normalizacion.md).
 
-- `GENERATED ALWAYS AS IDENTITY` para claves primarias autogeneradas
-- `TIMESTAMPTZ` para columnas de fecha/hora con zona horaria
-- `NUMERIC` para valores monetarios (`precio`, `precio_unitario`)
-- Tipo `ENUM` propio (`forma_pago`: `EFECTIVO`, `TARJETA`, `TRANSFERENCIA`)
-- Claves primarias (`PRIMARY KEY`, incluyendo una compuesta en
-  `detalle_pedido`) y claves foráneas (`FOREIGN KEY`)
-- Restricciones `CHECK` (por ejemplo, `precio >= 0`, `cantidad > 0`)
-- `ON DELETE RESTRICT` en todas las claves foráneas del esquema base
-- Índices sobre columnas de clave foránea
+La capa [programable del TPI](tpi/sql/objetos_programables.sql) se instala por
+separado: mantiene subtotal y total, valida nuevas líneas y ofrece
+`CALL registrar_detalle_pedido(...)` como ruta de negocio para descontar stock.
+El DML directo de detalles no constituye una API completa de inventario.
 
-No hay stack de aplicación (backend, frontend, ORM): este es un
-proyecto puramente de base de datos.
+## Reproducción actual y seguridad
 
-## 4. Base canónica
+Seguir los [comandos PowerShell del TPI](tpi/README.md) sobre una base descartable
+nueva llamada `foodstore_tpi_oficial`, en este orden:
 
-`schema.sql` y `datos_iniciales.sql`, en la raíz del repositorio, son
-la **fundación canónica actual** del proyecto:
+1. `schema.sql`: instalación transaccional con `ON_ERROR_STOP=1` y `-1`.
+2. `datos_iniciales.sql`: `ON_ERROR_STOP=1`, sin `-1`; administra su transacción.
+3. `tpi/sql/objetos_programables.sql`: `ON_ERROR_STOP=1` y `-1`.
+4. `tpi/pruebas/pruebas_objetos_programables.sql`: `ON_ERROR_STOP=1`, sin `-1`;
+   prueba reversible con su propio rollback.
+5. `tpi/sql/consultas_cobertura_tpi.sql`: consulta de lectura con `ON_ERROR_STOP=1`.
 
-- `schema.sql` → define el esquema base actual (tipos, tablas,
-  restricciones, índices).
-- `datos_iniciales.sql` → carga el dataset inicial mínimo sobre ese
-  esquema.
+No ejecutar todos los SQL del repositorio en cadena. No recrear una base
+existente sin autorización ni instalar laboratorios automáticamente. El seed
+mínimo tiene **3 usuarios, 2 categorías, 3 productos, 5 pedidos y 7 detalles**.
+`SEED_NO_AUTH` es un marcador académico, no una credencial real. El stock del
+seed es una fotografía inicial, no una reproducción cronológica de ventas.
 
-**Importante:** no todo el SQL que vive bajo `unidades/` es una
-migración pendiente sobre esta base canónica. La mayor parte son:
+## Resultados TPI acreditados
 
-- ejercicios académicos de una unidad específica;
-- evidencia histórica de un TP ya cerrado;
-- consultas experimentales o alternativas usadas para comparación;
-- scripts de laboratorio ejecutados sobre una copia de la base;
-- objetos (índices, vistas, vistas materializadas, triggers) creados
-  deliberadamente para un TP puntual.
+Validación en **PostgreSQL 17.11**, base `foodstore_tpi_oficial`:
 
-**Nunca ejecutar todos los archivos `.sql` del repositorio en
-secuencia.** Cada unidad documenta, en su propio README local, qué es
-seguro ejecutar y en qué orden.
+- Schema, seed y **12 objetos** — 7 rutinas y 5 triggers — instalados y verificados.
+- Batería: **29 grupos, 37 variantes, 30 NOTICE PASS**, código de salida 0.
+- Tres escenarios concurrentes bajo **READ COMMITTED**: mismo producto/pedidos
+  distintos, mismo pedido/productos distintos y mismo par pedido/producto.
+  Se observaron bloqueos reales `Lock / transactionid` y estados finales correctos.
+- HAVING: Ana Gómez y Luis Paz, **2 pedidos cada uno**, dos filas reales.
+- Fixtures eliminados, seed intacto y cero inconsistencias de subtotal/total.
 
-## 5. Modelo base
+Esto no acredita ausencia universal de deadlocks, concurrencia segura del DML
+directo, SERIALIZABLE, reposición automática por bajas/cancelaciones ni
+rendimiento bajo estrés. La evidencia separa los ensayos productivos de una
+incidencia del arnés temporal; el [informe técnico](tpi/informe_tecnico.md)
+explica su alcance. No se declara una garantía de producción ni se sustituye
+la auditoría final del TPI.
 
-El esquema base (`schema.sql`) define exactamente estas tablas:
+## Evolución del modelo
 
-- **`categoria`** — agrupación de productos (`nombre`, `activo`).
-- **`cliente`** — identificado por `email` único (`nombre`, `telefono`).
-- **`producto`** — pertenece a una `categoria` (`categoria_id`),
-  con `precio`, `stock` y `activo`.
-- **`pedido`** — pertenece a un `cliente` (`cliente_id`), con `fecha`
-  y `forma_pago`.
-- **`detalle_pedido`** — línea de un pedido: referencia a `pedido` y
-  a `producto` (clave primaria compuesta `pedido_id, producto_id`),
-  con `cantidad` y `precio_unitario` (precio al momento de la venta).
+TP1–TP4 fueron desarrollados y evaluados sobre una iteración anterior. Se
+preservan como **EVIDENCIA HISTÓRICA EVALUADA**, sin convertir retroactivamente
+sus SQL o documentos al contrato actual. Posteriormente, la revisión humana
+identificó la necesidad de alineación con el DER/material oficial: se corrigieron
+Unidad 3, Unidad 4, el esquema raíz y el TPI.
 
-No hay tablas `usuario`, `deposito` ni `lote` en el esquema base — esas
-solo existen dentro del laboratorio específico de Unidad 4 (ver
-sección 8).
+| Área | Estado y punto de entrada |
+|---|---|
+| Unidad 1 / TP2 | [Integridad y concurrencia históricas](unidades/unidad-1/tp2/README.md) |
+| Unidad 2 / TP3 | [Consultas y optimización históricas](unidades/unidad-2/tp3/README.md) |
+| Unidad 2 / TP4 | [JOIN y análisis históricos](unidades/unidad-2/tp4/README.md) |
+| Unidad 3 / TP5 | [Modelo oficial validado](unidades/unidad-3/README.md), commit `da5f3e4` |
+| Unidad 4 | [FNBC validada; candidato descartado](unidades/unidad-4/README.md), commit `95fbfbf` |
 
-## 6. Reconstrucción mínima de Food Store
+Los avisos de U3/U4 que describen los archivos raíz como históricos registran
+el estado de la raíz **al cerrar aquellos laboratorios**, antes de su reparación
+para el TPI. Hoy la raíz es oficial. Sin embargo, el seed mínimo **no reproduce
+las cargas masivas medidas ni contiene los usuarios 801/802 requeridos por el
+ensayo FNBC**. Los resultados de laboratorio no deben atribuirse al seed del TPI.
+La carga histórica de TP3 tampoco es una migración del modelo vigente.
 
-Desde la **raíz** del repositorio:
+## Unidad 3: resultados oficiales
 
-```powershell
-createdb -U postgres foodstore
+El [informe vigente](unidades/unidad-3/informes/informe_mediciones.md) acredita
+los índices `idx_producto_stock_bajo`, `idx_pedido_fecha_reciente` e
+`idx_usuario_mail_lower`; cuatro vistas `v_productos_vigentes`,
+`v_pedidos_resumen`, `v_pedido_detalle`, `v_usuarios_publico`; y la materializada
+`mv_facturacion_categoria_mes`.
 
-psql -U postgres -d foodstore -v ON_ERROR_STOP=1 -f .\schema.sql
+| Lectura | Antes → después | Mejora observada |
+|---|---|---|
+| Stock bajo | 9.4390 → 0.2975 ms | 31.73x |
+| Pedidos recientes | 264.3715 → 1.2250 ms | 215.81x |
+| Usuario por mail | 10.8865 → 0.1360 ms | 80.05x |
+| Materializada, comparación homogénea | 1188.4945 → 0.2230 ms | Ver protocolo del informe |
 
-psql -U postgres -d foodstore -v ON_ERROR_STOP=1 -f .\datos_iniciales.sql
-```
+Se verificaron EXCEPT bidireccionales, seguridad de la vista pública con un rol
+de prueba retirado al finalizar y `REFRESH MATERIALIZED VIEW CONCURRENTLY`.
+Los índices tienen costos de escritura; los tiempos dependen del dataset y la
+máquina, no son universales. Sus objetos no se instalan desde el esquema mínimo.
 
-Este procedimiento reconstruye únicamente la base canónica (esquema +
-dataset mínimo). No ejecuta automáticamente ningún script de las
-unidades posteriores — cada unidad indica en su propio README cómo
-reproducir su volumen de datos y sus objetos adicionales.
+## Unidad 4: experimento válido, no adoptado
 
-## 7. Estructura del repositorio
+FNBC: **PASS**. La desnormalización se conserva como **VALID_EXPERIMENT**, pero
+su decisión es **REJECTED_AFTER_MEASUREMENT / DO_NOT_ADOPT**. El cambio de
+mediana de 200.392 a 196.507 ms (-1.94 %) fue marginal; buffers +59.70 % e INSERT
++34.97 % no justificaron el costo y la complejidad. Véase el
+[informe vigente U4](unidades/unidad-4/informes/informe_u4_fnbc_desnormalizacion.md).
 
-```
-foodstore_baseII/
-├── README.md
-├── AGENTS.md
-├── .gitignore
-├── schema.sql
-├── datos_iniciales.sql
-├── .kiro/
-│   └── steering/
-│       ├── product.md
-│       ├── structure.md
-│       └── tech.md
-├── tpi/
-│   ├── README.md
-│   ├── informe_tecnico.md
-│   ├── modelo/
-│   │   ├── modelo_er.md
-│   │   ├── modelo_relacional.md
-│   │   └── normalizacion.md
-│   ├── sql/
-│   │   ├── consultas_cobertura_tpi.sql
-│   │   └── objetos_programables.sql
-│   └── pruebas/
-│       └── pruebas_objetos_programables.sql
-└── unidades/
-    ├── unidad-1/
-    │   └── tp2/
-    │       ├── README.md
-    │       ├── sql/
-    │       ├── specs/
-    │       ├── informes/
-    │       └── duia/
-    ├── unidad-2/
-    │   ├── tp3/
-    │   │   ├── README.md
-    │   │   ├── sql/
-    │   │   ├── specs/
-    │   │   ├── informes/
-    │   │   └── duia/
-    │   └── tp4/
-    │       ├── README.md
-    │       ├── sql/
-    │       ├── specs/
-    │       ├── informes/
-    │       └── duia/
-    ├── unidad-3/
-    │   ├── README.md
-    │   ├── sql/
-    │   ├── specs/
-    │   ├── informes/
-    │   └── duia/
-    └── unidad-4/
-        ├── README.md
-        ├── sql/
-        ├── specs/
-        └── informes/
-```
+`detalle_pedido.categoria_id` **no es canónica**; `producto.categoria_id` sigue
+siendo la autoridad. `usuario` sí pertenece al modelo base; `lote` y `deposito`
+son extensiones académicas del laboratorio, no tablas raíz.
 
-## 8. Recorrido académico
+## Organización y uso de IA
 
-| Unidad / TP | Tema principal | Punto de entrada | Artefactos principales |
-|---|---|---|---|
-| TPI — Primera Entrega | Integración U1–U3 y cobertura de los nueve objetivos de la primera entrega | [tpi/README.md](tpi/README.md) | Modelo ER/relacional, normalización, HAVING, función PL/pgSQL, procedimiento, trigger, pruebas e informe técnico |
-| Unidad 1 / TP2 | Integridad, concurrencia, lectura crítica, protocolo de seguridad | [unidades/unidad-1/tp2/README.md](unidades/unidad-1/tp2/README.md) | Restricción `CHECK` histórica, escenarios de concurrencia, lectura crítica de scripts peligrosos |
-| Unidad 2 / TP3 | Volumen de datos, consultas, `EXPLAIN ANALYZE`, optimización | [unidades/unidad-2/tp3/README.md](unidades/unidad-2/tp3/README.md) | Carga masiva, consultas principales y alternativas, informe de optimización |
-| Unidad 2 / TP4 | JOIN, consultas analíticas, optimización comparativa | [unidades/unidad-2/tp4/README.md](unidades/unidad-2/tp4/README.md) | Consultas de ranking/facturación, lectura crítica de planes de JOIN, competencia de optimización |
-| Unidad 3 | Índices, vistas, vista materializada, medición real | [unidades/unidad-3/README.md](unidades/unidad-3/README.md) | 3 índices, 3 vistas, 1 vista materializada, informe de mediciones |
-| Unidad 4 | FNBC, descomposición sin pérdida, desnormalización controlada | [unidades/unidad-4/README.md](unidades/unidad-4/README.md) | Descomposición FNBC de `control_lote_almacen`, columna redundante con triggers de sincronización |
+- Raíz: esquema, seed, entrada del proyecto y reglas de trabajo.
+- `tpi/`: modelo, SQL adicional, pruebas, evidencia e informe integrador.
+- `unidades/`: trabajos evaluados y laboratorios con sus propios contratos.
+- `.kiro/steering/`: [producto](.kiro/steering/product.md),
+  [tecnología](.kiro/steering/tech.md) y [estructura](.kiro/steering/structure.md).
 
-Unidad 4 se conserva como trabajo posterior/complementario, fuera del
-alcance obligatorio de la Primera Entrega del TPI.
-
-## 9. Dataset masivo compartido
-
-[`unidades/unidad-2/tp3/sql/carga_masiva_tp3.sql`](unidades/unidad-2/tp3/sql/carga_masiva_tp3.sql)
-es la **única copia canónica** del dataset masivo de laboratorio
-(≈20.000 clientes, 50.000 productos, 200.000 pedidos, 500.000
-detalles). Fue creado para TP3 y reutilizado posteriormente por Unidad
-3 y por Unidad 4 sobre sus respectivas copias de base — no se duplica
-en ningún otro lugar del repositorio.
-
-## 10. Evidencia y metodología
-
-El enfoque de trabajo seguido en la mayoría de las unidades fue:
-
-```
-especificar → generar/proponer → revisar → ejecutar manualmente
-    cuando corresponde → medir → verificar → decidir → versionar
-```
-
-Según el caso, se utilizaron:
-
-- `EXPLAIN (ANALYZE, BUFFERS)` para medir el impacto real de índices,
-  vista materializada y reescrituras de consultas;
-- `EXCEPT` bidireccional para verificar equivalencia semántica entre
-  una consulta original y su alternativa (o entre una vista/vista
-  materializada y su consulta manual equivalente);
-- transacciones y `ROLLBACK` para probar cambios de forma reversible
-  sobre copias de laboratorio;
-- consultas de auditoría/conciliación para detectar desincronización
-  en datos redundantes.
-
-Los tiempos y planes documentados en los informes son **históricos**:
-dependen del hardware, la caché, la versión de PostgreSQL y el estado
-de la base en el momento exacto de la medición. No deben tratarse como
-benchmarks universales ni reproducibles de forma idéntica en otro
-entorno.
-
-## 11. Uso de IA / DUIA
-
-Distintos TPs de este repositorio documentan el uso de herramientas
-como **Kiro**, **OpenCode** y **ChatGPT**, cada una solo en la medida
-en que está efectivamente respaldada por la Declaración de Uso de IA
-(DUIA) correspondiente a esa unidad — no se afirma que una única
-herramienta haya generado todo el proyecto.
-
-**Claude** está siendo utilizado actualmente para tareas de
-mantenimiento y auditoría del repositorio (por ejemplo, esta
-reestructuración de carpetas y la documentación maestra). Esto no
-reescribe ni reinterpreta las DUIA históricas de cada TP — esas DUIA
-siguen siendo, tal como fueron escritas en su momento, la fuente de
-trazabilidad académica de cada pieza de trabajo.
-
-Cuando existe, la DUIA local (`unidades/.../duia/`) documenta, para su
-unidad: qué propuso la IA, qué fue revisado o corregido por el
-estudiante, y qué decisiones finales no se delegaron a la IA.
-
-## 12. Seguridad
-
-- Los laboratorios que modifican estructura o datos deben realizarse
-  sobre copias de la base, nunca sobre una base importante.
-- Usar transacciones y `ROLLBACK` cuando corresponda probar un cambio
-  sin dejarlo aplicado.
-- Revisar cada script antes de ejecutarlo — no asumir que es seguro
-  solo por estar en el repositorio.
-- `backups/` no se versiona (ver sección 13).
-
-Protocolo detallado:
-[unidades/unidad-1/tp2/informes/protocolo_seguridad.md](unidades/unidad-1/tp2/informes/protocolo_seguridad.md)
-
-## 13. Backups
-
-El directorio `backups/` está excluido mediante `.gitignore`. Los
-dumps locales (por ejemplo, el backup previo a los laboratorios de
-Unidad 4) no forman parte del repositorio y no se versionan. Este
-README no documenta datos sensibles ni credenciales.
-
-## 14. Para un revisor humano o IA
-
-Orden recomendado de lectura:
-
-1. Leer este `README.md` raíz.
-2. Leer [tpi/README.md](tpi/README.md) si se evalúa la Primera Entrega.
-3. Consultar [tpi/informe_tecnico.md](tpi/informe_tecnico.md) para la
-   justificación completa y el mapa detallado de evidencias.
-4. Leer `schema.sql`, autoridad estructural del proyecto.
-5. Leer `datos_iniciales.sql`.
-6. Revisar la documentación y los modelos de `tpi/modelo/` cuando
-   corresponda, siguiendo los enlaces del README del TPI.
-7. Comprobar la evidencia reutilizada en las unidades históricas:
-   README local, spec antes de evaluar la implementación e informes
-   con resultados reales (tiempos, planes, buffers).
-8. Leer la DUIA local correspondiente para la trazabilidad del uso de IA.
-
-**Advertencias:** no ejecutar todo SQL en cadena ni asumir que cada
-script es una migración pendiente; no inventar columnas que no existan
-en `schema.sql`; no modificar evidencia histórica para hacerla coincidir
-con el estado actual del proyecto.
-
-## 15. Estado actual
-
-- La base canónica del proyecto sigue siendo `schema.sql` +
-  `datos_iniciales.sql`.
-- `tpi/` es la capa integradora de la Primera Entrega (U1–U3).
-  [tpi/README.md](tpi/README.md) documenta el flujo de reproducción;
-  sus objetos programables son adicionales y se instalan explícitamente,
-  no como una migración automática de la base canónica.
-- Unidad 4 contiene laboratorios (FNBC, desnormalización controlada)
-  que **no** fueron fusionados a la base canónica: viven en sus propios
-  scripts, ejecutados sobre una copia de laboratorio. Continúa separada
-  como trabajo posterior/complementario y no se utiliza para cubrir
-  artificialmente requisitos de la Primera Entrega.
-- El repositorio conserva evidencia histórica (informes, DUIA,
-  consultas alternativas) para defensa académica y auditoría, no para
-  ser reejecutada automáticamente.
-- No existe dependencia de ninguna aplicación externa: todo el trabajo
-  vive en SQL y Markdown.
-
-No todos los ejercicios documentados acá deben ejecutarse para
-reconstruir Food Store — solo `schema.sql` y `datos_iniciales.sql` son
-necesarios para eso (sección 6).
+Las DUIA registran propuestas y revisión, no una autoría única de todo el
+proyecto. La [DUIA vigente U3](unidades/unidad-3/duia/duia.md) distingue Kiro,
+OpenCode, revisión humana y reparación asistida por Codex. Las ejecuciones
+producen resultados mediante PostgreSQL/psql bajo autorización del equipo;
+no son estimaciones generadas por IA. La responsabilidad final y las decisiones
+corresponden al equipo. Los relatos históricos de uso de herramientas se
+conservan sin reescribirlos como si fueran la ejecución actual.

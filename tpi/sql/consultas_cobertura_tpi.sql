@@ -4,10 +4,13 @@
 -- Su objetivo principal es demostrar explícitamente GROUP BY + HAVING.
 -- Las demás capacidades de la rúbrica se referencian a los TP históricos.
 
--- CLIENTES CON MÁS DE UN PEDIDO
--- JOIN relaciona cada pedido con su cliente mediante pedido.cliente_id.
--- COUNT(p.id) agrega la cantidad de pedidos de cada cliente.
--- GROUP BY forma un grupo por cliente usando su id y su nombre.
+-- USUARIOS CON MÁS DE UN PEDIDO NO ELIMINADO
+-- JOIN relaciona cada pedido con su usuario mediante pedido.usuario_id.
+-- COUNT(p.id) agrega la cantidad de pedidos no eliminados de cada usuario.
+-- GROUP BY forma un grupo por usuario con sus datos identificativos.
+-- WHERE excluye pedidos eliminados antes de agrupar.
+-- No se excluyen usuarios eliminados: se conserva el historial de pedidos.
+-- No se filtra por estado: no existe un requisito que lo justifique.
 -- No se une detalle_pedido, evitando multiplicar pedidos por sus líneas.
 -- HAVING filtra los grupos después de la agregación.
 -- WHERE actúa antes de la agregación: no reemplaza a HAVING para filtrar
@@ -16,21 +19,28 @@
 -- No se anticipan conteos ni filas de salida; requieren ejecución real.
 
 SELECT
-    c.id AS cliente_id,
-    c.nombre AS cliente_nombre,
+    u.id AS usuario_id,
+    u.nombre,
+    u.apellido,
+    u.mail,
     COUNT(p.id) AS cantidad_pedidos
-FROM cliente c
+FROM usuario u
 JOIN pedido p
-    ON p.cliente_id = c.id
+    ON p.usuario_id = u.id
+WHERE p.eliminado = FALSE
 GROUP BY
-    c.id,
-    c.nombre
+    u.id,
+    u.nombre,
+    u.apellido,
+    u.mail
 HAVING COUNT(p.id) > 1
 ORDER BY
     cantidad_pedidos DESC,
-    cliente_id ASC;
+    usuario_id ASC;
 
 -- COBERTURA COMPLEMENTARIA EXISTENTE
+-- TP3 y TP4 se conservan como evidencia histórica evaluada; no se presentan
+-- como scripts compatibles automáticamente con el esquema canónico vigente.
 -- Rutas relativas a la ubicación de este archivo (tpi/sql/).
 -- A) JOIN + agregaciones + subconsulta correlacionada: consultas A y B de TP3.
 -- ../../unidades/unidad-2/tp3/sql/consultas_tp3_ia.sql

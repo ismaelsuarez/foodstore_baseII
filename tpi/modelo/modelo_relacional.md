@@ -1,160 +1,192 @@
 # Modelo Relacional — Food Store
 
-El pasaje del [modelo ER](modelo_er.md) al modelo relacional conserva las
-cinco tablas y restricciones de [schema.sql](../../schema.sql). Esta
-documentación no propone nuevas columnas, restricciones ni cambios de DDL.
+Esta representación deriva directamente de [schema.sql](../../schema.sql):
+cinco tablas, 40 columnas, tres ENUM, cuatro FK, seis CHECK y tres índices
+explícitos de acceso. No propone cambios al esquema ni instala objetos
+programables. Complementa el [modelo ER](modelo_er.md).
 
-## Reglas de transformación ER → modelo relacional
+## Relaciones
 
-| Elemento del ER | Representación relacional en Food Store |
-|---|---|
-| Entidad fuerte | Tabla: `categoria`, `cliente`, `producto` o `pedido`. |
-| Identificador | `PRIMARY KEY`: `id` en esas cuatro tablas. |
-| Relación 1:N | FK en el lado N: `producto.categoria_id` y `pedido.cliente_id`. |
-| Relación N:M | Tabla intermedia `detalle_pedido`, con FK hacia ambos participantes y PK compuesta. |
-| Atributos de la relación N:M | Columnas `cantidad` y `precio_unitario` de `detalle_pedido`. |
-
-## Relaciones y dominios
-
-Las mayúsculas de la notación siguiente son una convención expositiva; los
-nombres reales son los identificadores en minúscula de `schema.sql`.
-`UK` representa `UNIQUE`. En `DETALLE_PEDIDO`, las dos marcas `PK/FK`
-integran conjuntamente la PK `(pedido_id, producto_id)`.
+Las mayúsculas son una convención expositiva; los identificadores reales
+son minúsculos. PK es clave primaria; UK es UNIQUE; FK es referencia.
 
 ```text
-CATEGORIA(id PK, nombre UK, activo, created_at)
-
-CLIENTE(id PK, nombre, email UK, telefono, created_at)
-
-PRODUCTO(
-    id PK,
-    categoria_id FK -> CATEGORIA(id),
-    nombre, descripcion, precio, stock, activo, created_at
-)
-
-PEDIDO(
-    id PK,
-    cliente_id FK -> CLIENTE(id),
-    fecha, forma_pago
-)
-
-DETALLE_PEDIDO(
-    pedido_id PK/FK -> PEDIDO(id),
-    producto_id PK/FK -> PRODUCTO(id),
-    cantidad, precio_unitario
-)
+CATEGORIA(id PK, nombre UK, descripcion, eliminado, created_at)
+USUARIO(id PK, nombre, apellido, mail UK, celular, contrasena, rol, eliminado, created_at)
+PRODUCTO(id PK, nombre, precio, descripcion, stock, imagen, disponible,
+         categoria_id FK, eliminado, created_at)
+PEDIDO(id PK, fecha, estado, total, forma_pago, usuario_id FK, eliminado, created_at)
+DETALLE_PEDIDO(id PK, cantidad, precio_unitario, subtotal, pedido_id FK,
+               producto_id FK, eliminado, created_at)
+UK DETALLE_PEDIDO: (pedido_id, producto_id)
 ```
 
-En las tablas siguientes, `—` significa que no hay `DEFAULT` explícito.
-Los cuatro `id` se declaran `GENERATED ALWAYS AS IDENTITY`: es generación
-por identidad, no una cláusula `DEFAULT` escrita en el esquema. La PK
-implica `NOT NULL`, aunque esa expresión no se repita en su declaración.
+Cada entidad tiene PK `id`. Las relaciones 1:N se materializan con una FK
+en el lado N. La asociación N:M pedido–producto usa detalle con PK propia
+y UK conjunta del par, no con las FK como PK.
+
+## ENUM y defaults
+
+| Tipo ENUM | Valores en el orden declarado | Columna | DEFAULT |
+|---|---|---|---|
+| `forma_pago` | `EFECTIVO`, `TARJETA`, `TRANSFERENCIA` | `pedido.forma_pago` | Sin DEFAULT |
+| `rol` | `ADMIN`, `USUARIO` | `usuario.rol` | `'USUARIO'` |
+| `estado_pedido` | `PENDIENTE`, `CONFIRMADO`, `TERMINADO`, `CANCELADO` | `pedido.estado` | `'PENDIENTE'` |
+
+Son tipos, no tablas adicionales ni CHECK. `PENDIENTE` es una decisión de
+implementación para pedidos nuevos, no un estado recuperado de datos
+históricos. El seed usa expresamente `TERMINADO` como convención para sus
+ventas completas.
+
+## Atributos por tabla
+
+`—` en DEFAULT significa que no existe cláusula explícita. Los cinco `id`
+usan `GENERATED ALWAYS AS IDENTITY`, generación por identidad, no un DEFAULT
+escrito en el DDL. La PK implica NOT NULL.
 
 ### CATEGORIA
 
-| Atributo | Tipo real | NOT NULL | DEFAULT / generación | Clave |
-|---|---|---|---|---|
-| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK |
-| `nombre` | `VARCHAR(100)` | Sí | — | UNIQUE |
-| `activo` | `BOOLEAN` | Sí | `TRUE` | — |
-| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — |
+| Atributo | Tipo exacto | NOT NULL | DEFAULT / generación | PK / FK / UK | Observación |
+|---|---|---|---|---|---|
+| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK | Identidad propia |
+| `nombre` | `VARCHAR(100)` | Sí | — | UK | Clave candidata alternativa |
+| `descripcion` | `VARCHAR(255)` | No | — | — | Opcional |
+| `eliminado` | `BOOLEAN` | Sí | `FALSE` | — | Baja lógica |
+| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — | Marca temporal técnica |
 
-Representa la categoría, lado 1 de `categoria` → `producto`. No declara
-FK ni `CHECK` propios.
+### USUARIO
 
-### CLIENTE
+| Atributo | Tipo exacto | NOT NULL | DEFAULT / generación | PK / FK / UK | Observación |
+|---|---|---|---|---|---|
+| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK | Identidad propia |
+| `nombre` | `VARCHAR(80)` | Sí | — | — | No es único |
+| `apellido` | `VARCHAR(80)` | Sí | — | — | No identifica por sí solo |
+| `mail` | `VARCHAR(120)` | Sí | — | UK | No se declara UNIQUE sobre `lower(mail)` |
+| `celular` | `VARCHAR(30)` | No | — | — | Opcional, no único |
+| `contrasena` | `VARCHAR(255)` | Sí | — | — | No implica autenticación implementada |
+| `rol` | `rol` | Sí | `'USUARIO'` | — | ENUM de negocio |
+| `eliminado` | `BOOLEAN` | Sí | `FALSE` | — | Baja lógica |
+| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — | Marca temporal técnica |
 
-| Atributo | Tipo real | NOT NULL | DEFAULT / generación | Clave |
-|---|---|---|---|---|
-| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK |
-| `nombre` | `VARCHAR(120)` | Sí | — | — |
-| `email` | `VARCHAR(255)` | Sí | — | UNIQUE |
-| `telefono` | `VARCHAR(30)` | No | — | — |
-| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — |
-
-Representa al cliente, lado 1 de `cliente` → `pedido`. No declara FK ni
-`CHECK` propios; el esquema no impone unicidad al nombre o al teléfono.
+La vista pública de Unidad 3 omite `contrasena` y `celular`; ambas columnas
+siguen perteneciendo a la tabla base.
 
 ### PRODUCTO
 
-| Atributo | Tipo real | NOT NULL | DEFAULT / generación | Clave |
-|---|---|---|---|---|
-| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK |
-| `categoria_id` | `BIGINT` | Sí | — | FK → `categoria(id)` |
-| `nombre` | `VARCHAR(120)` | Sí | — | — |
-| `descripcion` | `VARCHAR(255)` | No | — | — |
-| `precio` | `NUMERIC(12,2)` | Sí | — | — |
-| `stock` | `INTEGER` | Sí | `0` | — |
-| `activo` | `BOOLEAN` | Sí | `TRUE` | — |
-| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — |
-
-Representa al producto, lado N de `categoria` → `producto` y lado 1 de
-`producto` → `detalle_pedido`. Su nombre no tiene `UNIQUE`.
+| Atributo | Tipo exacto | NOT NULL | DEFAULT / generación | PK / FK / UK | Observación |
+|---|---|---|---|---|---|
+| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK | Identidad propia |
+| `nombre` | `VARCHAR(120)` | Sí | — | — | Sin UNIQUE |
+| `precio` | `NUMERIC(12,2)` | Sí | — | — | Catálogo actual; CHECK no negativo |
+| `descripcion` | `VARCHAR(255)` | No | — | — | Opcional |
+| `stock` | `INTEGER` | Sí | `0` | — | CHECK no negativo |
+| `imagen` | `VARCHAR(255)` | No | — | — | Opcional |
+| `disponible` | `BOOLEAN` | Sí | `TRUE` | — | Condición comercial/operativa |
+| `categoria_id` | `BIGINT` | Sí | — | FK → `categoria(id)` | Categoría obligatoria |
+| `eliminado` | `BOOLEAN` | Sí | `FALSE` | — | Baja lógica, distinta de disponibilidad |
+| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — | Marca temporal técnica |
 
 ### PEDIDO
 
-| Atributo | Tipo real | NOT NULL | DEFAULT / generación | Clave |
-|---|---|---|---|---|
-| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK |
-| `cliente_id` | `BIGINT` | Sí | — | FK → `cliente(id)` |
-| `fecha` | `TIMESTAMPTZ` | Sí | `now()` | — |
-| `forma_pago` | `forma_pago` | Sí | — | — |
-
-Representa al pedido, lado N de `cliente` → `pedido` y lado 1 de
-`pedido` → `detalle_pedido`. El tipo `forma_pago` es el `ENUM` con valores
-`EFECTIVO`, `TARJETA` y `TRANSFERENCIA`; no es una tabla adicional ni un
-`CHECK`. No hay `UNIQUE` sobre combinaciones de cliente, fecha y pago.
+| Atributo | Tipo exacto | NOT NULL | DEFAULT / generación | PK / FK / UK | Observación |
+|---|---|---|---|---|---|
+| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK | Identidad propia |
+| `fecha` | `DATE` | Sí | `CURRENT_DATE` | — | Fecha comercial sin hora |
+| `estado` | `estado_pedido` | Sí | `'PENDIENTE'` | — | ENUM de ciclo de vida |
+| `total` | `NUMERIC(12,2)` | Sí | `0` | — | Agregado físico; CHECK no negativo |
+| `forma_pago` | `forma_pago` | Sí | — | — | ENUM obligatorio |
+| `usuario_id` | `BIGINT` | Sí | — | FK → `usuario(id)` | Usuario obligatorio |
+| `eliminado` | `BOOLEAN` | Sí | `FALSE` | — | Baja lógica |
+| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — | Marca temporal técnica distinta de fecha |
 
 ### DETALLE_PEDIDO
 
-| Atributo | Tipo real | NOT NULL | DEFAULT / generación | Clave |
-|---|---|---|---|---|
-| `pedido_id` | `BIGINT` | Sí | — | Parte de PK; FK → `pedido(id)` |
-| `producto_id` | `BIGINT` | Sí | — | Parte de PK; FK → `producto(id)` |
-| `cantidad` | `INTEGER` | Sí | — | — |
-| `precio_unitario` | `NUMERIC(12,2)` | Sí | — | — |
+| Atributo | Tipo exacto | NOT NULL | DEFAULT / generación | PK / FK / UK | Observación |
+|---|---|---|---|---|---|
+| `id` | `BIGINT` | Sí, por PK | `GENERATED ALWAYS AS IDENTITY` | PK | Identidad de la línea |
+| `cantidad` | `INTEGER` | Sí | — | — | CHECK positivo |
+| `precio_unitario` | `NUMERIC(12,2)` | Sí | — | — | Histórico; CHECK no negativo |
+| `subtotal` | `NUMERIC(12,2)` | Sí | — | — | Derivado físico; CHECK no negativo |
+| `pedido_id` | `BIGINT` | Sí | — | FK → `pedido(id)`; parte de UK conjunta | No integra la PK |
+| `producto_id` | `BIGINT` | Sí | — | FK → `producto(id)`; parte de UK conjunta | No integra la PK |
+| `eliminado` | `BOOLEAN` | Sí | `FALSE` | — | Baja lógica |
+| `created_at` | `TIMESTAMPTZ` | Sí | `now()` | — | Marca temporal técnica |
 
-Es el lado N de las relaciones con `pedido` y `producto`. La restricción
-`pk_detalle_pedido` declara `PRIMARY KEY (pedido_id, producto_id)`; no
-existe una columna `id` adicional ni generación por identidad.
+`uq_detalle_pedido_pedido_producto` declara `UNIQUE (pedido_id, producto_id)`.
+Ninguna FK es individualmente única. El mismo producto aparece como máximo
+una vez por pedido y `cantidad` expresa sus unidades. La unicidad también
+se aplica a filas eliminadas lógicamente.
 
-## Integridad referencial y restricciones de dominio
+## Claves candidatas
 
-Todas las FK tienen `ON DELETE RESTRICT`: no se puede borrar un padre
-referenciado por filas hijas. No implican borrado automático de esas filas.
+| Tabla | PK elegida | Claves candidatas respaldadas |
+|---|---|---|
+| `categoria` | `{id}` | `{id}`, `{nombre}` |
+| `usuario` | `{id}` | `{id}`, `{mail}` |
+| `producto` | `{id}` | `{id}` |
+| `pedido` | `{id}` | `{id}` |
+| `detalle_pedido` | `{id}` | `{id}`, `{pedido_id, producto_id}` |
+
+UNIQUE más NOT NULL respalda las claves alternativas. Clave candidata no
+significa necesariamente clave primaria. No existe unicidad de nombre de
+producto ni de combinaciones de usuario, fecha, forma de pago o estado.
+
+## Integridad referencial
+
+Todas las FK son NOT NULL y usan `ON DELETE RESTRICT`.
 
 | Restricción | Columna → referencia |
 |---|---|
 | `fk_producto_categoria` | `producto.categoria_id` → `categoria(id)` |
-| `fk_pedido_cliente` | `pedido.cliente_id` → `cliente(id)` |
+| `fk_pedido_usuario` | `pedido.usuario_id` → `usuario(id)` |
 | `fk_detalle_pedido_pedido` | `detalle_pedido.pedido_id` → `pedido(id)` |
 | `fk_detalle_pedido_producto` | `detalle_pedido.producto_id` → `producto(id)` |
 
-| CHECK declarado | Expresión |
+Cada hijo tiene exactamente un padre; un padre puede tener cero o muchos
+hijos. La FK no obliga a un pedido a tener detalles. RESTRICT impide borrar
+físicamente un padre referenciado; no borra hijos en cascada ni impide por
+sí mismo la baja lógica.
+
+## CHECK realmente declarados
+
+| Restricción | Tabla | Expresión |
+|---|---|---|
+| `chk_producto_precio` | `producto` | `precio >= 0` |
+| `chk_producto_stock` | `producto` | `stock >= 0` |
+| `chk_pedido_total` | `pedido` | `total >= 0` |
+| `chk_detalle_pedido_cantidad` | `detalle_pedido` | `cantidad > 0` |
+| `chk_detalle_pedido_precio_unitario` | `detalle_pedido` | `precio_unitario >= 0` |
+| `chk_detalle_pedido_subtotal` | `detalle_pedido` | `subtotal >= 0` |
+
+No existe CHECK que imponga `subtotal = cantidad * precio_unitario`.
+Tampoco hay mantenimiento automático de `pedido.total` en `schema.sql`.
+Son reglas conceptuales pendientes de la capa programable. El
+[seed](../../datos_iniciales.sql) calcula sus subtotales con el precio histórico
+y reconcilia sus totales explícitamente; no instala triggers.
+
+## Índices base de acceso
+
+| Índice explícito | Definición de acceso |
 |---|---|
-| `chk_producto_precio` | `precio >= 0` |
-| `chk_producto_stock` | `stock >= 0` |
-| `chk_detalle_pedido_cantidad` | `cantidad > 0` |
-| `chk_detalle_pedido_precio_unitario` | `precio_unitario >= 0` |
+| `idx_producto_categoria` | `producto(categoria_id)` |
+| `idx_pedido_usuario` | `pedido(usuario_id)` |
+| `idx_producto_nombre_vig` | `producto(nombre)` con `WHERE eliminado = FALSE` |
 
-Los únicos `UNIQUE` declarados además de las PK son `categoria.nombre` y
-`cliente.email`, ambos `NOT NULL`. Los índices `idx_pedido_cliente` sobre
-`pedido(cliente_id)` e `idx_producto_categoria` sobre `producto(categoria_id)`
-son de acceso, no restricciones adicionales de unicidad.
+Son índices no únicos, no claves. Los índices que respaldan PK y UNIQUE
+no agregan restricciones nuevas. Los candidatos `idx_producto_stock_bajo`,
+`idx_pedido_fecha_reciente` e `idx_usuario_mail_lower` pertenecen a Unidad 3,
+no al esquema mínimo raíz.
 
-## Resolución de PEDIDO ↔ PRODUCTO (N:M)
+## Historia y límites del modelo
 
-Un pedido admite varios productos y un producto puede estar en distintos
-pedidos. `DETALLE_PEDIDO` convierte esa asociación N:M en dos relaciones
-1:N mediante sus FK; cada fila representa una pareja pedido/producto.
+`eliminado` conserva físicamente la fila. Bajas posteriores de usuario,
+producto o categoría no deben destruir el historial de pedidos. No se
+establecen reglas nuevas de cancelación, reposición de stock o reactivación.
 
-La PK compuesta `(pedido_id, producto_id)` garantiza que el mismo producto
-aparezca como máximo una vez como línea dentro del mismo pedido. Ninguna FK
-aislada es única: imponerlo impediría pedidos con varios productos o ventas
-del mismo producto en distintos pedidos. No se agrega un identificador
-sustituto (*surrogate*).
+`detalle_pedido.categoria_id` no integra el esquema canónico: el candidato
+U4 quedó `VALID_EXPERIMENT` / `REJECTED_AFTER_MEASUREMENT` / `DO_NOT_ADOPT`.
+TP1–TP4 son evidencia histórica de etapas anteriores, no se reinterpreta su
+estructura como si siempre hubiera sido la actual.
 
-`cantidad` y `precio_unitario` son atributos propios de la asociación:
-expresan las unidades y el precio registrado para esa línea de venta.
-El precio actual está en `producto.precio`; la diferencia histórica y sus
-dependencias se justifican en [normalización](normalizacion.md).
+El análisis de DF y redundancias está en [normalización](normalizacion.md).
+Esta documentación se verifica estáticamente; no acredita ejecución de PostgreSQL.
