@@ -1,267 +1,242 @@
-# Spec — Unidad 4 — Desnormalización controlada — Top categorías
+# Spec — Unidad 4 — Experimento canónico de Top categorías
 
-## 1. Modelo oficial y objetivo
+**Contrato de diseño Fase 5, 2026-09-23. CANDIDATE_SELECTED_FOR_EXPERIMENT: A,
+columna redundante y triggers revisados. No implementado; no ADOPTED.**
 
-Optimizar como hipótesis el reporte de las cinco categorías por monto
-vendido en el día, sin cambiar su resultado. Hipótesis conservada como
-contrato del experimento. **Estado final: REJECTED_AFTER_MEASUREMENT**.
-La implementación fue válida; la decisión de diseño permanente fue rechazada.
+La [decisión comparativa](../informes/decision_patron_parte2_modelo_canonico.md)
+fundamenta la selección frente a una vista materializada. Este spec reemplaza
+el contrato operativo anterior para una implementación futura autorizada, no
+reescribe sus resultados. El rechazo histórico permanece en la sección 10.
 
-El modelo oficial contiene `detalle_pedido.subtotal` físico,
-`detalle_pedido.eliminado` y `pedido.eliminado`; `pedido.fecha` es
-`DATE`. La PK del detalle es `id` y existe `UNIQUE (pedido_id, producto_id)`.
-No sustituir el subtotal almacenado por una expresión derivada.
+## 1. Fuentes, alcance y precondiciones
 
-La ejecución del Bloque 2 utilizó foodstore_u4_oficial, copia descartable
-del modelo oficial con volumen verificado en CURRENT_DATE. Para reproducir
-el experimento se requiere otra copia y registrar sus conteos antes de medir.
-No se adoptan fechas, volúmenes, planes ni tiempos de la iteración anterior.
-El schema.sql raíz permanece histórico y no es el bootstrap de esta copia.
+- Fuente vigente: [schema.sql](../../../schema.sql), canónico desde
+  e5282f68a4af6975fb953c4f4b74f2e13240a0a6; ya no es el bootstrap histórico anterior.
+- Base: foodstore_u4_revalidacion, PostgreSQL 17.11, CURRENT_DATE=2026-09-23.
+- Dataset: [Fase 3](../informes/evidencia_dataset_parte2_modelo_canonico.md),
+  8 categorías, 20000 usuarios, 50000 productos, 200000 pedidos, 500000 detalles.
+- Baseline: [Fase 4](../informes/evidencia_baseline_parte2_modelo_canonico.md),
+  mediana 212.668 ms y 6794 hits raíz; un warmup y cinco corridas oficiales.
+- Conservar tres índices raíz y tres TP5. No instalar TPI, FNBC, materializadas
+  ni otro índice como parte de este candidato. No alterar schema.sql ni seed.
 
-## 2. Consulta normalizada de referencia
+Fase 5 no autoriza ejecutar este contrato. Antes de implementar, revalidar rama,
+HEAD, fecha, conteos, integridad, índices y ausencia de objetos experimentales.
+Ante diferencia, detenerse sin reparar automáticamente.
+
+El [SQL anterior](../sql/tp_desnormalizacion_top_categorias.sql) permanece intacto
+como artefacto del experimento rechazado. **No implementa este nuevo contrato de
+coordinación/pruebas y no debe ejecutarse automáticamente.**
+
+## 2. Semántica y consulta de referencia
 
 ```sql
-SELECT
-    c.nombre AS categoria,
-    SUM(dp.subtotal) AS total_vendido
+SELECT c.nombre AS categoria,
+       SUM(dp.subtotal) AS total_vendido
 FROM detalle_pedido dp
-JOIN producto pr
-    ON pr.id = dp.producto_id
-JOIN categoria c
-    ON c.id = pr.categoria_id
-JOIN pedido ped
-    ON ped.id = dp.pedido_id
-WHERE ped.eliminado = FALSE
+JOIN producto pr ON pr.id = dp.producto_id
+JOIN categoria c ON c.id = pr.categoria_id
+JOIN pedido ped ON ped.id = dp.pedido_id
+WHERE ped.fecha = CURRENT_DATE
   AND dp.eliminado = FALSE
-  AND ped.fecha = CURRENT_DATE
+  AND ped.eliminado = FALSE
 GROUP BY c.nombre
 ORDER BY total_vendido DESC
 LIMIT 5;
 ```
 
-La eliminación lógica de pedido/detalle excluye la venta del reporte.
-No filtrar producto o categoría por `eliminado`, ni producto por
-`disponible`: una baja actual no debe ocultar ventas históricas.
-La atribución de categoría sigue la categoría **actual** del producto;
-no representa una captura de la categoría al momento de la venta.
+Se suma subtotal físico; pedido.fecha es DATE. La PK del detalle es id y el par
+pedido/producto es UNIQUE, no PK. Excluir solo bajas de pedido/detalle; no agregar
+filtros de estado, usuario, producto, disponibilidad o categoría. La categoría
+atribuida es la **actual** del producto, no una captura al vender.
 
-## 3. Estrategia conservada
+Tiempo real significa que un nuevo SELECT bajo READ COMMITTED que vea una venta
+confirmada no debe esperar un refresh periódico para reflejarla. No promete un
+SLA de respuesta ni invalida snapshots previos. Una MV estándar periódica no
+satisface esa inmediatez sin aceptar explícitamente staleness.
 
-Agregar `detalle_pedido.categoria_id BIGINT` solo en el laboratorio,
-como columna redundante derivada de **producto.categoria_id**, que sigue
-siendo la única fuente de verdad. La aplicación no decide este valor.
+## 3. Candidato experimental y límite de la hipótesis
 
-La hipótesis intentó evitar el JOIN a producto. Se midió junto con el costo
-de escritura: eliminar ese JOIN no produjo una mejora robusta. El diseño
-se conserva como evidencia experimental, no como recomendación de adopción.
+Proponer detalle_pedido.categoria_id BIGINT NOT NULL, FK a categoria(id) ON DELETE
+RESTRICT. producto.categoria_id sigue siendo la única fuente de verdad. La
+aplicación no decide la columna redundante; no se agrega UNIQUE ni índice nuevo
+inicialmente. La FK comprueba existencia, no igualdad con la fuente.
 
-Se conserva el patrón de triggers para este panel de actualización
-frecuente, en lugar de una vista materializada con staleness entre refresh.
-No se afirma que la alternativa materializada sea incorrecta; requeriría
-otra política de actualización y otro análisis de costos.
-
-## 4. Migración
-
-Dentro de una transacción:
-
-1. Agregar la columna redundante.
-2. Realizar backfill desde producto:
+Consulta conceptual candidata, **no ejecutada ni instalada en Fase 5**:
 
 ```sql
-UPDATE detalle_pedido dp
-SET categoria_id = pr.categoria_id
-FROM producto pr
-WHERE pr.id = dp.producto_id;
-```
-
-3. Verificar que no queden NULL y agregar NOT NULL.
-4. Agregar FK hacia categoria(id), sin introducir UNIQUE.
-5. Crear las dos funciones y los dos triggers existentes.
-6. Ejecutar auditoría de desincronización antes de confirmar.
-
-No modificar tablas base fuera de esta extensión autorizada ni schema.sql.
-Antes de ejecutar, preparar y verificar un backup de la copia oficial
-fuera del repositorio. El backup de la iteración histórica no acredita
-respaldo de esta nueva copia. No versionar el dump.
-
-## 5. Sincronización y límites
-
-### Detalle → categoría del producto
-
-`fn_detalle_pedido_set_categoria` obtiene producto.categoria_id y lo
-asigna a NEW.categoria_id. Su trigger `trg_detalle_pedido_set_categoria`
-actúa BEFORE INSERT OR UPDATE OF producto_id, categoria_id.
-
-Incluir categoria_id corrige el bypass de una actualización directa de
-la columna redundante. Con los triggers habilitados, el DML ordinario de
-la aplicación vuelve a derivar el valor, aunque proporcione otro.
-
-### Producto → detalles
-
-`fn_producto_sync_categoria_detalle` y
-`trg_producto_sync_categoria_detalle` actúan AFTER UPDATE OF categoria_id
-sobre producto. Si el valor realmente cambia, actualizan todos sus detalles.
-No filtran bajas lógicas ni disponibilidad: preservan la misma autoridad
-incluso en filas que no participan actualmente del reporte.
-
-### Revisión estática
-
-No hay ciclo entre estos dos mecanismos: el trigger de detalle solo
-asigna NEW y no actualiza producto ni emite otro UPDATE de detalle. El
-UPDATE emitido desde producto dispara esa asignación, no vuelve a producto.
-
-Las pruebas A/B/C del Bloque 2 dieron PASS. Dos UPDATE concurrentes sobre
-el mismo producto dieron PASS: la segunda sesión esperó bloqueo y la
-auditoría final fue 0. No se agregó una estrategia adicional de bloqueo.
-NO se ensayó INSERT concurrente de detalle contra UPDATE de categoría del
-producto; no se garantiza consistencia bajo cualquier intercalación. El
-UPDATE puede reescribir numerosos detalles históricos; su costo puntual
-medido se registra en Resultado experimental.
-
-## 6. Consulta desnormalizada
-
-```sql
-SELECT
-    c.nombre AS categoria,
-    SUM(dp.subtotal) AS total_vendido
+SELECT c.nombre AS categoria,
+       SUM(dp.subtotal) AS total_vendido
 FROM detalle_pedido dp
-JOIN categoria c
-    ON c.id = dp.categoria_id
-JOIN pedido ped
-    ON ped.id = dp.pedido_id
-WHERE ped.eliminado = FALSE
+JOIN categoria c ON c.id = dp.categoria_id
+JOIN pedido ped ON ped.id = dp.pedido_id
+WHERE ped.fecha = CURRENT_DATE
   AND dp.eliminado = FALSE
-  AND ped.fecha = CURRENT_DATE
+  AND ped.eliminado = FALSE
 GROUP BY c.nombre
 ORDER BY total_vendido DESC
 LIMIT 5;
 ```
 
-## 7. Equivalencia y auditoría
+Retira el JOIN y scan/hash de producto (50000 filas, 910 hits en el baseline).
+Permanece el recorrido de detalle (500000 filas, 5682 hits antes), JOIN con pedido,
+JOIN con categoría, agregación, Sort y LIMIT. El detalle puede crecer físicamente.
+Por eso eliminar producto no garantiza menos buffers o tiempo: debe medirse.
 
-Comparar las agregaciones completas mediante EXCEPT en ambos sentidos,
-como implementa el SQL. Resultados obtenidos en foodstore_u4_oficial:
+La hipótesis será rechazada para adopción si la mejora no supera la puerta de
+lectura o si sus costos/corrección no satisfacen la sección 9. El antecedente fue
+rechazo; esta selección no implica adopción permanente ni reabre el schema raíz.
 
-- original_minus_desnormalizada = 0 filas.
-- desnormalizada_minus_original = 0 filas.
+## 4. Migración futura controlada
 
-Se comparan todos los grupos antes de LIMIT. El orden solicitado solo por
-total no desempata categorías: si hay empate en el corte, distintas
-selecciones Top 5 pueden ser igualmente válidas. El Top 5 exacto también
-coincidió en el dataset medido; no se generaliza ese resultado a todos los
-casos de empate ni se atribuye una selección diferente a desincronización.
+1. Verificar backup Phase 3 y precondiciones, sin restaurarlo automáticamente.
+2. Con escritores excluidos durante instalación, abrir transacción; agregar
+   columna y poblar las 500000 filas desde producto.categoria_id.
+3. Validar conteo, NULL, referencias e igualdad; agregar NOT NULL y FK RESTRICT.
+4. Instalar los dos mecanismos revisados de la sección 5.
+5. Auditar globalmente y abortar ante cualquier diferencia antes del COMMIT.
 
-Auditoría, incluyendo filas eliminadas:
+Registrar tiempo de backfill, tamaños heap/total/índices y estadísticas físicas
+antes/después. Payload nominal: 4000000 bytes (BIGINT × 500000); no predice espacio
+real, MVCC, WAL ni alineación. Mantenimiento posterior requiere autorización y
+registro para no ocultar efectos del backfill. No usar VACUUM FULL/CLUSTER ni
+un índice adicional para favorecer el AFTER.
 
-```sql
-SELECT
-    dp.pedido_id,
-    dp.producto_id,
-    dp.categoria_id AS categoria_guardada,
-    pr.categoria_id AS categoria_real
-FROM detalle_pedido dp
-JOIN producto pr
-    ON pr.id = dp.producto_id
-WHERE dp.categoria_id IS DISTINCT FROM pr.categoria_id;
-```
+## 5. Autoridad, sincronización y concurrencia propuestas
 
-Se obtuvieron 0 filas. Cualquier diferencia futura requiere investigación; una
-mejora de rendimiento no es válida si cambia el resultado.
+| Objeto conceptual | Responsabilidad futura |
+|---|---|
+| fn_detalle_pedido_set_categoria | Obtener categoría actual del producto con FOR SHARE y asignar NEW |
+| trg_detalle_pedido_set_categoria | BEFORE INSERT OR UPDATE OF producto_id, categoria_id; siempre rederivar |
+| fn_producto_sync_categoria_detalle | Ante cambio real, propagar a todos los detalles del producto |
+| trg_producto_sync_categoria_detalle | AFTER UPDATE OF categoria_id de producto |
 
-## 8. Pruebas realizadas y límites
+El código viejo usa SELECT sin lock. FOR SHARE se propone para coordinar con
+recategorización; FOR KEY SHARE no bloquearía la actualización de una columna
+no clave. Mantener funciones trigger VOLATILE y validar mediante ejecución la
+visibilidad de la propagación tras esperar: el modo de lock no demuestra una
+solución universal. Véase [PostgreSQL 17: bloqueos](https://www.postgresql.org/docs/17/explicit-locking.html).
 
-La [evidencia del modelo oficial](../informes/evidencia_modelo_oficial.md)
-registra las ejecuciones del Bloque 2. Este cierre no ejecutó SQL nuevo.
+Propagar también a detalles eliminados y de pedidos eliminados: una posterior
+reactivación debe conservar la categoría actual. No modificar precio histórico,
+subtotal, total ni stock. Baja de producto/categoría no debe ocultar historia.
+No hay recursión hacia producto cuando el trigger de detalle solo asigna NEW.
 
-- Trigger A: cambio de producto del detalle, categoría derivada: PASS.
-- Trigger B: cambio de categoría del producto, detalles sincronizados: PASS.
-- Trigger C: UPDATE directo de categoria_id, prevalece producto: PASS.
-- DIRECT_TAMPERING_PROTECTED = YES, con triggers habilitados y DML ordinario.
-- Pruebas A/B/C reversibles con BEGIN / ROLLBACK.
-- Auditoría global y EXCEPT de agregados y Top 5: 0 / 0 diferencias.
-- INSERT: ensayo de costo de 1000 detalles con y sin trigger, sin filas persistentes.
-- Concurrencia: dos UPDATE del mismo producto, segunda sesión bloqueada,
-  auditoría 0 al confirmar ambas transacciones.
+INSERT/UPDATE de categoría redundante falsa debe sobrescribirse con la fuente,
+incluso si se proporciona NULL. Producto no nulo inexistente debe dar 23503
+explícito, identificado como referencia ausente, no 23502 provocado por el
+redundante. Producto_id NULL conserva su restricción estructural. Son criterios
+pendientes de prueba, no resultados de Fase 5.
 
-No se ensayó la carrera INSERT de detalle frente a UPDATE de categoría del
-producto. Las pruebas específicas de bajas lógicas reversibles y otros
-casos límite no se presentan como ejecutadas. La ausencia de filtros de
-baja/disponibilidad en la sincronización sigue siendo una propiedad del
-código; las pruebas realizadas no cubren todas las intercalaciones.
+Orden preferido de rutas coordinadas: producto antes de detalles, con orden
+estable de IDs para varios productos. UPDATE directo puede tomar primero detalle
+y luego producto, frente al fan-out producto→detalle. **Puede existir deadlock
+40P01**: registrar abortos y solo reintentar la transacción completa mediante
+política futura explícita. No ocultar errores ni prometer ausencia universal de
+deadlocks. No se acredita seguridad de DML arbitrario, otros aislamientos o alta carga.
 
-Protocolo de lectura: cinco corridas EXPLAIN (ANALYZE, BUFFERS), todas
-conservadas, comparadas mediante mediana sin ocultar outliers. Los planes
-completos se consultan en la evidencia. La iteración anterior permanece en
-[el informe histórico](../informes/informe_u4_fnbc_desnormalizacion_historico.md)
-y no es baseline válido del modelo oficial.
+Diagnóstico SELECT actual de detalles por producto: MIN = 9, MAX = 12, AVG = 10,
+P50 = 10 y P95 = 11 (percentile_cont); cero productos sin detalles y 5000 bajas.
+UNIQUE(pedido_id,producto_id) no permite presumir acceso selectivo por producto_id:
+propagar puede exigir recorrer detalle. No extrapolar el fan-out a miles de ventas.
 
-## 9. Reversibilidad
+## 6. Auditoría y equivalencia obligatorias
 
-El SQL documenta un DOWN manual, no automático, validado estáticamente
-pero NO ejecutado sobre la copia medida:
+- Auditoría global sin filtrar bajas: categoria_id no nula, FK válida y
+  dp.categoria_id IS NOT DISTINCT FROM pr.categoria_id para cada producto.
+- EXCEPT bidireccional de **todos** los grupos, antes de LIMIT: 0/0.
+- Top 5 exacto igual al checkpoint, ocho agregados distintos. Si hay empate o
+  cambian datos, detenerse; no agregar desempate ni manipular filas.
+- Conteos y huellas canónicas intactos después de pruebas revertidas. Verificar
+  subtotal/total y restricciones previas, no solo el nuevo redundante.
 
-1. Eliminar ambos triggers.
-2. Eliminar sus funciones.
-3. Eliminar la FK agregada.
-4. Eliminar detalle_pedido.categoria_id.
+FK y NOT NULL no sustituyen la auditoría de igualdad. Una medición no es válida
+si cambia el resultado o deja una categoría desincronizada.
 
-No se pierde información original al retirar la columna redundante:
-producto.categoria_id continúa como fuente de verdad.
+## 7. Pruebas y protocolo AFTER, todavía pendientes
 
-## 10. Criterios de aceptación
+**READ:** mismo dataset, día, configuración e índices; warm-cache de Fase 4,
+SELECT semánticos equivalentes, un warmup + cinco JSON oficiales. Mediana de
+Execution Time, MIN/MAX/MEDIA, Planning Time, buffers raíz, nodos, filas, loops y
+workers; todos conservados. Un textual adicional fuera de estadísticas. Sin
+forzar plan, descartar outliers ni sumar tiempos/buffers anidados.
 
-- Modelo oficial: subtotal físico, eliminado y fecha DATE.
-- Misma semántica histórica y misma fecha en las dos consultas.
-- Backfill, NOT NULL, FK y dos caminos de sincronización conservados.
-- Aplicación sin autoridad para asignar la categoría redundante mediante
-  DML ordinario con triggers habilitados.
-- Auditoría y EXCEPT con 0 filas: PASS en el dataset ensayado.
-- Pruebas funcionales reversibles y reserva explícita de concurrencia.
-- Rendimiento y costo de escritura medidos sin reutilizar cifras anteriores;
-  aceptar la implementación experimental no obliga a adoptar el diseño.
-- DOWN documentado, sin modificar schema.sql ni evidencia histórica.
+**WRITE:** referencia canónica antes de instalar A y A completo después; INSERT
+con mismo fixture, un warmup + cinco corridas, restricciones habilitadas y ROLLBACK.
+Preparación fuera de tiempo; documentar identity/caché/MVCC. El costo aislado del
+trigger, si se mide aparte, no representa columna+FK+trigger. Medir backfill/tamaños
+y UPDATE de producto con fan-out bajo/mediano/alto observado (9/10/12), líneas
+propagadas, locks y auditoría. No extrapolar a alta carga.
 
-Implementación: [tp_desnormalizacion_top_categorias.sql](../sql/tp_desnormalizacion_top_categorias.sql).
+**FUNCIONAL:** INSERT, reasignación de producto, manipulación del redundante,
+producto inexistente, NULL, FK/UNIQUE, rollback, bajas/reactivaciones de líneas y
+pedidos, baja de maestros y recategorización de detalles eliminados. Registrar
+SQLSTATE reales y ausencia de cambios en stock/subtotal/total por A.
 
-## Resultado experimental
+**CONCURRENCIA:** dos conexiones más monitor. INSERT↔recategorización en ambos
+órdenes, COMMIT y ROLLBACK del bloqueador; dos recategorizaciones del mismo
+producto; reasignación/manipulación del detalle frente a recategorización.
+Capturar espera, SQLSTATE y estado final; auditar todas las líneas. Un 40P01 no
+equivale a PASS de adopción: evaluar contención/reintentos contra presupuesto.
+Ninguna inconsistencia confirmada es admisible. Todo requiere autorización posterior.
 
-PostgreSQL 17.11, foodstore_u4_oficial, 2026-09-20. Volumen vigente del día:
-20.275 pedidos y 50.272 detalles. Backfill: 550.000 filas, 0 NULL y 0
-desincronizaciones. usuario pertenece al modelo oficial; pedido.usuario_id
-permanece sin cambios.
+## 8. Reversibilidad: DOWN real obligatorio
 
-| Corrida | Normalizada (ms) | Desnormalizada (ms) |
-|---|---:|---:|
-| 1 | 191.465 | 174.459 |
-| 2 | 188.192 | 177.794 |
-| 3 | 210.285 | 287.053 |
-| 4 | 237.785 | 196.507 |
-| 5 | 200.392 | 307.298 |
-| Mediana | 200.392 | 196.507 |
-| Mínimo | 188.192 | 174.459 |
-| Máximo | 237.785 | 307.298 |
+Retirar solo triggers y funciones del candidato, después FK y columna redundantes,
+en orden de dependencias y sin CASCADE. producto.categoria_id conserva toda la
+información fuente; no eliminar tablas canónicas ni datos originales.
 
-Variación mediana: **-1.94 %**, marginal frente a la dispersión observada.
-Buffers hit + read del nodo raíz: **8382 → 13386 (+59.70 %)**.
-INSERT de 1000 detalles, promedio de dos corridas válidas tras un
-calentamiento: **21.3385 → 28.8015 ms (+34.97 %)**. Es costo incremental
-del trigger sobre el esquema ya desnormalizado, no todo el costo de la
-columna/FK. Propagación del producto 17 a 18 detalles: **57.540 ms**, una
-observación puntual, no mediana.
+Ejecutar y verificar DOWN, no limitarse a revisarlo. Comparar catálogo,
+restricciones, datos/huellas, seis índices explícitos y salida normalizada.
+Confirmar ausencia de A, TPI y FNBC; documentar estado final. El DOWN histórico
+solo fue estático y no acredita esta condición.
 
-Las cachés, el orden fijo de las series y el estado físico posterior al
-backfill limitan la comparación. Los resultados son propios de esta
-máquina y dataset, no universales. No se seleccionan solo corridas favorables.
+## 9. Puertas de decisión antes del AFTER
 
-## Decisión
+Estado actual: CANDIDATE_SELECTED_FOR_EXPERIMENT. ADOPT queda pendiente.
 
-**REJECTED_AFTER_MEASUREMENT** — candidato evaluado y descartado por
-relación costo/beneficio. La implementación experimental pasó consistencia,
-equivalencia, triggers y la concurrencia ensayada, pero el beneficio temporal
-es marginal frente al incremento de buffers, escrituras, dispersión y
-complejidad. Decisión humana final: **NO ADOPTAR**.
+Puerta de lectura conservadora:
 
-Conservar producto.categoria_id como fuente de verdad del modelo canónico,
-sin agregar permanentemente detalle_pedido.categoria_id a schema.sql.
-Se mantiene este diseño y su SQL como evidencia del experimento controlado;
-el rechazo justificado no constituye un fracaso académico.
+1. MAX de cinco AFTER < 171.081 ms, mínimo BEFORE.
+2. Mediana AFTER < 212.668 ms.
+3. Cada corrida AFTER: buffers raíz shared hit + shared read < 6794, separando
+   hits/reads y sin nuevos spills temporales.
+
+Es separación descriptiva de rangos, no significancia estadística ni porcentaje
+arbitrario. Solapamiento implica evidencia insuficiente para adoptar con este
+criterio, no demuestra igualdad. No cambiar la puerta al conocer resultados.
+
+ADOPT exige además equivalencia/auditoría 0, pruebas de errores y concurrencia,
+frescura, DOWN real y costos dentro de presupuestos acordados. **Workload y SLO
+de INSERT, UPDATE/esperas y almacenamiento deben aprobarse antes del AFTER**;
+todavía no hay límites numéricos justificados. Sin ellos no hay ADOPT, aunque
+mejore la lectura. No bloquean esta selección documental.
+
+REJECT / DO_NOT_ADOPT ante inconsistencia, cambio semántico, carrera no controlada,
+DOWN fallido, puerta de lectura incumplida, costo fuera de presupuesto o contención
+inaceptable. Si el protocolo no es comparable, detenerse y documentar; no repetir
+hasta conseguir un resultado favorable. Ningún resultado integra automáticamente
+la columna al schema raíz.
+
+## 10. Antecedente preservado: HISTORICAL_NOT_COMPARABLE
+
+El cierre 95fbfbf del 2026-09-20 evaluó columna + triggers en foodstore_u4_oficial.
+Su decisión permanece **REJECTED_AFTER_MEASUREMENT / DO_NOT_ADOPT**: beneficio
+limitado frente a buffers, escritura, dispersión y complejidad.
+
+Ese modelo ya tenía subtotal físico, eliminado y fecha DATE; no se declara
+incorrecto por carecer de ellos. Dataset 220000 pedidos/550000 detalles, fecha y
+protocolo difieren del checkpoint actual. No reutilizar tiempos históricos como
+baseline ni AFTER. El aviso anterior sobre schema raíz describía aquel momento,
+no la fuente canónica vigente.
+
+Se conservan la [evidencia original](../informes/evidencia_modelo_oficial.md), el
+[informe del cierre](../informes/informe_u4_fnbc_desnormalizacion.md) y el
+[SQL rechazado](../sql/tp_desnormalizacion_top_categorias.sql). Derivación,
+propagación, manipulación y dos UPDATE concurrentes pasaron en su alcance;
+no se probó INSERT concurrente contra recategorización ni se ejecutó DOWN.
+No se convierten retrospectivamente en resultados del nuevo contrato.
+
+La nueva decisión conserva producto como autoridad y la frescura, pero exige
+coordinación y evidencia faltantes. Seleccionar un nuevo experimento no invalida
+el rechazo anterior ni equivale a adoptar la desnormalización.
