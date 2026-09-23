@@ -3,35 +3,45 @@
 -- Base de Datos II - Unidad 4, Parte 1: FNBC - ControlLoteAlmacen
 -- Especificación: ../specs/u4_fnbc_control_lote.md
 -- ============================================================================
--- Diseñado para ejecutarse una única vez sobre la copia foodstore_u4_oficial.
+-- Diseñado para ejecutarse una única vez sobre foodstore_u4_revalidacion.
 -- No usa IDENTITY, IF NOT EXISTS, ON CONFLICT ni CASCADE: si algún
 -- objeto ya existe o los datos violan una regla de negocio necesaria,
 -- el script debe fallar de forma visible, no ocultar el problema.
 --
 -- El modelo oficial ya contiene usuario: esta práctica utiliza los usuarios
--- existentes 801 y 802, no los crea ni elimina. Solo deposito y lote son
+-- existentes 1 y 2, no los crea ni elimina. Solo deposito y lote son
 -- tablas maestras auxiliares de la extensión académica de Unidad 4.
--- Requiere una copia de laboratorio conforme al modelo oficial; schema.sql
--- raíz conserva la iteración histórica y no es su bootstrap oficial.
--- VALIDATION_STATUS: PASS_ON_OFFICIAL_MODEL.
--- Bloque 2, PostgreSQL 17.11: diagnóstico 0, conteos 3 / 3, EXCEPT 0 / 0.
--- usuario conservó OID, conteo y huella de contenido; responsables 801/802.
--- Evidencia: ../informes/evidencia_modelo_oficial.md.
+-- Bootstrap canónico: schema.sql y datos_iniciales.sql del commit base
+-- e5282f68a4af6975fb953c4f4b74f2e13240a0a6, más los tres índices TP5.
+-- Mapeo del ejemplo: 801 lógico -> usuario 1; 802 lógico -> usuario 2.
+-- Los identificadores son fixtures: este cambio no altera las DF.
+-- La evidencia anterior (801/802, foodstore_u4_oficial) permanece intacta.
+-- Resultados de esta revalidación, sin anticipar PASS:
+-- ../informes/evidencia_revalidacion_fnbc_modelo_canonico.md.
+-- Ejecutar con psql -X -v ON_ERROR_STOP=1; el script administra su transacción.
 -- ============================================================================
 
 BEGIN;
 
+DO $$
+BEGIN
+    IF current_database() <> 'foodstore_u4_revalidacion' THEN
+        RAISE EXCEPTION 'Base no autorizada para la revalidación FNBC';
+    END IF;
+END;
+$$;
+
 -- Precondición: exactamente dos usuarios existentes y no eliminados.
 SELECT id
 FROM usuario
-WHERE id IN (801, 802)
+WHERE id IN (1, 2)
   AND eliminado = FALSE;
 
 DO $$
 BEGIN
     IF (SELECT COUNT(*) FROM usuario
-        WHERE id IN (801, 802) AND eliminado = FALSE) <> 2 THEN
-        RAISE EXCEPTION 'Se requieren los usuarios 801 y 802 no eliminados';
+        WHERE id IN (1, 2) AND eliminado = FALSE) <> 2 THEN
+        RAISE EXCEPTION 'Se requieren los usuarios 1 y 2 no eliminados';
     END IF;
 END;
 $$;
@@ -97,9 +107,9 @@ CREATE TABLE control_lote_almacen (
 );
 
 INSERT INTO control_lote_almacen (lote_id, deposito_id, responsable_control_id) VALUES
-    (501, 30, 801),
-    (502, 30, 801),
-    (503, 31, 802);
+    (501, 30, 1),
+    (502, 30, 1),
+    (503, 31, 2);
 
 -- ============================================================================
 -- ETAPA 3: Evidencia de la dependencia en los datos (diagnóstico, no prueba)
@@ -287,6 +297,164 @@ FROM control_lote_almacen;
 -- posterior, documentada por separado antes de implementarse.
 -- ============================================================================
 
+-- ============================================================================
+-- ETAPA 11: Aserciones de migración y equivalencia
+-- ============================================================================
+-- EXCEPT usa semántica de conjuntos; el control separado de duplicados evita
+-- que esa semántica oculte multiplicidades indebidas en la reconstrucción.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT responsable_control_id FROM control_lote_almacen
+        GROUP BY responsable_control_id HAVING COUNT(DISTINCT deposito_id) > 1
+    ) THEN
+        RAISE EXCEPTION 'F2 incompatible con la instancia original';
+    END IF;
+    IF (SELECT COUNT(*) FROM control_lote_almacen) <> 3
+       OR (SELECT COUNT(*) FROM v_control_lote_almacen) <> 3 THEN
+        RAISE EXCEPTION 'Conteos de migración distintos de 3 / 3';
+    END IF;
+    IF EXISTS (
+        SELECT * FROM control_lote_almacen EXCEPT SELECT * FROM v_control_lote_almacen
+    ) OR EXISTS (
+        SELECT * FROM v_control_lote_almacen EXCEPT SELECT * FROM control_lote_almacen
+    ) THEN
+        RAISE EXCEPTION 'EXCEPT detectó pérdida o filas espurias';
+    END IF;
+    IF EXISTS (
+        SELECT lote_id, deposito_id, responsable_control_id
+        FROM v_control_lote_almacen
+        GROUP BY lote_id, deposito_id, responsable_control_id HAVING COUNT(*) > 1
+    ) THEN
+        RAISE EXCEPTION 'La vista contiene filas duplicadas';
+    END IF;
+    RAISE NOTICE 'PASS: migración 3 / 3, diagnóstico F2 = 0, EXCEPT 0 / 0, duplicados = 0';
+END;
+$$;
+
+-- ============================================================================
+-- ETAPA 12: Pruebas negativas reversibles
+-- ============================================================================
+-- Cada DO captura exclusivamente el SQLSTATE esperado y verifica además la
+-- restricción concreta. Los errores inesperados abortan con ON_ERROR_STOP.
+-- Las subtransacciones de EXCEPTION y los SAVEPOINT no dejan fixtures nuevos.
+SAVEPOINT negativa_pk_responsable;
+DO $$
+DECLARE
+    v_estado TEXT;
+    v_restriccion TEXT;
+BEGIN
+    BEGIN
+        INSERT INTO responsable_control_deposito VALUES (1, 31);
+        RAISE EXCEPTION 'TEST FAILED: se admitió un responsable duplicado';
+    EXCEPTION WHEN SQLSTATE '23505' THEN
+        GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE,
+                                v_restriccion = CONSTRAINT_NAME;
+        IF v_restriccion IS DISTINCT FROM 'responsable_control_deposito_pkey' THEN
+            RAISE EXCEPTION 'Restricción inesperada: %', v_restriccion;
+        END IF;
+        RAISE NOTICE 'PASS: responsable duplicado; SQLSTATE=%; CONSTRAINT=%',
+            v_estado, v_restriccion;
+    END;
+END;
+$$;
+ROLLBACK TO SAVEPOINT negativa_pk_responsable;
+RELEASE SAVEPOINT negativa_pk_responsable;
+
+SAVEPOINT negativa_fk_responsable;
+DO $$
+DECLARE
+    v_inexistente BIGINT;
+    v_estado TEXT;
+    v_restriccion TEXT;
+BEGIN
+    SELECT MAX(responsable_control_id) + 1 INTO v_inexistente
+    FROM responsable_control_deposito;
+    BEGIN
+        INSERT INTO control_lote_responsable VALUES (501, v_inexistente);
+        RAISE EXCEPTION 'TEST FAILED: se admitió un responsable inexistente';
+    EXCEPTION WHEN SQLSTATE '23503' THEN
+        GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE,
+                                v_restriccion = CONSTRAINT_NAME;
+        IF v_restriccion IS DISTINCT FROM 'fk_control_lote_responsable_maestro' THEN
+            RAISE EXCEPTION 'Restricción inesperada: %', v_restriccion;
+        END IF;
+        RAISE NOTICE 'PASS: responsable inexistente; SQLSTATE=%; CONSTRAINT=%',
+            v_estado, v_restriccion;
+    END;
+END;
+$$;
+ROLLBACK TO SAVEPOINT negativa_fk_responsable;
+RELEASE SAVEPOINT negativa_fk_responsable;
+
+SAVEPOINT negativa_fk_lote;
+DO $$
+DECLARE
+    v_inexistente BIGINT;
+    v_estado TEXT;
+    v_restriccion TEXT;
+BEGIN
+    SELECT MAX(id) + 1 INTO v_inexistente FROM lote;
+    BEGIN
+        INSERT INTO control_lote_responsable VALUES (v_inexistente, 1);
+        RAISE EXCEPTION 'TEST FAILED: se admitió un lote inexistente';
+    EXCEPTION WHEN SQLSTATE '23503' THEN
+        GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE,
+                                v_restriccion = CONSTRAINT_NAME;
+        IF v_restriccion IS DISTINCT FROM 'fk_control_lote_responsable_lote' THEN
+            RAISE EXCEPTION 'Restricción inesperada: %', v_restriccion;
+        END IF;
+        RAISE NOTICE 'PASS: lote inexistente; SQLSTATE=%; CONSTRAINT=%',
+            v_estado, v_restriccion;
+    END;
+END;
+$$;
+ROLLBACK TO SAVEPOINT negativa_fk_lote;
+RELEASE SAVEPOINT negativa_fk_lote;
+
+SAVEPOINT negativa_fk_deposito;
+-- Liberar el responsable 2 solamente dentro del SAVEPOINT aísla la FK de
+-- depósito sin provocar antes un duplicado de PK ni crear otro usuario.
+DELETE FROM control_lote_responsable WHERE responsable_control_id = 2;
+DELETE FROM responsable_control_deposito WHERE responsable_control_id = 2;
+DO $$
+DECLARE
+    v_inexistente BIGINT;
+    v_estado TEXT;
+    v_restriccion TEXT;
+BEGIN
+    SELECT MAX(id) + 1 INTO v_inexistente FROM deposito;
+    BEGIN
+        INSERT INTO responsable_control_deposito VALUES (2, v_inexistente);
+        RAISE EXCEPTION 'TEST FAILED: se admitió un depósito inexistente';
+    EXCEPTION WHEN SQLSTATE '23503' THEN
+        GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE,
+                                v_restriccion = CONSTRAINT_NAME;
+        IF v_restriccion IS DISTINCT FROM 'fk_responsable_control_deposito' THEN
+            RAISE EXCEPTION 'Restricción inesperada: %', v_restriccion;
+        END IF;
+        RAISE NOTICE 'PASS: depósito inexistente; SQLSTATE=%; CONSTRAINT=%',
+            v_estado, v_restriccion;
+    END;
+END;
+$$;
+ROLLBACK TO SAVEPOINT negativa_fk_deposito;
+RELEASE SAVEPOINT negativa_fk_deposito;
+
+DO $$
+BEGIN
+    IF (SELECT COUNT(*) FROM responsable_control_deposito) <> 2
+       OR (SELECT COUNT(*) FROM control_lote_responsable) <> 3
+       OR EXISTS (SELECT * FROM control_lote_almacen
+                  EXCEPT SELECT * FROM v_control_lote_almacen)
+       OR EXISTS (SELECT * FROM v_control_lote_almacen
+                  EXCEPT SELECT * FROM control_lote_almacen) THEN
+        RAISE EXCEPTION 'Las pruebas negativas no restauraron la instancia';
+    END IF;
+    RAISE NOTICE 'PASS: instancia conservada después de las cuatro pruebas negativas';
+END;
+$$;
+
 COMMIT;
 
 -- ============================================================================
@@ -297,15 +465,25 @@ COMMIT;
 -- para revertir manualmente, en este orden, exclusivamente los objetos
 -- creados por esta práctica (sin CASCADE):
 --
--- 1. DROP VIEW v_control_lote_almacen;
--- 2. DROP TABLE control_lote_responsable;
--- 3. DROP TABLE responsable_control_deposito;
--- 4. DROP TABLE control_lote_almacen;
--- 5. DROP TABLE lote;
--- 6. DROP TABLE deposito;
+-- BEGIN;
+-- DO $$
+-- BEGIN
+--     IF current_database() <> 'foodstore_u4_revalidacion' THEN
+--         RAISE EXCEPTION 'Base no autorizada para DOWN FNBC';
+--     END IF;
+-- END;
+-- $$;
+-- DROP VIEW v_control_lote_almacen;
+-- DROP TABLE control_lote_responsable;
+-- DROP TABLE responsable_control_deposito;
+-- DROP TABLE control_lote_almacen;
+-- DROP TABLE lote;
+-- DROP TABLE deposito;
+-- COMMIT;
 -- usuario pertenece al modelo base y no forma parte del DOWN.
 --
--- Antes de ejecutar, generar y verificar un backup de la copia oficial
--- fuera del repositorio. El backup histórico de la iteración anterior no
--- acredita un respaldo de esta nueva base. No versionar el dump.
+-- Esta fase usa exclusivamente el laboratorio descartable autorizado.
+-- Comparar el snapshot previo/posterior del catálogo y de los datos canónicos:
+-- cinco tablas base y seis índices explícitos raíz + TP5 deben seguir intactos.
+-- No restaurar dumps históricos ni ejecutar otros DOWN de Unidad 4.
 -- ============================================================================
