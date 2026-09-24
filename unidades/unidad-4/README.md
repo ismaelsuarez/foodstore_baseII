@@ -1,96 +1,74 @@
 # Unidad 4 — FNBC y desnormalización controlada
 
-| Parte | Estado final |
+**Entrega canónica cerrada: FNBC PASS; candidato de desnormalización REJECT / DO_NOT_ADOPT.**
+El laboratorio quedó sin objetos experimentales tras el DOWN definitivo de Fase 8.
+No incorporar `detalle_pedido.categoria_id` a `schema.sql` ni reinstalar el candidato automáticamente.
+
+## Lectura de la entrega
+
+1. [Informe breve de entrega](informes/informe_entrega_u4_modelo_canonico.md): teoría, SQL, planes y decisión.
+2. [Informe técnico y cierre del laboratorio](informes/informe_u4_fnbc_desnormalizacion.md).
+3. Artefactos SQL: [Parte 1 FNBC](sql/tp_fnbc_control_lote.sql) y
+   [Parte 2 experimental, descartada](sql/tp_desnormalizacion_top_categorias.sql).
+
+## Resultado vigente
+
+| Parte | Resultado acreditado |
 |---|---|
-| 1 — FNBC | **PASS** sobre el modelo oficial |
-| 2 — Desnormalización | **EXPERIMENTO VÁLIDO / CANDIDATO DESCARTADO** |
+| FNBC | Dos claves candidatas; descomposición sin pérdida, F1 no preservada; 3/3 filas y EXCEPT 0/0; DOWN real |
+| Lectura Top 5 | Mediana 212.668 → 87.657 ms; buffers raíz 6794 → 12091 (+77.97 %) |
+| Decisión Parte 2 | REJECT: falla la puerta de buffers predeclarada, aunque mejora el tiempo |
+| Estado final DB | CLEAN_CANONICAL_NO_U4_CANDIDATE; datos canónicos e índices conservados |
 
-La implementación experimental mantuvo consistencia y equivalencia, pero
-su relación costo/beneficio no justifica adoptarla como diseño permanente.
-**REJECTED_AFTER_MEASUREMENT: no incorporar detalle_pedido.categoria_id a schema.sql.**
+La fuente estructural es [schema.sql](../../schema.sql); el seed es
+[datos_iniciales.sql](../../datos_iniciales.sql). No son archivos históricos obsoletos.
+El laboratorio `foodstore_u4_revalidacion` se construyó desde esas fuentes y los
+[tres índices aceptados de TP5](../unidad-3/sql/indices.sql), sin restaurar dumps antiguos.
+El seed mínimo no equivale al dataset sintético ampliado de las mediciones.
 
-## Documentación vigente
+FNBC reutilizó los usuarios canónicos **1 y 2**, mapeados desde los identificadores
+lógicos 801/802 del ejemplo; no creó ni modificó usuarios. La Parte 2 utilizó
+8 categorías, 20000 usuarios, 50000 productos, 200000 pedidos y 500000 detalles.
+La fecha del benchmark fue **2026-09-23**, con PostgreSQL **17.11**.
 
-1. [Informe vigente y decisión final](informes/informe_u4_fnbc_desnormalizacion.md).
-2. [Evidencia técnica completa](informes/evidencia_modelo_oficial.md): planes,
-   pruebas, conteos y límites del ensayo.
-3. [Spec FNBC](specs/u4_fnbc_control_lote.md) y [SQL FNBC](sql/tp_fnbc_control_lote.sql).
-4. [Spec del candidato](specs/u4_desnormalizacion_top_categorias.md) y
-   [SQL experimental](sql/tp_desnormalizacion_top_categorias.sql).
+La categoría del producto siguió siendo fuente de verdad. Se preserva el deadlock
+**40P01** del candidato inicial; la remediación por permisos/API y gate pasó los
+escenarios autorizados, no DML arbitrario de administradores. La decisión final
+sigue siendo rechazo por los criterios medidos, no adopción por corrección funcional.
 
-## Parte 1 — FNBC: PASS
+## Evidencia verificable
 
-Se conservaron las dependencias de negocio, las claves candidatas y la
-descomposición en responsable_control_deposito y control_lote_responsable.
-La vista v_control_lote_almacen reconstruyó las **3 filas originales**;
-el EXCEPT bidireccional produjo **0 / 0**. La descomposición es sin pérdida;
-R1 (F1) requiere el JOIN para verificarse y no queda preservada localmente por las PK.
+- [FNBC canónico](informes/evidencia_revalidacion_fnbc_modelo_canonico.md).
+- [Dataset reproducible](informes/evidencia_dataset_parte2_modelo_canonico.md).
+- [Baseline BEFORE](informes/evidencia_baseline_parte2_modelo_canonico.md).
+- [Selección y criterios previos](informes/decision_patron_parte2_modelo_canonico.md).
+- [Fallo concurrente original](informes/evidencia_implementacion_candidato_a_modelo_canonico.md).
+- [Remediación con ruta cerrada](informes/evidencia_remediacion_serializada_modelo_canonico.md).
+- [READ AFTER y decisión](informes/evidencia_read_after_decision_modelo_canonico.md).
+- Contratos: [spec FNBC](specs/u4_fnbc_control_lote.md) y [spec Parte 2](specs/u4_desnormalizacion_top_categorias.md).
 
-**usuario pertenece al modelo oficial**: se reutilizaron los usuarios 801 y
-802 no eliminados. Unidad 4 no creó ni eliminó esa tabla ni modificó sus
-filas. lote y deposito son tablas maestras auxiliares de la extensión
-académica; las FK de responsables apuntan a usuario(id).
+Las evidencias conservan el estado de su fecha: `REJECTED_PENDING_FINAL_CLEANUP`
+en Fase 7 describe el checkpoint previo; el cierre definitivo está registrado en
+el informe técnico. El DOWN no compacta automáticamente tablas ni restituye el
+estado físico de Phase 3. No se repitieron benchmarks para el cierre.
 
-## Parte 2 — Experimento válido, candidato descartado
+## Reproducción y límites
 
-detalle_pedido.categoria_id se probó exclusivamente en la copia descartable
-foodstore_u4_oficial; **no forma parte del esquema canónico**. El diseño
-experimental conserva backfill, NOT NULL, FK, dos triggers, auditoría y DOWN.
-La fuente única de verdad sigue siendo **producto.categoria_id**.
+Los SQL están limitados al laboratorio autorizado, contienen guardas y no son
+migraciones automáticas del proyecto. Leer sus precondiciones y secciones UP/DOWN
+antes de cualquier nueva ejecución. El SQL de Parte 2 exige además la fecha
+2026-09-23, roles ausentes y dataset previsto; no cambiar esas guardas para repetir
+una medición sin un nuevo protocolo autorizado. No ejecutar sobre otras bases.
 
-| Medida | Normalizada / sin trigger | Candidato / con trigger | Variación |
-|---|---:|---:|---:|
-| Mediana de lectura, 5 corridas (ms) | 200.392 | 196.507 | -1.94 % |
-| Buffers compartidos hit + read | 8382 | 13386 | +59.70 % |
-| INSERT de 1000 detalles, promedio válido (ms) | 21.3385 | 28.8015 | +34.97 % |
+TPI quedó excluido del baseline primario; esto no lo declara obsoleto. No se
+probó integración TPI, alta carga ni ausencia universal de deadlocks. Cinco
+corridas warm-cache describen este ensayo, no significancia estadística ni
+rendimiento de producción.
 
-La reducción de mediana es marginal, no una mejora robusta. Aumentaron
-los buffers y la dispersión; el candidato agrega costo de escritura y
-complejidad. El INSERT mide el costo incremental del trigger, no todo el
-costo de la desnormalización. Propagación puntual: **57.540 ms para 18
-detalles del producto 17**, no una mediana.
+## Antecedentes preservados
 
-Equivalencia **0 / 0**, triggers A/B/C **PASS** y auditoría final **0**.
-Dos sesiones actualizaron el mismo producto: la segunda esperó un bloqueo
-y el resultado fue consistente. **No se ensayó INSERT concurrente de detalle
-contra UPDATE de categoría del producto**. El DOWN se revisó estáticamente,
-sin ejecutarlo. El rechazo es una decisión humana basada en evidencia,
-no un fracaso del experimento.
-
-## Semántica oficial y reproducción del laboratorio
-
-El ensayo usó **PostgreSQL 17.11**, el 2026-09-20, en foodstore_u4_oficial,
-copia de foodstore_tp5_oficial. Hubo **20.275 pedidos y 50.272 detalles
-vigentes de CURRENT_DATE**; el backfill alcanzó **550.000 filas**.
-
-El modelo incluye usuario, pedido.usuario_id, subtotal físico y
-eliminado; pedido.fecha es **DATE**. Ambas consultas usan SUM(dp.subtotal),
-ped.eliminado = FALSE, dp.eliminado = FALSE y ped.fecha = CURRENT_DATE.
-No excluyen ventas por baja actual de producto/categoría ni por disponibilidad.
-La categoría sigue siendo la actual del producto, no una captura al vender.
-
-Para reproducir, utilizar una nueva copia descartable oficial, verificar los
-usuarios 801/802 y el volumen del día, y seguir el protocolo y los scripts de
-carga/pruebas de la evidencia. No aplicar automáticamente los scripts a una
-base importante: el candidato modifica únicamente el laboratorio y sus DDL
-no son idempotentes. No se realizaron nuevas ejecuciones en este cierre.
-Los tiempos son específicos del dataset, máquina, cachés y estado físico del
-ensayo; no son garantías universales. Los empates en el corte del Top 5
-requieren atención porque el orden solicitado no incluye desempate.
-
-[schema.sql raíz](../../schema.sql) y
-[datos_iniciales.sql raíz](../../datos_iniciales.sql) permanecen históricos:
-**no reconstruyen por sí solos la copia oficial medida**. No se modifican
-ni se propone integrar la columna redundante.
-
-## Evidencia histórica
-
-El [informe histórico](informes/informe_u4_fnbc_desnormalizacion_historico.md)
-corresponde a una iteración anterior basada en un modelo no alineado. Se
-conserva íntegro exclusivamente por trazabilidad; **sus métricas no justifican
-la decisión vigente**.
-
-La evidencia técnica del Bloque 2 también se conserva intacta. Su enlace
-congelado denominado «informe histórico» utiliza el nombre anterior, ahora
-ocupado por el informe vigente; el archivo histórico correcto es el que
-tiene el sufijo _historico.md, enlazado arriba.
+La [evidencia del cierre 2026-09-20](informes/evidencia_modelo_oficial.md) y el
+[informe histórico anterior](informes/informe_u4_fnbc_desnormalizacion_historico.md)
+se conservan por trazabilidad. Sus laboratorios, fixtures y métricas no son el
+baseline canónico actual. El informe técnico distingue ese contenido histórico
+de la decisión vigente; no se reescribieron sus resultados.
