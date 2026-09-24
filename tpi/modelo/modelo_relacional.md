@@ -160,7 +160,8 @@ sí mismo la baja lógica.
 
 No existe CHECK que imponga `subtotal = cantidad * precio_unitario`.
 Tampoco hay mantenimiento automático de `pedido.total` en `schema.sql`.
-Son reglas conceptuales pendientes de la capa programable. El
+Estas reglas ya están implementadas en la
+[capa programable TPI](../sql/objetos_programables.sql), de instalación separada. El
 [seed](../../datos_iniciales.sql) calcula sus subtotales con el precio histórico
 y reconcilia sus totales explícitamente; no instala triggers.
 
