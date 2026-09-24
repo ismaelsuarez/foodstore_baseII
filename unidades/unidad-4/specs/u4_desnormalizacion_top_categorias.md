@@ -34,10 +34,14 @@ administrativo arbitrario: S4 directo fue BYPASS_BLOCKED; S4 autorizado y los
 hard gates ensayados pasaron. DOWN fue ejecutado y revertido en Fase 6E, no en
 esta fase. Ninguna conclusión acredita ausencia universal de deadlocks.
 
-**Estado del laboratorio: REJECTED_PENDING_FINAL_CLEANUP.** El candidato sigue
-instalado solo hasta el cierre autorizado en Fase 8. No ejecutar DOWN definitivo
-ni integrar categoria_id en schema.sql automáticamente. La auditoría posterior
-a READ no detectó cambios canónicos ni inconsistencias.
+**Cierre Fase 8: REJECT / DO_NOT_ADOPT; CLEAN_CANONICAL_NO_U4_CANDIDATE.**
+El 2026-09-23 se ejecutó y confirmó el DOWN definitivo: columna, FK, funciones,
+triggers, esquema u4_api y roles experimentales retirados; datos y estructuras
+canónicas y seis índices explícitos intactos. No reinstalar ni integrar el
+candidato automáticamente. El estado PENDING_FINAL_CLEANUP correspondió a Fase 7,
+cuya evidencia permanece intacta. El retiro no compactó el heap ni restituyó
+el estado físico de Phase 3. Véase el [cierre técnico](../informes/informe_u4_fnbc_desnormalizacion.md)
+y el [informe de entrega](../informes/informe_entrega_u4_modelo_canonico.md).
 
 ### Lectura cronológica del contrato conservado
 

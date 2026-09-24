@@ -34,10 +34,75 @@ fan-out real/stress **67.860/91.241 ms**, expansión física y serialización gl
 incluso entre productos distintos. No se inventan presupuestos de producción
 para justificarlos. La puerta de lectura fallida basta para descartar la adopción.
 
-**Estado DB: REJECTED_PENDING_FINAL_CLEANUP.** No se ejecutó DOWN definitivo en
-Fase 7; el retiro corresponde a Fase 8 con autorización. schema.sql sigue siendo
-la fuente canónica y no incorpora detalle_pedido.categoria_id. TPI permanece
-excluido del baseline; no se instaló una materializada.
+**Estado final tras Fase 8: REJECT / DO_NOT_ADOPT; CLEAN_CANONICAL_NO_U4_CANDIDATE.**
+El estado REJECTED_PENDING_FINAL_CLEANUP fue el cierre de Fase 7; su evidencia
+no se modifica. El DOWN definitivo ya fue ejecutado y confirmado. schema.sql
+sigue siendo la fuente canónica, sin detalle_pedido.categoria_id. TPI permanece
+excluido; no se instaló una materializada.
+
+## Cierre técnico del laboratorio — Fase 8
+
+El [informe breve de entrega](informe_entrega_u4_modelo_canonico.md) presenta las
+dos partes y la decisión final. Esta sección conserva la evidencia compacta del
+retiro definitivo, no agrega otra medición ni reinterpreta los ensayos anteriores.
+
+- Base exclusiva: foodstore_u4_revalidacion; PostgreSQL 17.11.
+- HEAD de partida: 20fd6b6ee860185ff1b7d3a71238bba6ab7ab244.
+- Verificación posterior: 2026-09-23T21:35:37.788358-03:00.
+- Se extrajo el DOWN existente entre BEGIN_DOWN y END_DOWN del SQL versionado,
+  sin modificarlo. Ejecución administrativa con ON_ERROR_STOP, BEGIN y COMMIT,
+  exit code 0, stderr vacío y marcador `PASS_DOWN_CANONICAL_INTACT` antes de confirmar.
+- Se verificaron sesiones, membresías, ownership y privilegios/dependencias de
+  los dos roles antes del retiro; dependencias exclusivamente del laboratorio.
+  No se utilizó CASCADE ni DROP OWNED ni se afectaron objetos de otra base.
+
+| Objetos retirados definitivamente | Nombres |
+|---|---|
+| Cuatro triggers | trg_producto_sync_categoria_detalle; trg_detalle_pedido_set_categoria; trg_producto_gate_categoria; trg_detalle_pedido_gate_categoria |
+| Cuatro API | u4_api.insertar_detalles(jsonb); u4_api.cambiar_producto_detalle(bigint,bigint); u4_api.normalizar_categoria_detalle(bigint,bigint); u4_api.recategorizar_producto(bigint,bigint) |
+| Tres funciones auxiliares | u4_api.fn_producto_sync_categoria_detalle(); u4_api.fn_detalle_pedido_set_categoria(); u4_api.fn_gate_categoria() |
+| Extensión de detalle | fk_detalle_pedido_categoria; detalle_pedido.categoria_id |
+| Privilegios y esquema | Grants de tabla/columna, USAGE y CONNECT del experimento; esquema u4_api |
+| Roles de clúster | u4_app; u4_owner, sin dependencias residuales ni sesiones |
+
+### Validación posterior al COMMIT
+
+| Control | Resultado |
+|---|---|
+| Tablas canónicas | Cinco presentes; columnas y constraints originales conservados |
+| Conteos categoria / usuario / producto / pedido / detalle | 8 / 20000 / 50000 / 200000 / 500000 |
+| Día: pedidos / vigentes / detalles / utilizables / categorías | 20000 / 19800 / 50000 / 48900 / 8 |
+| Subtotal / total / FK / UNIQUE / CHECK | 0 / 0 / 0 / 0 / 0 |
+| Columna/FK candidata; funciones/triggers experimentales | Ausentes; cero rutinas de usuario y triggers no internos |
+| Roles / esquema / gate / sesiones / transacciones de prueba | 0 / 0 / 0 / 0 / 0 |
+| TPI / FNBC / MV | Ausentes |
+| Índices | 14 totales; los seis explícitos raíz + TP5 con definiciones idénticas |
+| Datos canónicos y secuencias | Huellas de las cinco tablas y estados de secuencias idénticos antes/después |
+| Resto del clúster | Otras bases y roles sin variaciones observadas |
+
+Top 5 normalizado después del retiro: categorías 07/03/06/05/08 con importes
+194538488.00 / 90236048.00 / 88912722.00 / 74717570.00 / 40242037.00,
+idéntico al checkpoint. Se conservan usuario, precios, stock y demás columnas
+canónicas por las mismas huellas de filas; no se confundió igualdad lógica con
+restauración física. Detalle mantuvo **97116160 bytes de heap / 151298048 bytes
+totales**: DROP COLUMN no recupera automáticamente el espacio de Phase 3.
+No se ejecutó benchmark, VACUUM, restore, carga nueva ni modificación del SQL.
+Los dumps y evidencias previos permanecen intactos.
+
+### Incidencia del verificador temporal
+
+**NON_PRODUCT_TEMP_VERIFIER_INCIDENT:** antes de cualquier DDL, un helper comparó
+la descripción de `pg_describe_object` con texto inglés; el servidor devolvió
+texto localizado al español. El comparador se detuvo sin ejecutar DOWN. Se
+preservó ese diagnóstico y se corrigió únicamente el verificador temporal para
+comparar OID/clases de catálogo en vez de frases localizadas. La validación
+estable pasó antes de ejecutar el DOWN; no fue un error SQL del candidato.
+
+Logs locales: `C:/Users/facu/AppData/Local/Temp/foodstore-u4-phase8-c1ec6211`.
+Incluyen down_final.sql/stdout/stderr, preflight/post_down.json,
+pre_role_dependencies_stable.json, post_absence.json y cluster_before/after.json;
+se conserva también phase8_verifier_localized_failure.py. La existencia futura
+de esa ruta temporal no se presupone: resultados y límites quedan resumidos aquí.
 
 ## Cierre previo preservado — 2026-09-20 / HISTORICAL_NOT_COMPARABLE
 
