@@ -1,5 +1,54 @@
 # Spec — Unidad 4 — Experimento canónico de Top categorías
 
+## Decisión final de la revalidación canónica — Fase 7
+
+**FINAL_DECISION = REJECT / DO_NOT_ADOPT.** La consulta candidata redujo la
+mediana de lectura de 212.668 a **87.657 ms**, pero incumplió la puerta de buffers
+predeclarada: **12091 shared hit + shared read** en cada corrida oficial, frente
+a 6794 BEFORE (**+77.97 %**). Incluso los hits solos fueron mayores que 6794 en
+las cinco corridas. No se flexibiliza el criterio después de medir.
+
+Fuente: [evidencia READ AFTER y decisión](../informes/evidencia_read_after_decision_modelo_canonico.md),
+2026-09-23, PostgreSQL 17.11, foodstore_u4_revalidacion, HEAD de ejecución
+ac668ef21ef452c91dd0748ffc08aa7bfe7a0ef5. Protocolo: un warmup y cinco corridas
+oficiales, sin descartar ninguna; un plan textual adicional fuera de estadísticas.
+
+| Puerta predeclarada | Resultado Fase 7 |
+|---|---|
+| MAX AFTER < 171.081 ms | PASS: 109.291 ms |
+| Mediana AFTER < 212.668 ms | PASS: 87.657 ms |
+| Cada corrida shared hit + shared read < 6794 | **FAIL: 12091 en las cinco** |
+| Sin nuevos spills | PASS |
+| Equivalencia completa / Top 5 | PASS: EXCEPT 0/0, ocho categorías; Top 5 idéntico |
+
+El incumplimiento de una puerta obligatoria decide REJECT, independientemente
+del beneficio temporal observado. Los costos de Fase 6E —INSERT +59.16 % como
+comparación aritmética no causal aislada, backfill 4853.635 ms, fan-out real/stress
+67.860/91.241 ms, crecimiento físico y serialización de productos distintos— no
+se ocultan ni se convierten en SLO inventados. No se elimina la reserva original
+sobre presupuestos de adopción; no es necesario resolverla para este rechazo.
+
+El 40P01 de Fase 6 permanece **FAIL_CONCURRENCY_40P01**. La remediación Fase 6E
+acreditó su ruta cerrada (permisos + API SECURITY DEFINER + gate previo), no DML
+administrativo arbitrario: S4 directo fue BYPASS_BLOCKED; S4 autorizado y los
+hard gates ensayados pasaron. DOWN fue ejecutado y revertido en Fase 6E, no en
+esta fase. Ninguna conclusión acredita ausencia universal de deadlocks.
+
+**Estado del laboratorio: REJECTED_PENDING_FINAL_CLEANUP.** El candidato sigue
+instalado solo hasta el cierre autorizado en Fase 8. No ejecutar DOWN definitivo
+ni integrar categoria_id en schema.sql automáticamente. La auditoría posterior
+a READ no detectó cambios canónicos ni inconsistencias.
+
+### Lectura cronológica del contrato conservado
+
+Las secciones 1–10 siguientes conservan el contrato predeclarado de Fase 5,
+incluidos umbrales y reservas, sin reescribirlos con conocimiento del AFTER.
+Las expresiones «no implementado», «futuro» o «pendiente» describen aquel punto
+del proceso, no el estado actual resumido arriba. Los enlaces a SQL son rutas
+vigentes: su versión anterior se consulta en Git, no se supone que el archivo
+haya permanecido sin cambios después de Fase 5.
+
+
 **Contrato de diseño Fase 5, 2026-09-23. CANDIDATE_SELECTED_FOR_EXPERIMENT: A,
 columna redundante y triggers revisados. No implementado; no ADOPTED.**
 

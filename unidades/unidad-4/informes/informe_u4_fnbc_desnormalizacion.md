@@ -1,6 +1,51 @@
 # Unidad 4 — FNBC y desnormalización controlada
 ## Food Store — Informe vigente sobre el modelo oficial
 
+## Decisión vigente de Parte 2 — revalidación canónica, Fase 7
+
+**FINAL_DECISION = REJECT / DO_NOT_ADOPT.** La mejora temporal no satisface por
+sí sola los criterios predeclarados. Sobre foodstore_u4_revalidacion, PostgreSQL
+17.11 y CURRENT_DATE=2026-09-23, la mediana pasó de **212.668 a 87.657 ms**
+(reducción descriptiva **58.78 %**, speedup **2.4261x**), pero los accesos shared
+del nodo raíz pasaron de **6794 a 12091 por corrida (+77.97 %)**.
+
+El máximo AFTER de **109.291 ms** cumple MAX < 171.081 ms; la mediana también
+cumple su umbral. **La puerta obligatoria de buffers falla en las cinco
+corridas**, tanto contando hit + read como considerando solo hits. No hubo
+spills; EXCEPT del agregado completo dio **0/0** y el Top 5 permaneció idéntico.
+La decisión de rechazo aplica sin cambiar umbrales ni descartar corridas.
+
+La [evidencia Fase 7](evidencia_read_after_decision_modelo_canonico.md) conserva
+1 warmup + 5 corridas oficiales, comparación, planes y auditoría. El dataset
+actual tiene 8 categorías, 20000 usuarios, 50000 productos, 200000 pedidos y
+500000 detalles; no se reutilizan como baseline las métricas del cierre anterior.
+
+La [remediación Fase 6E](evidencia_remediacion_serializada_modelo_canonico.md)
+mantiene los hard gates acreditados dentro de la ruta cerrada: u4_app sin DML
+ni prebloqueo directo, API SECURITY DEFINER y gate antes de locks de datos.
+S4 directo quedó **BYPASS_BLOCKED (42501)**; la ruta autorizada no mostró 40P01
+en los escenarios ensayados. Esto **no borra el deadlock original de Fase 6**
+ni garantiza DML arbitrario de administradores o ausencia universal de deadlocks.
+DOWN real pasó en Fase 6E y se revirtió para conservar el candidato instalado.
+
+Persisten costos observados: INSERT **+59.16 %** respecto de la referencia
+canónica (comparación aritmética, no causalidad aislada), backfill **4853.635 ms**,
+fan-out real/stress **67.860/91.241 ms**, expansión física y serialización global
+incluso entre productos distintos. No se inventan presupuestos de producción
+para justificarlos. La puerta de lectura fallida basta para descartar la adopción.
+
+**Estado DB: REJECTED_PENDING_FINAL_CLEANUP.** No se ejecutó DOWN definitivo en
+Fase 7; el retiro corresponde a Fase 8 con autorización. schema.sql sigue siendo
+la fuente canónica y no incorpora detalle_pedido.categoria_id. TPI permanece
+excluido del baseline; no se instaló una materializada.
+
+## Cierre previo preservado — 2026-09-20 / HISTORICAL_NOT_COMPARABLE
+
+El contenido siguiente conserva el cierre anterior del Bloque 2, incluidas sus
+métricas, alcance FNBC y reservas. No describe la ejecución actual de Fase 7 ni
+sus resultados de concurrencia/DOWN. La decisión vigente de Parte 2 es la sección
+anterior; no se atribuyen retrospectivamente nuevos ensayos a aquel cierre.
+
 **FNBC: PASS. Desnormalización: implementación experimental válida,
 candidato evaluado y descartado por relación costo/beneficio.**
 
