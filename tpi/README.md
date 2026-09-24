@@ -44,7 +44,7 @@ La autoridad estructural es [schema.sql](../schema.sql), con cinco entidades:
 | 5 | DML, JOIN, agregaciones, subconsultas, HAVING y ventanas | [Seed vigente](../datos_iniciales.sql), [HAVING vigente](sql/consultas_cobertura_tpi.sql); [TP3](../unidades/unidad-2/tp3/README.md) y [TP4](../unidades/unidad-2/tp4/README.md) como evidencia histórica evaluada |
 | 6 | Vistas, funciones, triggers, procedimiento y CALL | [Cuatro vistas U3](../unidades/unidad-3/sql/views.sql), [objetos TPI](sql/objetos_programables.sql) y [pruebas](pruebas/pruebas_objetos_programables.sql) |
 | 7 | Integridad declarativa y de negocio | [Schema](../schema.sql), [batería](pruebas/pruebas_objetos_programables.sql) y [evidencia funcional](evidencia_modelo_oficial.md) |
-| 8 | Transacciones, aislamiento, atomicidad y concurrencia | [Evidencia TPI](evidencia_modelo_oficial.md): rollback y tres ensayos multisesión; [U1](../unidades/unidad-1/tp2/informes/informe_concurrencia.md) como antecedente histórico |
+| 8 | Transacciones, aislamiento, atomicidad y concurrencia | [Evidencia TPI](evidencia_modelo_oficial.md): atomicidad y tres ensayos READ COMMITTED; [cierre TPI-B](evidencia_cierre_objetivo_8.md): SAVEPOINT, REPEATABLE READ y conflicto SERIALIZABLE, con [arnés reproducible](pruebas/transacciones/README.md) |
 | 9 | Baja lógica, índices y reportes | [U3 vigente](../unidades/unidad-3/informes/informe_mediciones.md), [HAVING](sql/consultas_cobertura_tpi.sql) y triggers de total |
 
 **Historia protegida:** TP1–TP4 pertenecen a una iteración anterior del modelo.
@@ -97,6 +97,11 @@ Los tres ensayos requieren conexiones independientes y monitoreo según la
 [evidencia](evidencia_modelo_oficial.md). El seed mínimo tampoco reconstruye
 las cargas masivas medidas de U3/U4 ni proporciona los usuarios 801/802 de U4.
 
+El [arnés TPI-B](pruebas/transacciones/README.md) tiene una reproducción separada
+en `foodstore_tpi_cierre_b`: SAVEPOINT explícito, snapshot REPEATABLE READ y
+conflicto SERIALIZABLE `40001`. No reemplaza los tres ensayos READ COMMITTED
+anteriores; sus resultados y límites están en la [nueva evidencia](evidencia_cierre_objetivo_8.md).
+
 ## Resultados reales resumidos
 
 Fuente: [evidencia de Bloques 6, 7 y 8](evidencia_modelo_oficial.md), sobre
@@ -137,8 +142,10 @@ La ruta de negocio que administra stock es `CALL registrar_detalle_pedido`.
 DML directo del detalle mantiene derivados mediante triggers, pero **no**
 administra inventario. No hay política de reposición por bajas, cancelación
 ni DELETE. No se acreditaron ausencia universal de deadlocks, seguridad
-concurrente de DML directo, SERIALIZABLE, carga masiva concurrente ni
-rendimiento bajo estrés o alta concurrencia.
+concurrente de DML directo arbitrario, garantías generales del CALL bajo
+SERIALIZABLE, carga masiva concurrente ni rendimiento bajo estrés o alta
+concurrencia. TPI-B sí acredita el conflicto `40001` del caso canónico acotado,
+no una garantía universal ni una estrategia automática de reintentos.
 
 Los comentarios de validación pendiente en scripts/modelos registran su fase
 de autoría anterior; la ejecución posterior se acredita en la evidencia, no

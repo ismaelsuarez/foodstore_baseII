@@ -275,6 +275,25 @@ resultado productivo PASS. El estado global FAIL del resumen inicial agrupaba
 ambos niveles; la [evidencia consolidada](evidencia_modelo_oficial.md) registra
 esa clasificación y su procedencia sin borrar el incidente.
 
+### Cierre TPI-B — SAVEPOINT y aislamientos canónicos
+
+La [evidencia nueva del objetivo 8](evidencia_cierre_objetivo_8.md) registra dos
+ejecuciones del [arnés versionado](pruebas/transacciones/README.md) sobre
+`foodstore_tpi_cierre_b`, construido desde schema, seed y objetos vigentes.
+SAVEPOINT mostró stock **50 → 49 → 47 → 49 → 50**, con rollback parcial y
+rollback final. Bajo REPEATABLE READ, A leyó 50 antes y después del COMMIT de B
+en 51; una nueva transacción vio 51. Bajo SERIALIZABLE, ambas sesiones leyeron
+50; A confirmó 52 y B recibió **40001**, después de observar su espera
+`Lock / transactionid` sobre A. No se aceptó un deadlock como resultado válido.
+
+Se restauró el stock a 50 y coincidieron las huellas de las cinco tablas,
+secuencias y catálogo; no quedaron sesiones del ensayo. El objetivo 8 queda
+**PASS en el alcance académico documentado**, combinando esta ejecución con
+atomicidad y los tres ensayos READ COMMITTED previos, que no se repitieron.
+El conflicto sobre una misma fila también puede ocurrir bajo REPEATABLE READ:
+no se presenta como prueba exclusiva de SSI ni como validación del CALL bajo
+todos los aislamientos. La consolidación integral del informe queda para TPI-C.
+
 ## 9. Consultas vigentes y cobertura histórica
 
 La [consulta vigente HAVING](sql/consultas_cobertura_tpi.sql) agrupa `usuario`
@@ -460,10 +479,11 @@ por etapa, sin reescribir prompts ni ocultar la corrección posterior del modelo
 ## 14. Limitaciones y decisiones
 
 No se demostró ausencia universal de deadlocks, concurrencia segura de DML
-directo, SERIALIZABLE, reposición automática por bajas, cancelaciones, carga
+directo arbitrario, reposición automática por bajas, cancelaciones, carga
 masiva concurrente, comportamiento bajo estrés ni rendimiento con alta
-concurrencia. El TPI acredita tres escenarios READ COMMITTED y una batería
-funcional, no seguridad universal de toda escritura posible. Un UPDATE directo
+concurrencia. El TPI acredita tres escenarios READ COMMITTED, una batería
+funcional y los casos acotados TPI-B de SAVEPOINT, REPEATABLE READ y conflicto
+SERIALIZABLE; no seguridad universal de toda escritura posible. Un UPDATE directo
 a `pedido.total` tampoco se presenta como protegido contra toda manipulación:
 la autoridad automática actúa ante cambios de detalles.
 
