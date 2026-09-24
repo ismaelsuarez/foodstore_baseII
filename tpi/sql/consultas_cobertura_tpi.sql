@@ -1,8 +1,8 @@
 -- TPI Food Store — Consultas de cobertura del Objetivo 5
 -- Complementa la evidencia existente; no reemplaza TP3 ni TP4.
 -- Contiene únicamente SELECT y comentarios: no modifica datos ni estructura.
--- Su objetivo principal es demostrar explícitamente GROUP BY + HAVING.
--- Las demás capacidades de la rúbrica se referencian a los TP históricos.
+-- Demuestra GROUP BY + HAVING y una función de ventana sobre el modelo canónico.
+-- Los TP históricos se conservan como antecedentes, no como sustitutos de SQL vigente.
 
 -- USUARIOS CON MÁS DE UN PEDIDO NO ELIMINADO
 -- JOIN relaciona cada pedido con su usuario mediante pedido.usuario_id.
@@ -38,6 +38,35 @@ ORDER BY
     cantidad_pedidos DESC,
     usuario_id ASC;
 
+-- Función de ventana — ranking de usuarios por gasto
+-- Historial de importes de pedidos no eliminados, sin filtrar fecha ni estado.
+-- No se filtra usuario.eliminado: su baja posterior no borra las compras previas.
+-- INNER JOIN incluye usuarios con al menos un pedido no eliminado, no usuarios
+-- sin compras. Se suma pedido.total físico, sin unir detalles ni duplicar importes.
+-- La CTE agrega por usuario; RANK opera después sobre los gastos agregados.
+-- OVER ordena solo por gasto: los empates comparten ranking y dejan saltos.
+-- El id en el ORDER BY final estabiliza la presentación, sin romper los empates
+-- dentro de RANK. No se necesita PARTITION BY para un único ranking global.
+WITH gasto_usuario AS (
+    SELECT
+        u.id,
+        u.nombre,
+        u.apellido,
+        SUM(p.total) AS gasto_total
+    FROM usuario u
+    JOIN pedido p ON p.usuario_id = u.id
+    WHERE p.eliminado = FALSE
+    GROUP BY u.id, u.nombre, u.apellido
+)
+SELECT
+    id,
+    nombre,
+    apellido,
+    gasto_total,
+    RANK() OVER (ORDER BY gasto_total DESC) AS ranking
+FROM gasto_usuario
+ORDER BY ranking, id;
+
 -- COBERTURA COMPLEMENTARIA EXISTENTE
 -- TP3 y TP4 se conservan como evidencia histórica evaluada; no se presentan
 -- como scripts compatibles automáticamente con el esquema canónico vigente.
@@ -46,7 +75,7 @@ ORDER BY
 -- ../../unidades/unidad-2/tp3/sql/consultas_tp3_ia.sql
 -- B) Función de ventana RANK() OVER: consulta A de TP4.
 -- ../../unidades/unidad-2/tp4/sql/consultas_tp4_ia.sql
--- RANK() OVER (...) ya satisface el requisito de función de ventana.
--- No se agrega otra función de ventana ni se duplican esas consultas.
+-- Esa ventana histórica no es compatible automáticamente con el modelo actual.
+-- La sección canónica anterior cubre la ventana sin modificar los TP evaluados.
 -- C) DML de carga de la base canónica.
 -- ../../datos_iniciales.sql

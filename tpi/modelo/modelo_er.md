@@ -109,8 +109,9 @@ directa entre pedido y producto.
   y registran una marca temporal técnica.
 - **Importes:** `detalle_pedido.subtotal` y `pedido.total` son físicos. El
   primero deriva de cantidad y precio histórico de la línea; el segundo
-  agrega subtotales de detalles vigentes. El esquema todavía no mantiene
-  automáticamente estas reglas: corresponden a la siguiente capa programable.
+  agrega subtotales de detalles vigentes. El schema raíz no instala su
+  mantenimiento automático; la [capa programable TPI](../sql/objetos_programables.sql)
+  ya lo implementa y debe instalarse por separado.
 - **Historia:** la baja lógica de usuario, producto o categoría no borra
   físicamente sus filas ni debe destruir la historia de pedidos. No se añaden
   reglas de cancelación, reposición de stock o reactivación no definidas.

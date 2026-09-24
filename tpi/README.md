@@ -1,68 +1,67 @@
-﻿# TPI Food Store — Primera Entrega
+# TPI Food Store — Primera Entrega Parcial
 
-**Modelo oficial y ejecución real validados en PostgreSQL 17.11.** La entrega
-integra las Unidades 1–3, preserva los TP1–TP4 evaluados y documenta Unidad 4
-como trabajo complementario. La [evidencia consolidada](evidencia_modelo_oficial.md)
-registra instalación, pruebas funcionales, tres escenarios concurrentes y HAVING;
-el [informe técnico](informe_tecnico.md) interpreta sus resultados y límites.
+**Nueve objetivos cubiertos con alcance explícito y evidencia verificable.**
+La entrega integra U1–U3; U4 es complementaria y no sustituye esa cobertura.
+El [informe técnico](informe_tecnico.md) contiene la matriz final, decisiones,
+resultados y límites. Este cierre documental no repite pruebas.
 
 **Integrantes:** Avalos Pablo, Blangetti Sofia y Suarez Ismael.
 
-## Modelo vigente y archivos principales
+## Lectura principal
 
-La autoridad estructural es [schema.sql](../schema.sql), con cinco entidades:
-`categoria`, `usuario`, `producto`, `pedido` y `detalle_pedido`.
-
-- Todas tienen PK `id` y baja lógica `eliminado`; `producto.disponible` expresa
-  una condición comercial diferente.
-- `pedido` referencia `usuario_id`, usa `fecha DATE`, estado y total físico.
-- El detalle tiene identidad propia y `UNIQUE(pedido_id, producto_id)`; conserva
-  cantidad, precio histórico y subtotal físico.
-- El subtotal es una **redundancia derivada deliberada**: el detalle cumple
-  1FN/2FN, pero no 3FN/FNBC estrictas considerando la DF del subtotal. El total
-  es un agregado entre relaciones, no por sí solo una DF interna problemática.
-
-| Archivo | Función |
+| Recurso | Contenido |
 |---|---|
-| [Modelo ER](modelo/modelo_er.md) | Entidades, atributos, cardinalidades y participación |
-| [Modelo relacional](modelo/modelo_relacional.md) | Tipos, claves y restricciones del schema |
-| [Normalización](modelo/normalizacion.md) | DF, claves candidatas y redundancias deliberadas |
-| [Seed](../datos_iniciales.sql) | Fotografía inicial: 3 usuarios, 2 categorías, 3 productos, 5 pedidos y 7 detalles |
-| [Objetos programables](sql/objetos_programables.sql) | 7 rutinas y 5 triggers: subtotal, total, vigencia y venta con stock |
-| [Batería](pruebas/pruebas_objetos_programables.sql) | 29 grupos / 37 variantes, fixtures reversibles |
-| [Consulta HAVING](sql/consultas_cobertura_tpi.sql) | Usuarios con más de un pedido no eliminado |
-| [Evidencia](evidencia_modelo_oficial.md) | Resultados reales y procedencia; no sustituye el análisis |
+| [Informe técnico](informe_tecnico.md) | Explicación y matriz 9/9 con artefacto, evidencia y alcance |
+| [ER](modelo/modelo_er.md) y [relacional](modelo/modelo_relacional.md) | Cinco entidades, 40 atributos, PK/FK/UK, cardinalidades y N:M |
+| [Normalización](modelo/normalizacion.md) | DF, claves, excepción subtotal y lossless teórico |
+| [Evidencia oficial](evidencia_modelo_oficial.md) | Instalación, batería, tres escenarios READ COMMITTED y HAVING |
+| [Cierre 3/5](evidencia_cierre_objetivos_3_5.md) | Defensa académica y RANK canónico ejecutado |
+| [Cierre 8](evidencia_cierre_objetivo_8.md) | SAVEPOINT, REPEATABLE READ y SERIALIZABLE 40001, con arnés versionado |
 
-## Mapa de cobertura
+## Modelo y resultados
 
-| # | Objetivo | Evidencia y alcance |
-|---|---|---|
-| 1 | ER, atributos, claves y cardinalidades | [Modelo ER vigente](modelo/modelo_er.md) |
-| 2 | Transformación relacional y N:M | [Modelo relacional](modelo/modelo_relacional.md): detalle con PK propia y UK del par |
-| 3 | DF y formas normales | [Normalización](modelo/normalizacion.md), sin afirmar FNBC universal |
-| 4 | DDL completo | [Schema oficial](../schema.sql): 3 ENUM, 5 tablas, PK/FK/UK/CHECK e índices base |
-| 5 | DML, JOIN, agregaciones, subconsultas, HAVING y ventanas | [Seed vigente](../datos_iniciales.sql), [HAVING vigente](sql/consultas_cobertura_tpi.sql); [TP3](../unidades/unidad-2/tp3/README.md) y [TP4](../unidades/unidad-2/tp4/README.md) como evidencia histórica evaluada |
-| 6 | Vistas, funciones, triggers, procedimiento y CALL | [Cuatro vistas U3](../unidades/unidad-3/sql/views.sql), [objetos TPI](sql/objetos_programables.sql) y [pruebas](pruebas/pruebas_objetos_programables.sql) |
-| 7 | Integridad declarativa y de negocio | [Schema](../schema.sql), [batería](pruebas/pruebas_objetos_programables.sql) y [evidencia funcional](evidencia_modelo_oficial.md) |
-| 8 | Transacciones, aislamiento, atomicidad y concurrencia | [Evidencia TPI](evidencia_modelo_oficial.md): rollback y tres ensayos multisesión; [U1](../unidades/unidad-1/tp2/informes/informe_concurrencia.md) como antecedente histórico |
-| 9 | Baja lógica, índices y reportes | [U3 vigente](../unidades/unidad-3/informes/informe_mediciones.md), [HAVING](sql/consultas_cobertura_tpi.sql) y triggers de total |
+La autoridad es [schema.sql](../schema.sql), seguido del [seed](../datos_iniciales.sql).
+Tablas: categoria, usuario, producto, pedido y detalle_pedido; todas tienen
+PK id y baja lógica eliminado. Pedido usa usuario_id y fecha DATE. Detalle posee
+PK técnica id y UNIQUE(pedido_id, producto_id); conserva precio histórico.
+Disponibilidad de producto y baja lógica son condiciones diferentes.
 
-**Historia protegida:** TP1–TP4 pertenecen a una iteración anterior del modelo.
-Son evidencia histórica evaluada, no scripts convertidos retroactivamente ni
-migraciones pendientes para el schema actual. U3 fue alineada en `da5f3e4`;
-U4 en `95fbfbf`. El esquema raíz y el TPI actuales continúan esa alineación.
+**Normalización: PASS académico, no FNBC física universal.** Usuario/categoría/
+producto y pedido cumplen 3FN/FNBC bajo sus DF identificadas. Detalle cumple
+1FN/2FN, no 3FN/FNBC estricta por `{cantidad, precio_unitario} → subtotal`.
+Subtotal es redundancia derivada deliberada y controlada por fn_set_subtotal y
+trg_subtotal; la descomposición lossless expuesta es teórica, no una migración.
 
-## Reproducción funcional en laboratorio
+| Verificación real preservada | Resultado |
+|---|---|
+| Motor | PostgreSQL 17.11, satisface 16+; no se acredita otra ejecución en 16 |
+| Schema/seed/objetos | PASS; 7 rutinas y 5 triggers |
+| Batería funcional | 29 grupos / 37 variantes / 30 NOTICE PASS; exit 0 |
+| Atomicidad | Detalle, subtotal, total y stock revierten juntos |
+| READ COMMITTED | Tres escenarios PASS con bloqueos observados; evidencia anterior preservada |
+| HAVING | Ana Gómez 2; Luis Paz 2 |
+| RANK canónico | Marta Ruiz 6200.00/1; Ana Gómez 5950.00/2; Luis Paz 2550.00/3 |
+| SAVEPOINT | 50 → 49 → 47 → 49 → 50 |
+| REPEATABLE READ | A 50; B confirma 51; A sigue en 50; nueva transacción ve 51 |
+| SERIALIZABLE | A confirma 52; B aborta con 40001; luego se restaura a 50 |
 
-Comandos para **PowerShell desde la raíz del repositorio**, con PostgreSQL
-17.11 y autenticación local ya configurada. Esta secuencia es para una base
-**nueva, inexistente** llamada `foodstore_tpi_oficial`. Si ya existe la base
-validada, **no ejecutar la creación ni reinstalar**: detenerse y acordar un
-nuevo ensayo. No se incluye ningún borrado ni recreación automática.
+HAVING y ventana excluyen pedidos eliminados, pero conservan usuarios históricos
+aunque estén dados de baja. No hubo empates en el seed. Los dos cierres nuevos
+tienen bases y evidencias separadas; no se atribuyen a los ensayos anteriores.
+
+## Reproducción mínima TPI
+
+Comandos para **PowerShell desde la raíz**, PostgreSQL/psql disponibles y
+autenticación local ya configurada, sin publicar secretos. Solo sobre una base
+**nueva, inexistente** llamada `foodstore_tpi_oficial`. No hay borrado ni
+recreación automática. Si ya existe, detenerse y acordar otro ensayo.
 
 ```powershell
+$exists = psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d postgres -At -v ON_ERROR_STOP=1 -c "SELECT COUNT(*) FROM pg_database WHERE datname='foodstore_tpi_oficial';"
+if ($LASTEXITCODE -ne 0 -or "$exists".Trim() -ne '0') { throw 'Base existente o precheck fallido; detenerse.' }
+
 createdb -w -h 127.0.0.1 -p 5432 -U postgres foodstore_tpi_oficial
-if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear la base; detener la instalación.' }
+if ($LASTEXITCODE -ne 0) { throw 'No se pudo crear la base.' }
 
 psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR_STOP=1 -1 -f .\schema.sql
 if ($LASTEXITCODE -ne 0) { throw 'Falló schema.sql.' }
@@ -77,71 +76,63 @@ psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR
 if ($LASTEXITCODE -ne 0) { throw 'Falló la batería; no continuar.' }
 
 psql -X -w -h 127.0.0.1 -p 5432 -U postgres -d foodstore_tpi_oficial -v ON_ERROR_STOP=1 -f .\tpi\sql\consultas_cobertura_tpi.sql
-if ($LASTEXITCODE -ne 0) { throw 'Falló la consulta HAVING.' }
+if ($LASTEXITCODE -ne 0) { throw 'Fallaron las consultas HAVING/ventana.' }
 ```
 
-`-1` corresponde solo a schema y objetos. El seed administra su propio
-`BEGIN/COMMIT`; la batería usa `BEGIN/ROLLBACK` y debe correr sin otras
-escrituras. `CREATE` simple y la guarda del seed hacen visibles las
-instalaciones repetidas. Ante un error, detenerse y diagnosticar, no parchear
-ni continuar automáticamente.
+`-1` corresponde solo a schema y objetos. El seed administra BEGIN/COMMIT y la
+batería BEGIN/ROLLBACK, con guarda literal de base; correrla sin otros escritores.
+La batería revierte fixtures, no objetos instalados; las identidades pueden
+conservar huecos. El seed contiene 2 categorías, 3 usuarios, 3 productos,
+5 pedidos y 7 detalles: el stock es una fotografía, no una venta reejecutada.
+`SEED_NO_AUTH` es un marcador académico, no una credencial real.
 
-El seed precede a los objetos y no reproduce cronológicamente ventas: el stock
-es una fotografía inicial. `SEED_NO_AUTH` es un marcador académico, no una
-credencial real ni autenticación implementada. La batería revierte sus fixtures,
-no los objetos instalados; las secuencias IDENTITY pueden conservar huecos.
-El DOWN comentado no se ejecuta automáticamente.
+## Transacciones multisesión: laboratorio separado
 
-Esta secuencia **no reproduce concurrencia multisesión** ni instala U3/U4.
-Los tres ensayos requieren conexiones independientes y monitoreo según la
-[evidencia](evidencia_modelo_oficial.md). El seed mínimo tampoco reconstruye
-las cargas masivas medidas de U3/U4 ni proporciona los usuarios 801/802 de U4.
+Preparar exclusivamente `foodstore_tpi_cierre_b` con schema/seed/objetos siguiendo
+el [README del arnés](pruebas/transacciones/README.md). Requiere PowerShell 7+,
+laboratorio exclusivo y sus guardas de seed/objetos. Después:
 
-## Resultados reales resumidos
+```powershell
+pwsh -NoProfile -File .\tpi\pruebas\transacciones\ejecutar.ps1
+if ($LASTEXITCODE -ne 0) { throw 'TPI-B falló; preservar la base y revisar logs.' }
+```
 
-Fuente: [evidencia de Bloques 6, 7 y 8](evidencia_modelo_oficial.md), sobre
-`foodstore_tpi_oficial`, PostgreSQL **17.11**. Este cierre documental no repite
-las ejecuciones.
+Los SQL y la coordinación SAVEPOINT/RR/SERIALIZABLE están versionados. Los logs
+se guardan bajo TEMP, fuera del repo. El arnés exige exactamente 40001 en la
+sesión abortada, no acepta 40P01 ni errores genéricos, y verifica restauración
+lógica e integridad. Puede repetirse tras PASS según su guía.
 
-| Verificación | Resultado |
-|---|---|
-| Schema, seed y objetos | PASS; catálogo contrastado, 12 objetos presentes |
-| Batería de una sesión | 29 grupos / 37 variantes; 30 NOTICE PASS, exit code 0 |
-| NOTICE global | `PASS: batería completa de objetos programables del modelo oficial` |
-| Atomicidad y operación masiva | PASS; detalle, subtotal, total y stock revierten juntos |
-| Concurrencia real | 3/3 escenarios PASS bajo READ COMMITTED, con espera `Lock / transactionid` observada |
-| HAVING | Ana Gómez: 2 pedidos; Luis Paz: 2 pedidos; 2 filas, exit code 0 |
-| Limpieza y conciliación | Cero fixtures; seed y 12 objetos intactos; cero inconsistencias de subtotal/total |
+Los tres casos READ COMMITTED anteriores conservan su evidencia; sus scripts
+temporales no quedaron íntegramente versionados. La ejecución del nuevo arnés
+no los repite ni se presenta como reproducción de esos intercalados.
 
-La batería cubre ventas válidas, rechazos, integridad declarativa, precio
-histórico, subtotal, total, modificaciones directas controladas, bajas y
-reactivaciones, DELETE, movimientos entre pedidos y sentencias masivas.
-La concurrencia se ensayó después, separadamente: sobreventa, total del mismo
-pedido y duplicado de pareja. El helper temporal de cleanup registró una
-incidencia no productiva, explicada sin ocultarla en el
-[informe técnico](informe_tecnico.md) y la evidencia.
+## U3: instalación y mediciones separadas
 
-## Unidades 3 y 4: decisiones vigentes
+Los tres índices aceptados, cuatro vistas y materializada **no pertenecen a la
+instalación mínima raíz/TPI**. Seguir [README U3](../unidades/unidad-3/README.md),
+[informe vigente](../unidades/unidad-3/informes/informe_mediciones.md) y
+[evidencia con bootstrap/carga y planes](../unidades/unidad-3/informes/evidencia_modelo_oficial.md).
+No instalar candidatos antes de medir BEFORE ni ejecutar recreaciones sin
+autorización expresa para esa base. Seguridad requiere revisar el rol y permisos;
+no se instala un rol de despliegue por seguir el TPI mínimo.
 
-- **U3:** tres índices aceptados para la carga evaluada, cuatro vistas equivalentes,
-  seguridad de `v_usuarios_publico` probada y materializada con
-  `REFRESH CONCURRENTLY` exitoso. Consultar [informe vigente U3](../unidades/unidad-3/informes/informe_mediciones.md)
-  para métricas y costos de escritura; no son resultados del seed mínimo TPI.
-- **U4:** FNBC PASS. La desnormalización fue `VALID_EXPERIMENT`, pero quedó
-  `REJECTED_AFTER_MEASUREMENT` / `DO_NOT_ADOPT`. `detalle_pedido.categoria_id`
-  no pertenece al esquema canónico. Véase [informe vigente U4](../unidades/unidad-4/informes/informe_u4_fnbc_desnormalizacion.md).
+Las métricas provienen del laboratorio U3 masivo, no del seed mínimo ni de U4.
+Su guía conserva la cronología anterior a la reparación del schema raíz:
+hoy schema.sql es canónico, pero no reconstruye por sí solo esa carga medida.
+Los SQL/specs que dicen «pendiente» registran su autoría previa; el informe y
+la evidencia U3 acreditan las ejecuciones posteriores. No se reescribe historia.
 
-## Límites y lectura posterior
+## Alcance y límites
 
-La ruta de negocio que administra stock es `CALL registrar_detalle_pedido`.
-DML directo del detalle mantiene derivados mediante triggers, pero **no**
-administra inventario. No hay política de reposición por bajas, cancelación
-ni DELETE. No se acreditaron ausencia universal de deadlocks, seguridad
-concurrente de DML directo, SERIALIZABLE, carga masiva concurrente ni
-rendimiento bajo estrés o alta concurrencia.
+La venta soportada usa CALL registrar_detalle_pedido; DML directo de detalle
+mantiene derivados, no inventario. Bajas, reactivaciones y DELETE no reponen
+stock automáticamente. No se acreditan ausencia universal de deadlocks, CALL
+seguro bajo cualquier aislamiento, DML arbitrario concurrente ni rendimiento
+bajo estrés. El 40001 ensayado también puede ocurrir bajo REPEATABLE READ: no
+es una prueba exclusiva de SSI ni una estrategia automática de reintento.
 
-Los comentarios de validación pendiente en scripts/modelos registran su fase
-de autoría anterior; la ejecución posterior se acredita en la evidencia, no
-por reescribir esos artefactos durante este cierre. El
-[informe técnico](informe_tecnico.md) amplía decisiones, uso de IA, resultados
-y reservas. La [raíz](../README.md) permite recorrer el proyecto completo.
+La incidencia histórica 42601 del helper de cleanup se preserva separada de
+los resultados productivos PASS. U1/U2 e informes previos permanecen intactos.
+La revisión independiente TPI-D y la integración Git no se declaran realizadas
+por este cierre documental. Volver al [informe](informe_tecnico.md) para la
+matriz, optimización, IA y decisiones; a la [raíz](../README.md) para el proyecto.

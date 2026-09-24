@@ -19,10 +19,13 @@ candidata, no solo a la PK elegida.
 | B. Reglas del dominio | Subtotal como cantidad por precio histórico; total de detalles vigentes | Reglas conceptuales que la capa programable debe mantener |
 | C. Redundancias deliberadas | Subtotal físico y total físico del modelo oficial | Se conservan y requieren consistencia; no se eliminan para ocultar el resultado del análisis |
 
-El esquema todavía no impone automáticamente la igualdad del subtotal ni
-la conciliación del total. Los CHECK de no negatividad no equivalen a esas
-reglas. Se distingue el contrato estructural actual del dominio que debe
-mantenerse en la siguiente fase.
+El archivo `schema.sql` por sí solo no impone automáticamente la igualdad
+del subtotal ni la conciliación del total. Los CHECK de no negatividad no
+equivalen a esas reglas. La capa TPI ya implementada en
+[objetos_programables.sql](../sql/objetos_programables.sql) mantiene ambas
+reglas cuando se instala; su ejecución anterior está registrada en la
+[evidencia oficial](../evidencia_modelo_oficial.md). Una base que solo carga
+schema y seed no tiene esos triggers instalados automáticamente.
 
 - **1FN:** atributos escalares, sin grupos repetitivos.
 - **2FN:** 1FN y ausencia de dependencia parcial de un atributo no primo
@@ -126,8 +129,8 @@ es cero. No se elimina porque pertenece al modelo oficial.
 Esta regla cruza relaciones y por sí sola no demuestra una DF interna
 entre atributos no clave de pedido. Por ello, la presencia de total no
 basta para declarar una violación de FNBC. Sí obliga a mantener consistencia
-mediante la futura capa programable: el DEFAULT 0 y `CHECK(total >= 0)`
-no realizan la conciliación.
+mediante `calcular_total_pedido` y los tres triggers AFTER de detalle de la
+capa TPI: el DEFAULT 0 y `CHECK(total >= 0)` no realizan la conciliación.
 
 ## 5. detalle_pedido
 
@@ -166,20 +169,84 @@ dominio para obtener artificialmente una conclusión favorable.
 
 ### Subtotal: redundancia derivada deliberada
 
-Clasificación: **REDUNDANCIA DERIVADA DELIBERADA**.
+Clasificación: **REDUNDANCIA DERIVADA DELIBERADA Y CONTROLADA**.
 
 El subtotal físico es obligatorio en el modelo oficial. No se propone
 eliminarlo ni sustituirlo permanentemente por una expresión en consultas.
-Requiere mantenimiento automático de cantidad por precio histórico de la
-misma fila. La fase posterior deberá implementar un mecanismo equivalente
-a `fn_set_subtotal` y su trigger; no se afirma que ya esté instalado o
-adaptado en el TPI actual.
+Su mantenimiento automático ya está implementado mediante `fn_set_subtotal`
+y `trg_subtotal` en [objetos_programables.sql](../sql/objetos_programables.sql).
+El trigger BEFORE por fila deriva `NEW.subtotal = NEW.cantidad *
+NEW.precio_unitario` en INSERT y en UPDATE de cantidad, precio unitario,
+producto o subtotal. Sustituye cualquier subtotal suministrado directamente;
+el cálculo pertenece a la misma sentencia y transacción que modifica la línea.
 
 El CHECK presente solo garantiza subtotal no negativo. Cambios de cantidad
 o precio pueden dejarlo inconsistente si no se mantiene. El
 [seed](../../datos_iniciales.sql) calcula sus subtotales explícitamente y
 reconcilia sus totales como una fotografía inicial; esa carga no reemplaza
-la futura lógica de operaciones posteriores.
+la instalación de los objetos para operaciones posteriores. Las pruebas de
+cantidad, precio y manipulación directa de subtotal se conservan en la
+[batería TPI](../pruebas/pruebas_objetos_programables.sql), grupos N, O y P;
+su resultado previo está en la evidencia oficial, no se reejecuta aquí.
+
+La decisión física responde al contrato oficial, no a un desconocimiento de
+3FN: preserva el importe histórico usado por reportes junto a su cantidad y
+precio, facilita su trazabilidad y mantiene una autoridad transaccional dentro
+del motor, sin depender de que una aplicación externa recalcule correctamente.
+No se afirma una mejora de rendimiento no medida. El control de consistencia
+no convierte al detalle físico en 3FN/FNBC estricta.
+
+## Normalización lógica y alcance de la descomposición
+
+El modelo conceptual/lógico separa los hechos de usuario, categoría, producto,
+pedido y línea de pedido, con claves y DF explícitas. Para usuario, categoría,
+producto y pedido, las DF internas identificadas ya satisfacen 3FN/FNBC: no
+existe una DF violatoria que obligue a una nueva descomposición en este análisis.
+No se inventa una relación universal ni una migración anterior para afirmar
+que se ejecutó un algoritmo que no está documentado.
+
+En detalle se distingue el hecho lógico base, sin el atributo calculado, de
+su representación física oficial con subtotal. La proyección sin subtotal
+conserva las claves `{id}` y `{pedido_id, producto_id}`; bajo las DF por claves
+identificadas no presenta la DF derivada que viola 3FN/FNBC. Esto no borra la
+excepción del esquema físico realmente entregado.
+
+### Demostración teórica de JOIN sin pérdida aplicada al detalle
+
+Sea `D` la relación detalle completa y `X = {cantidad, precio_unitario}`.
+Para una instancia que satisface `X → subtotal`, considerar las proyecciones:
+
+```text
+D1(cantidad, precio_unitario, subtotal)
+D2(id, cantidad, precio_unitario, pedido_id, producto_id, eliminado, created_at)
+```
+
+Se cumple `D1 ∩ D2 = X` y `X → D1`: X determina sus propios atributos por
+reflexividad y determina subtotal por la regla del dominio. El criterio de
+descomposición binaria garantiza entonces que
+`π_D1(D) JOIN π_D2(D) = D`: la descomposición es **sin pérdida** bajo esa DF.
+Cada línea conserva su id en D2; al reconstruirla existe un único subtotal
+para su par cantidad/precio. El razonamiento usa proyecciones relacionales
+sin duplicados y atributos del cálculo NOT NULL; no presupone que un JOIN de
+dos copias SQL con duplicados tenga esa propiedad.
+
+Las DF por claves quedan en D2 para sus atributos; combinadas con
+`X → subtotal` de D1 permiten deducir las DF originales por claves sobre D.
+La regla aritmética `subtotal = cantidad * precio_unitario` es más fuerte que
+la mera DF: una tabla D1 hipotética tendría que imponer también esa igualdad,
+no solo unicidad del par. La prueba lossless no sustituye esa regla ni afirma
+una clasificación exhaustiva de otras DF aritméticas de D1.
+
+**No se implementa esta descomposición.** D1 sería un catálogo artificial de
+combinaciones cantidad/precio, no una entidad independiente del negocio;
+mantenerlo agregaría relaciones y operaciones sin necesidad funcional. La
+alternativa lógica de calcular subtotal sin almacenarlo es clara, pero el
+contrato oficial exige persistirlo. La defensa académica consiste en reconocer
+la DF, demostrar su consecuencia formal y justificar la excepción controlada,
+no en cambiar `schema.sql` para satisfacer artificialmente una rúbrica.
+
+La [evidencia de cierre de objetivos 3 y 5](../evidencia_cierre_objetivos_3_5.md)
+separa esta demostración documental de la ejecución real de consultas.
 
 ## Precio histórico frente a precio de catálogo
 
