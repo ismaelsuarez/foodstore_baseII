@@ -4,7 +4,9 @@
 concurrentes y consulta HAVING en PostgreSQL 17.11.** El resultado tiene límites
 explícitos y conserva una incidencia no productiva del arnés de pruebas. Este
 informe interpreta la [evidencia consolidada](evidencia_modelo_oficial.md); no
-reemplaza sus registros ni acredita ejecuciones nuevas durante el cierre.
+reemplaza sus registros. El cierre posterior TPI-A de normalización y ventana
+tiene [evidencia propia](evidencia_cierre_objetivos_3_5.md), separada de aquellos
+ensayos funcionales y concurrentes.
 
 ## 1. Introducción y alcance
 
@@ -71,8 +73,12 @@ En detalle, `id`, `pedido_id` y `producto_id` son primos. La regla conceptual
 `{cantidad, precio_unitario} → subtotal` tiene determinante que no es superclave
 y dependiente no primo. Por eso impide 3FN/FNBC estrictas, aunque no hay una
 DF parcial de un no primo respecto de una parte propia de la clave compuesta.
-**Subtotal es REDUNDANCIA DERIVADA DELIBERADA**, exigida por el modelo oficial;
-no se elimina para aparentar una normalización más alta.
+**Subtotal es REDUNDANCIA DERIVADA DELIBERADA Y CONTROLADA**, exigida por el
+modelo oficial; no se elimina para aparentar una normalización más alta.
+El modelo lógico separa los hechos y sus claves; la representación física
+conserva conscientemente el importe derivado de cada línea para trazabilidad
+y reportes. No se afirma que todas las tablas físicas estén estrictamente
+en 3FN/FNBC ni se utiliza el ejercicio aislado de U4 para sostenerlo.
 
 `subtotal` se deriva dentro de una línea. En cambio, `pedido.total` es un
 **agregado físico entre filas de otra relación**: suma los subtotales de las
@@ -80,10 +86,20 @@ líneas vigentes, o cero si no hay ninguna. Esa regla cruzada no demuestra por
 sí sola una DF interna problemática entre atributos no clave de pedido.
 Ambos datos requieren consistencia, pero no son el mismo tipo de dependencia.
 
-El schema impone no negatividad, no la igualdad derivada. La capa programable
-instalada posteriormente mantiene subtotal y total; los textos de la fase
-estructural que describen esa capa como futura no constituyen evidencia de
-que siga pendiente su instalación.
+El schema impone no negatividad, no la igualdad derivada. `fn_set_subtotal`
+y `trg_subtotal` mantienen la igualdad dentro de la sentencia/transacción;
+`calcular_total_pedido` y los triggers AFTER mantienen el total. Estos objetos
+están implementados y tienen evidencia previa propia; una base con solo schema
+y seed no los instala automáticamente ni adquiere sus garantías.
+
+La defensa de normalización incluye una descomposición **solo teórica** del
+detalle en `(cantidad, precio_unitario, subtotal)` y el resto de atributos
+sin subtotal. La intersección cantidad/precio determina la primera proyección,
+por lo que el JOIN es sin pérdida para instancias que cumplen la DF. No se crea
+un catálogo artificial de multiplicaciones ni se altera el contrato oficial;
+las otras cuatro relaciones no requieren nueva descomposición bajo sus DF
+internas identificadas. La demostración y sus límites están en el
+[análisis de normalización](modelo/normalizacion.md).
 
 ## 4. Integridad y seed
 
@@ -259,7 +275,7 @@ resultado productivo PASS. El estado global FAIL del resumen inicial agrupaba
 ambos niveles; la [evidencia consolidada](evidencia_modelo_oficial.md) registra
 esa clasificación y su procedencia sin borrar el incidente.
 
-## 9. Consultas y cobertura histórica
+## 9. Consultas vigentes y cobertura histórica
 
 La [consulta vigente HAVING](sql/consultas_cobertura_tpi.sql) agrupa `usuario`
 con `pedido`, conserva `p.eliminado = FALSE` mediante WHERE antes de agrupar y
@@ -280,8 +296,26 @@ después de GROUP BY y no se reemplaza por un WHERE sobre COUNT en el mismo nive
 
 Estos ejercicios pertenecen a una versión anterior del modelo. Se mantienen
 como evidencia evaluada, no como SQL actualizado ni una secuencia de migración.
-La consulta HAVING actual complementa esa cobertura sin duplicar ventanas o
-inventar nuevas reglas para aumentar artificialmente el número de casos.
+Su RANK histórico no sustituye una ventana ejecutable sobre el modelo actual.
+
+La sección de ventana de [consultas_cobertura_tpi.sql](sql/consultas_cobertura_tpi.sql)
+agrega `SUM(p.total)` por usuario y aplica
+`RANK() OVER (ORDER BY gasto_total DESC)`. Usa `usuario` y `pedido.usuario_id`,
+excluye pedidos eliminados y conserva el historial de usuarios dados de baja.
+No filtra estados ni incorpora detalles que multipliquen el total de pedido.
+El `ORDER BY ranking, id` final estabiliza la presentación; id no participa
+en OVER, por lo que no rompe empates del ranking. Los iguales comparten puesto
+y el siguiente rango deja el salto correspondiente. La ejecución y sus límites
+se registran en la [evidencia TPI-A](evidencia_cierre_objetivos_3_5.md), sin
+atribuir resultados actuales a los SQL históricos.
+
+Resultado real sobre `foodstore_tpi_cierre_a`, construido desde schema y seed
+canónicos en PostgreSQL 17.11: **Marta Ruiz 6200.00, ranking 1; Ana Gómez
+5950.00, ranking 2; Luis Paz 2550.00, ranking 3**. Dos ejecuciones devolvieron
+el mismo orden. No hubo empates en el seed: el comportamiento de RANK frente
+a ellos se explica, pero no se presenta como un caso empírico ejecutado.
+Tampoco se ensayó una baja nueva de usuario en esta fase. La base no instaló
+objetos programables; la protección de subtotal conserva su evidencia previa.
 
 ## 10. Unidad 3: índices y costo de escritura
 
@@ -456,6 +490,7 @@ que consistencia experimental no obliga a aceptar una optimización.
 
 La reproducción se encuentra en el [README](README.md); resultados detallados
 y procedencia, en la [evidencia](evidencia_modelo_oficial.md). Este cierre no
-ejecuta PostgreSQL ni altera esa evidencia. Corresponde realizar la auditoría
+repite aquellos ensayos ni altera esa evidencia; la consulta de ventana TPI-A
+tiene su ejecución registrada por separado. Corresponde realizar la auditoría
 final de la entrega antes de decidir su commit; no se declara una aprobación
 académica universal ni un commit realizado.
