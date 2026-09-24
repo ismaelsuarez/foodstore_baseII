@@ -1,4 +1,6 @@
--- Unidad 4, Fase 6: candidato A experimental; no ADOPTED.
+-- Unidad 4, Fase 6E: remediación experimental serializada; no ADOPTED.
+-- Ruta cerrada autorizada: LOGIN real u4_app y cuatro API SECURITY DEFINER.
+-- El fallo anterior permanece en Git y en su evidencia; no se reescribe.
 -- Requiere foodstore_u4_revalidacion, checkpoint Phase3 y fuentes canónicas.
 -- Ejecutar con psql -X -w -v ON_ERROR_STOP=1 -f <este archivo>, sin -1 externo.
 -- El contrato revisado está en ../specs/u4_desnormalizacion_top_categorias.md.
@@ -152,6 +154,24 @@ BEGIN
 END;
 $precheck$;
 
+-- Roles exclusivos. La contraseña efímera se provisiona fuera del repo sin logs.
+DO LANGUAGE plpgsql $roles$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_catalog.pg_roles WHERE rolname IN ('u4_app','u4_owner'))
+       OR EXISTS (SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname='u4_api')
+    THEN RAISE EXCEPTION 'STOP: roles o schema experimental preexistentes'; END IF;
+END;
+$roles$;
+CREATE ROLE u4_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
+    NOINHERIT NOREPLICATION NOBYPASSRLS;
+CREATE ROLE u4_app LOGIN PASSWORD NULL NOSUPERUSER NOCREATEDB NOCREATEROLE
+    NOINHERIT NOREPLICATION NOBYPASSRLS;
+CREATE SCHEMA u4_api AUTHORIZATION u4_owner;
+REVOKE ALL ON SCHEMA u4_api FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO u4_owner,u4_app;
+GRANT USAGE ON SCHEMA u4_api TO u4_app;
+GRANT CONNECT ON DATABASE foodstore_u4_revalidacion TO u4_app;
+
 -- Capturar todas las columnas originales; categoria_id será excluida al comparar.
 SELECT md5(string_agg(md5(to_jsonb(t)::text),'' ORDER BY id)) AS before_producto FROM public.producto t \gset
 SELECT md5(string_agg(md5(to_jsonb(t)::text),'' ORDER BY id)) AS before_detalle FROM public.detalle_pedido t \gset
@@ -196,27 +216,34 @@ ALTER TABLE public.detalle_pedido
 \echo MIGRATION_FK_END
 \echo MIGRATION_FUNCTIONS_TRIGGERS_BEGIN
 \timing on
-CREATE FUNCTION public.fn_detalle_pedido_set_categoria()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-VOLATILE
+-- BEFORE STATEMENT no intercepta SELECT FOR UPDATE. La barrera principal es
+-- la API que toma el gate antes de acceder a filas, con DML directo revocado.
+CREATE FUNCTION u4_api.fn_gate_categoria()
+RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY INVOKER
+SET search_path = pg_catalog, pg_temp
+AS $func$
+BEGIN
+    PERFORM pg_catalog.pg_advisory_xact_lock(21812,1);
+    RETURN NULL;
+END;
+$func$;
+
+CREATE FUNCTION u4_api.fn_detalle_pedido_set_categoria()
+RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY INVOKER
+SET search_path = pg_catalog, pg_temp
 AS $func$
 DECLARE
-    v_categoria_id BIGINT;
+    v_categoria_id bigint;
 BEGIN
-    -- Dejar producto_id NULL a la autoridad NOT NULL del esquema.
     IF NEW.producto_id IS NULL THEN
-        RETURN NEW;
+        RETURN NEW; -- NOT NULL estructural: no convertir NULL en 23503.
     END IF;
     SELECT pr.categoria_id INTO v_categoria_id
-    FROM public.producto pr
-    WHERE pr.id=NEW.producto_id
-    FOR SHARE;
+    FROM public.producto pr WHERE pr.id=NEW.producto_id FOR SHARE;
     IF NOT FOUND THEN
-        -- Error explícito del trigger, identificado con la FK existente.
         RAISE EXCEPTION USING ERRCODE='23503',
             MESSAGE='Producto inexistente para derivar la categoría del detalle',
-            DETAIL=format('producto_id=%s no existe en public.producto',NEW.producto_id),
+            DETAIL=pg_catalog.format('producto_id=%s no existe en public.producto',NEW.producto_id),
             SCHEMA='public', TABLE='detalle_pedido', COLUMN='producto_id',
             CONSTRAINT='fk_detalle_pedido_producto';
     END IF;
@@ -225,37 +252,141 @@ BEGIN
 END;
 $func$;
 
-CREATE TRIGGER trg_detalle_pedido_set_categoria
-BEFORE INSERT OR UPDATE OF producto_id, categoria_id
-ON public.detalle_pedido
-FOR EACH ROW EXECUTE FUNCTION public.fn_detalle_pedido_set_categoria();
-
-CREATE FUNCTION public.fn_producto_sync_categoria_detalle()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-VOLATILE
+CREATE FUNCTION u4_api.fn_producto_sync_categoria_detalle()
+RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY INVOKER
+SET search_path = pg_catalog, pg_temp
 AS $func$
 BEGIN
     IF NEW.categoria_id IS DISTINCT FROM OLD.categoria_id THEN
-        UPDATE public.detalle_pedido
-        SET categoria_id=NEW.categoria_id
-        WHERE producto_id=NEW.id
-          AND categoria_id IS DISTINCT FROM NEW.categoria_id;
+        UPDATE public.detalle_pedido SET categoria_id=NEW.categoria_id
+        WHERE producto_id=NEW.id AND categoria_id IS DISTINCT FROM NEW.categoria_id;
     END IF;
     RETURN NEW;
 END;
 $func$;
 
+CREATE TRIGGER trg_detalle_pedido_gate_categoria
+BEFORE INSERT OR UPDATE OF producto_id, categoria_id ON public.detalle_pedido
+FOR EACH STATEMENT EXECUTE FUNCTION u4_api.fn_gate_categoria();
+CREATE TRIGGER trg_producto_gate_categoria
+BEFORE UPDATE OF categoria_id ON public.producto
+FOR EACH STATEMENT EXECUTE FUNCTION u4_api.fn_gate_categoria();
+CREATE TRIGGER trg_detalle_pedido_set_categoria
+BEFORE INSERT OR UPDATE OF producto_id, categoria_id ON public.detalle_pedido
+FOR EACH ROW EXECUTE FUNCTION u4_api.fn_detalle_pedido_set_categoria();
 CREATE TRIGGER trg_producto_sync_categoria_detalle
 AFTER UPDATE OF categoria_id ON public.producto
-FOR EACH ROW EXECUTE FUNCTION public.fn_producto_sync_categoria_detalle();
+FOR EACH ROW EXECUTE FUNCTION u4_api.fn_producto_sync_categoria_detalle();
+
+-- Cada API toma el gate como primera instrucción. VOLATILE y READ COMMITTED:
+-- la sentencia posterior al PERFORM lee su snapshot después de la espera.
+-- No STRICT: los NULL deben alcanzar las restricciones originales.
+-- IDs explícitos; sin acceso a secuencias ni generación implícita de fixtures.
+CREATE FUNCTION u4_api.insertar_detalles(p_detalles jsonb)
+RETURNS SETOF bigint LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $func$
+BEGIN
+    PERFORM pg_catalog.pg_advisory_xact_lock(21812,1);
+    RETURN QUERY
+    INSERT INTO public.detalle_pedido AS dp
+        (id,cantidad,precio_unitario,subtotal,pedido_id,producto_id,
+         eliminado,created_at,categoria_id)
+    OVERRIDING SYSTEM VALUE
+    SELECT x.id,x.cantidad,x.precio_unitario,x.subtotal,x.pedido_id,x.producto_id,
+           COALESCE(x.eliminado,FALSE),COALESCE(x.created_at,pg_catalog.now()),x.categoria_id
+    FROM pg_catalog.jsonb_to_recordset(p_detalles) AS x(
+        id bigint,cantidad integer,precio_unitario numeric(12,2),subtotal numeric(12,2),
+        pedido_id bigint,producto_id bigint,eliminado boolean,
+        created_at timestamptz,categoria_id bigint)
+    RETURNING dp.id;
+END;
+$func$;
+
+CREATE FUNCTION u4_api.cambiar_producto_detalle(p_detalle_id bigint,p_producto_id bigint)
+RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $func$
+BEGIN
+    PERFORM pg_catalog.pg_advisory_xact_lock(21812,1);
+    UPDATE public.detalle_pedido SET producto_id=p_producto_id WHERE id=p_detalle_id;
+END;
+$func$;
+
+CREATE FUNCTION u4_api.normalizar_categoria_detalle(p_detalle_id bigint,p_categoria_id bigint)
+RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $func$
+BEGIN
+    PERFORM pg_catalog.pg_advisory_xact_lock(21812,1);
+    UPDATE public.detalle_pedido SET categoria_id=p_categoria_id WHERE id=p_detalle_id;
+END;
+$func$;
+
+CREATE FUNCTION u4_api.recategorizar_producto(p_producto_id bigint,p_categoria_id bigint)
+RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $func$
+BEGIN
+    PERFORM pg_catalog.pg_advisory_xact_lock(21812,1);
+    UPDATE public.producto SET categoria_id=p_categoria_id WHERE id=p_producto_id;
+END;
+$func$;
+
+ALTER FUNCTION u4_api.fn_gate_categoria() OWNER TO u4_owner;
+ALTER FUNCTION u4_api.fn_detalle_pedido_set_categoria() OWNER TO u4_owner;
+ALTER FUNCTION u4_api.fn_producto_sync_categoria_detalle() OWNER TO u4_owner;
+ALTER FUNCTION u4_api.insertar_detalles(jsonb) OWNER TO u4_owner;
+ALTER FUNCTION u4_api.cambiar_producto_detalle(bigint,bigint) OWNER TO u4_owner;
+ALTER FUNCTION u4_api.normalizar_categoria_detalle(bigint,bigint) OWNER TO u4_owner;
+ALTER FUNCTION u4_api.recategorizar_producto(bigint,bigint) OWNER TO u4_owner;
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA u4_api FROM PUBLIC;
+
+-- Owner sin propiedad de tablas ni membresías. UPDATE(categoria_id) permite
+-- FOR SHARE sobre producto; ninguna autoridad de stock/subtotal/total se agrega.
+GRANT SELECT(id,categoria_id), UPDATE(categoria_id)
+    ON public.producto TO u4_owner;
+GRANT SELECT(id,producto_id,categoria_id), UPDATE(producto_id,categoria_id),
+    INSERT(id,cantidad,precio_unitario,subtotal,pedido_id,producto_id,
+           eliminado,created_at,categoria_id)
+    ON public.detalle_pedido TO u4_owner;
+GRANT SELECT ON public.categoria,public.producto,public.pedido,public.detalle_pedido TO u4_app;
+GRANT EXECUTE ON FUNCTION u4_api.insertar_detalles(jsonb),
+    u4_api.cambiar_producto_detalle(bigint,bigint),
+    u4_api.normalizar_categoria_detalle(bigint,bigint),
+    u4_api.recategorizar_producto(bigint,bigint) TO u4_app;
 \timing off
 \echo MIGRATION_FUNCTIONS_TRIGGERS_END
 
--- Solo derivación de categoría: sin filtros de baja y sin tocar stock/subtotal/total.
--- FOR SHARE coordina con recategorización, pero no elimina deadlocks posibles.
--- UPDATE directo puede bloquear detalle antes que producto; el fan-out invierte
--- ese orden. Registrar 40P01 y detenerse, sin ocultar errores/reintentar aquí.
+-- Privilegios EFECTIVOS, incluidos los recibidos por PUBLIC.
+DO LANGUAGE plpgsql $acl$
+DECLARE
+    v_tabla text;
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_catalog.pg_auth_members
+        WHERE roleid IN ('u4_app'::regrole,'u4_owner'::regrole)
+           OR member IN ('u4_app'::regrole,'u4_owner'::regrole))
+       OR EXISTS (SELECT 1 FROM pg_catalog.pg_class
+          WHERE relnamespace='public'::regnamespace
+            AND relowner IN ('u4_app'::regrole,'u4_owner'::regrole))
+       OR pg_catalog.has_schema_privilege('u4_app','public','CREATE')
+       OR pg_catalog.has_schema_privilege('u4_app','u4_api','CREATE')
+       OR pg_catalog.has_table_privilege('u4_app','public.usuario','SELECT')
+    THEN RAISE EXCEPTION 'STOP: privilegios o propiedad fuera de contrato'; END IF;
+    FOREACH v_tabla IN ARRAY ARRAY['categoria','producto','pedido','detalle_pedido','usuario'] LOOP
+        IF pg_catalog.has_table_privilege('u4_app','public.'||v_tabla,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
+           OR pg_catalog.has_any_column_privilege('u4_app','public.'||v_tabla,'INSERT,UPDATE,REFERENCES')
+        THEN RAISE EXCEPTION 'STOP: u4_app tiene escritura directa en %',v_tabla; END IF;
+    END LOOP;
+    IF pg_catalog.has_function_privilege('u4_app','u4_api.fn_gate_categoria()','EXECUTE')
+       OR pg_catalog.has_function_privilege('u4_app','u4_api.fn_detalle_pedido_set_categoria()','EXECUTE')
+       OR pg_catalog.has_function_privilege('u4_app','u4_api.fn_producto_sync_categoria_detalle()','EXECUTE')
+    THEN RAISE EXCEPTION 'STOP: helper ejecutable directamente por u4_app'; END IF;
+END;
+$acl$;
+
+-- Solo categoría actual incluidas bajas, sin tocar stock/subtotal/total.
+-- El superusuario queda fuera del contrato; no usar SET ROLE para acreditar LOGIN.
 SELECT NOT EXISTS (SELECT 1 FROM public.detalle_pedido dp
   LEFT JOIN public.producto pr ON pr.id=dp.producto_id
   LEFT JOIN public.categoria c ON c.id=dp.categoria_id
@@ -264,9 +395,9 @@ SELECT NOT EXISTS (SELECT 1 FROM public.detalle_pedido dp
  AND :'before_producto'=(SELECT md5(string_agg(md5(to_jsonb(t)::text),'' ORDER BY id)) FROM public.producto t)
  AND :'before_detalle'=(SELECT md5(string_agg(md5((to_jsonb(t)-'categoria_id')::text),'' ORDER BY id)) FROM public.detalle_pedido t)
  AND :'before_indexes'=(SELECT md5(string_agg(indexname||indexdef,'' ORDER BY indexname)) FROM pg_indexes WHERE schemaname='public')
- AND (SELECT count(*) FROM pg_trigger WHERE NOT tgisinternal)=2
+ AND (SELECT count(*) FROM pg_trigger WHERE NOT tgisinternal)=4
  AND (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-      WHERE n.nspname !~ '^pg_' AND n.nspname<>'information_schema')=2 AS guard_ok \gset
+      WHERE n.nspname !~ '^pg_' AND n.nspname<>'information_schema')=7 AS guard_ok \gset
 \if :guard_ok
 \echo PASS: candidato_instalado_auditoria_canonica_0
 \else
@@ -306,11 +437,52 @@ LIMIT 5;
 -- el candidato instalado. Este archivo NO ejecuta el DOWN automáticamente.
 /*
 -- BEGIN_DOWN
+-- Administrador, sin conexiones de u4_app abiertas. No CASCADE ni DROP OWNED.
+DO LANGUAGE plpgsql $down_guard$
+BEGIN
+    IF current_database()<>'foodstore_u4_revalidacion'
+       OR EXISTS (SELECT 1 FROM pg_catalog.pg_stat_activity WHERE usename IN ('u4_app','u4_owner'))
+       OR EXISTS (SELECT 1 FROM pg_catalog.pg_auth_members
+           WHERE roleid IN ('u4_app'::regrole,'u4_owner'::regrole)
+              OR member IN ('u4_app'::regrole,'u4_owner'::regrole))
+    THEN RAISE EXCEPTION 'STOP: base, sesiones o membresías impiden DOWN'; END IF;
+END;
+$down_guard$;
 DROP TRIGGER trg_producto_sync_categoria_detalle ON public.producto;
-DROP FUNCTION public.fn_producto_sync_categoria_detalle();
 DROP TRIGGER trg_detalle_pedido_set_categoria ON public.detalle_pedido;
-DROP FUNCTION public.fn_detalle_pedido_set_categoria();
+DROP TRIGGER trg_producto_gate_categoria ON public.producto;
+DROP TRIGGER trg_detalle_pedido_gate_categoria ON public.detalle_pedido;
+DROP FUNCTION u4_api.insertar_detalles(jsonb);
+DROP FUNCTION u4_api.cambiar_producto_detalle(bigint,bigint);
+DROP FUNCTION u4_api.normalizar_categoria_detalle(bigint,bigint);
+DROP FUNCTION u4_api.recategorizar_producto(bigint,bigint);
+DROP FUNCTION u4_api.fn_producto_sync_categoria_detalle();
+DROP FUNCTION u4_api.fn_detalle_pedido_set_categoria();
+DROP FUNCTION u4_api.fn_gate_categoria();
 ALTER TABLE public.detalle_pedido DROP CONSTRAINT fk_detalle_pedido_categoria;
+REVOKE SELECT(id,categoria_id), UPDATE(categoria_id) ON public.producto FROM u4_owner;
+REVOKE SELECT(id,producto_id,categoria_id), UPDATE(producto_id,categoria_id),
+    INSERT(id,cantidad,precio_unitario,subtotal,pedido_id,producto_id,
+           eliminado,created_at,categoria_id) ON public.detalle_pedido FROM u4_owner;
+REVOKE SELECT ON public.categoria,public.producto,public.pedido,public.detalle_pedido FROM u4_app;
 ALTER TABLE public.detalle_pedido DROP COLUMN categoria_id;
+REVOKE USAGE ON SCHEMA u4_api FROM u4_app;
+DROP SCHEMA u4_api;
+REVOKE USAGE ON SCHEMA public FROM u4_app,u4_owner;
+REVOKE CONNECT ON DATABASE foodstore_u4_revalidacion FROM u4_app;
+DO LANGUAGE plpgsql $down_dependencies$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_catalog.pg_shdepend
+        WHERE refclassid='pg_catalog.pg_authid'::regclass
+          AND refobjid IN ('u4_app'::regrole,'u4_owner'::regrole))
+       OR EXISTS (SELECT 1 FROM pg_catalog.pg_auth_members
+           WHERE roleid IN ('u4_app'::regrole,'u4_owner'::regrole)
+              OR member IN ('u4_app'::regrole,'u4_owner'::regrole))
+       OR EXISTS (SELECT 1 FROM pg_catalog.pg_stat_activity WHERE usename IN ('u4_app','u4_owner'))
+    THEN RAISE EXCEPTION 'STOP: dependencias, membresías o sesiones remanentes'; END IF;
+END;
+$down_dependencies$;
+DROP ROLE u4_app;
+DROP ROLE u4_owner;
 -- END_DOWN
 */
