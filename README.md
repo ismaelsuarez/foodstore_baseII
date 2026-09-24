@@ -7,15 +7,28 @@ backend ni frontend; los entregables son SQL y documentación.
 
 ## Ruta de lectura
 
+Para conocer el estado actual, seguir este recorrido. El esquema y el seed
+siguen siendo las autoridades técnicas; las evidencias acreditan ensayos,
+no reemplazan sus contratos.
+
 | Recurso | Para qué consultarlo |
 |---|---|
+| [AGENTS.md](AGENTS.md) | Reglas de trabajo y orden de autoridad para agentes |
+| [Schema](schema.sql) y [seed](datos_iniciales.sql) | Estructura y dataset canónicos, en ese orden |
 | [TPI — Primera Entrega](tpi/README.md) | Cobertura, reproducción exacta desde PowerShell y resultados resumidos |
-| [Informe técnico TPI](tpi/informe_tecnico.md) | Interpretación de decisiones, pruebas y limitaciones |
-| [Evidencia oficial TPI](tpi/evidencia_modelo_oficial.md) | Resultados reales de ejecución funcional, concurrencia y HAVING |
-| [Modelo relacional](tpi/modelo/modelo_relacional.md) | Columnas, tipos, claves y restricciones vigentes |
-| [AGENTS.md](AGENTS.md) | Contrato de trabajo para futuros agentes |
+| [Informe técnico TPI](tpi/informe_tecnico.md) | Matriz de nueve objetivos, decisiones, pruebas y limitaciones |
+| [Modelo TPI](tpi/modelo/) | ER, modelo relacional y normalización vigentes |
+| [SQL TPI](tpi/sql/) y [pruebas](tpi/pruebas/) | Implementación y verificación del comportamiento |
+| Evidencias [oficial](tpi/evidencia_modelo_oficial.md), [TPI-A](tpi/evidencia_cierre_objetivos_3_5.md) y [TPI-B](tpi/evidencia_cierre_objetivo_8.md) | Resultados reales y alcance de cada ensayo |
+| [Unidades](unidades/) | Trabajos evaluados, evidencia histórica y laboratorios específicos; no migraciones automáticas |
 
-Integrantes: **Avalos Pablo, Blangetti Sofia y Suarez Ismael**.
+## Integrantes
+
+| Apellido y nombre |
+|---|
+| Avalos, Pablo |
+| Blangetti, Sofia |
+| Suarez, Ismael |
 
 ## Modelo canónico vigente
 
@@ -54,7 +67,8 @@ nueva llamada `foodstore_tpi_oficial`, en este orden:
 3. `tpi/sql/objetos_programables.sql`: `ON_ERROR_STOP=1` y `-1`.
 4. `tpi/pruebas/pruebas_objetos_programables.sql`: `ON_ERROR_STOP=1`, sin `-1`;
    prueba reversible con su propio rollback.
-5. `tpi/sql/consultas_cobertura_tpi.sql`: consulta de lectura con `ON_ERROR_STOP=1`.
+5. `tpi/sql/consultas_cobertura_tpi.sql`: consultas HAVING y ventana, de solo
+   lectura, con `ON_ERROR_STOP=1`.
 
 No ejecutar todos los SQL del repositorio en cadena. No recrear una base
 existente sin autorización ni instalar laboratorios automáticamente. El seed
@@ -64,7 +78,8 @@ seed es una fotografía inicial, no una reproducción cronológica de ventas.
 
 ## Resultados TPI acreditados
 
-Validación en **PostgreSQL 17.11**, base `foodstore_tpi_oficial`:
+Validación en **PostgreSQL 17.11**. La [evidencia oficial](tpi/evidencia_modelo_oficial.md),
+sobre `foodstore_tpi_oficial`, acredita:
 
 - Schema, seed y **12 objetos** — 7 rutinas y 5 triggers — instalados y verificados.
 - Batería: **29 grupos, 37 variantes, 30 NOTICE PASS**, código de salida 0.
@@ -74,12 +89,30 @@ Validación en **PostgreSQL 17.11**, base `foodstore_tpi_oficial`:
 - HAVING: Ana Gómez y Luis Paz, **2 pedidos cada uno**, dos filas reales.
 - Fixtures eliminados, seed intacto y cero inconsistencias de subtotal/total.
 
-Esto no acredita ausencia universal de deadlocks, concurrencia segura del DML
-directo, SERIALIZABLE, reposición automática por bajas/cancelaciones ni
-rendimiento bajo estrés. La evidencia separa los ensayos productivos de una
-incidencia del arnés temporal; el [informe técnico](tpi/informe_tecnico.md)
-explica su alcance. No se declara una garantía de producción ni se sustituye
-la auditoría final del TPI.
+Los cierres siguientes tienen bases y evidencias separadas; no se atribuyen
+retroactivamente a los ensayos anteriores:
+
+- **[TPI-A](tpi/evidencia_cierre_objetivos_3_5.md)**, `foodstore_tpi_cierre_a`:
+  ventana canónica `RANK() OVER (ORDER BY gasto_total DESC)`, con Marta Ruiz
+  **6200.00, ranking 1**; Ana Gómez **5950.00, ranking 2**; Luis Paz
+  **2550.00, ranking 3**. No hubo empates en el seed.
+- **[TPI-B](tpi/evidencia_cierre_objetivo_8.md)**, `foodstore_tpi_cierre_b`:
+  **dos ejecuciones completas del arnés PASS**, exit global 0:
+  - SAVEPOINT explícito: **50 → 49 → 47 → 49 → 50**.
+  - REPEATABLE READ: A lee **50**; B confirma **51**; A continúa viendo **50**;
+    una nueva transacción ve **51**.
+  - SERIALIZABLE: A y B parten de **50**; A confirma **52**; B aborta con
+    **SQLSTATE 40001**; el estado se restaura posteriormente a **50**.
+  - Integridad final sin inconsistencias; datos lógicos, secuencias y catálogo
+    restituidos, sin fixtures ni sesiones restantes del ensayo.
+
+SERIALIZABLE sí fue ensayado en ese escenario controlado. El 40001 observado
+no es exclusivo de ese nivel ni demuestra seguridad universal para cualquier
+operación o intercalado, ausencia universal de deadlocks, concurrencia segura
+de DML directo arbitrario ni rendimiento bajo estrés. No se implementan retry
+automático ni reposición/cancelación automática. La evidencia conserva separada
+la incidencia histórica del arnés temporal. El [informe técnico](tpi/informe_tecnico.md)
+consolida los **nueve objetivos** y estos límites; no declara garantías de producción.
 
 ## Evolución del modelo
 
@@ -95,14 +128,15 @@ Unidad 3, Unidad 4, el esquema raíz y el TPI.
 | Unidad 2 / TP3 | [Consultas y optimización históricas](unidades/unidad-2/tp3/README.md) |
 | Unidad 2 / TP4 | [JOIN y análisis históricos](unidades/unidad-2/tp4/README.md) |
 | Unidad 3 / TP5 | [Modelo oficial validado](unidades/unidad-3/README.md), commit `da5f3e4` |
-| Unidad 4 | [FNBC validada; candidato descartado](unidades/unidad-4/README.md), commit `95fbfbf` |
+| Unidad 4 | [Cierre canónico integrado en main: FNBC validada; candidato descartado](unidades/unidad-4/README.md) |
 
-Los avisos de U3/U4 que describen los archivos raíz como históricos registran
-el estado de la raíz **al cerrar aquellos laboratorios**, antes de su reparación
-para el TPI. Hoy la raíz es oficial. Sin embargo, el seed mínimo **no reproduce
-las cargas masivas medidas ni contiene los usuarios 801/802 requeridos por el
-ensayo FNBC**. Los resultados de laboratorio no deben atribuirse al seed del TPI.
-La carga histórica de TP3 tampoco es una migración del modelo vigente.
+Los avisos de U3 y los antecedentes de U4 que describen los archivos raíz como
+históricos corresponden a etapas anteriores a su reparación canónica. Hoy la
+raíz es oficial y el cierre vigente de U4 parte de ella. El seed mínimo **no
+reproduce las cargas masivas medidas**. El ensayo FNBC final reutilizó usuarios
+canónicos **1 y 2**, mapeados desde los identificadores lógicos 801/802 del ejemplo.
+Los resultados de laboratorio no deben atribuirse al seed del TPI. La carga
+histórica de TP3 tampoco es una migración del modelo vigente.
 
 ## Unidad 3: resultados oficiales
 
@@ -126,11 +160,18 @@ máquina, no son universales. Sus objetos no se instalan desde el esquema mínim
 
 ## Unidad 4: experimento válido, no adoptado
 
-FNBC: **PASS**. La desnormalización se conserva como **VALID_EXPERIMENT**, pero
-su decisión es **REJECTED_AFTER_MEASUREMENT / DO_NOT_ADOPT**. El cambio de
-mediana de 200.392 a 196.507 ms (-1.94 %) fue marginal; buffers +59.70 % e INSERT
-+34.97 % no justificaron el costo y la complejidad. Véase el
-[informe vigente U4](unidades/unidad-4/informes/informe_u4_fnbc_desnormalizacion.md).
+FNBC: **PASS**. El candidato de desnormalización fue implementado y medido;
+es un experimento válido, pero su decisión final es **REJECT / DO_NOT_ADOPT**.
+
+| Métrica final | BEFORE → AFTER | Variación |
+|---|---|---|
+| Mediana de lectura | 212.668 → 87.657 ms | 2.4261x; reducción temporal de 58.78 % |
+| Buffers raíz (shared hit + read) | 6794 → 12091 | +77.97 % |
+
+La mejora temporal fue real, pero el candidato **falló el gate de buffers
+predeclarado** y fue descartado. Las mediciones corresponden al laboratorio
+U4, no al seed mínimo ni a una garantía de rendimiento general. Véase el
+[informe final canónico U4](unidades/unidad-4/informes/informe_entrega_u4_modelo_canonico.md).
 
 `detalle_pedido.categoria_id` **no es canónica**; `producto.categoria_id` sigue
 siendo la autoridad. `usuario` sí pertenece al modelo base; `lote` y `deposito`
