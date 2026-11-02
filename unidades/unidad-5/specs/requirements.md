@@ -4,16 +4,12 @@
 Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 **Integrantes:** Avalos Pablo, Blangetti Sofia, Suarez Ismael
 **Motor objetivo:** PostgreSQL 17.11
-> Ningún objeto de U5 ha sido instalado en la base de laboratorio todavía; `roles.sql` no existe.
-> Los contratos de este documento son propuestas pendientes de implementación y de los criterios
-> SEC-01 a SEC-20.
-
-> **Estado de evidencia (2026-11-02).** La POC de permisos de `design.md` §13 se ejecutó una vez en
-> una instancia PostgreSQL 17.11 descartable, ya destruida. Sus resultados (`design.md` §13.7;
-> evidencia en `unidades/unidad-5/poc_permisos/`) cubren solo la ruta de venta de
-> `rol_app_escritura` y `rol_propietario_ventas`. El resto de los requisitos sigue sin evidencia
-> de ejecución. La aserción de membresías de la limpieza (P8.membresias) quedó pendiente de
-> repetición.
+> **Estado de la Parte A (2026-11-02).** Los scripts de `unidades/unidad-5/sql/` se instalaron y
+> validaron en instancias PostgreSQL 17.11 descartables y aisladas, ya destruidas (`design.md`
+> §15; evidencia en `unidades/unidad-5/validacion_parte_a/`). SEC-01 a SEC-20 tienen PASS, salvo
+> SEC-16, cuyo PASS vale para el intervalo ensayado, y SEC-04, pendiente de aceptación formal del
+> equipo. P8.membresias se repitió con la aserción corregida y dio PASS. La POC previa está en
+> `design.md` §13.7 (evidencia en `unidades/unidad-5/poc_permisos/`).
 
 > **Revisión técnica final de la Parte A (2026-10-26, Claude Code).** Corrige la
 > interpretación de la cadena SECURITY DEFINER → SECURITY INVOKER, el conjunto mínimo
@@ -221,7 +217,9 @@ privilegios por defecto: el propietario y **PUBLIC con EXECUTE**. Esto no cambi�
 (ese cambio afectó a `CREATE` sobre el esquema `public`, no a EXECUTE sobre funciones). La
 verificación se realiza con `aclexplode(coalesce(proacl, acldefault('f', proowner)))` y con pruebas
 de comportamiento. Una reinstalación desde cero de `objetos_programables.sql` vuelve a crear las
-rutinas con el ACL por defecto, por lo que `roles.sql` debe aplicarse de nuevo después.
+rutinas con el ACL por defecto. Esos ACL se recuperan con el procedimiento manual de
+`unidades/unidad-5/sql/README.md` (RR-07), que se limita a ACL y preserva los objetos canónicos.
+`roles.sql` no se reaplica: no es repetible y falla si los roles ya existen.
 
 ### REQ-A08 — Esquema dedicado `reportes`
 
@@ -274,7 +272,8 @@ Solo compara contra el hash almacenado cuando este tiene el formato bcrypt exact
 en total); `$2b$` y `$2y$` se rechazan (D16). Los marcadores académicos (`SEED_NO_AUTH`,
 `hash_no_valido`) y cualquier otro valor devuelven cero filas sin revelar la causa. Las ramas de
 mail inexistente y hash inválido ejecutan igualmente un cálculo bcrypt de costo equivalente, para
-que el tiempo de respuesta no revele si el mail existe (D16). El propietario es `rol_propietario_credenciales`.
+que el tiempo de respuesta no revele si el mail existe (D16). Esa es la intención del diseño: la
+equivalencia temporal no está acreditada (RR-06). El propietario es `rol_propietario_credenciales`.
 Solo `rol_app_autenticacion` tiene EXECUTE.
 
 **`fn_resetear_password` (nueva — reset de soporte):**
@@ -393,16 +392,16 @@ Los criterios detallados —con su prueba positiva, negativa y de regresión— 
 | D2 | Conservar propietarios reales y definiciones de los siete objetos canónicos del TPI; `rol_propietario_ventas` es OWNER solo de `api_registrar_detalle_pedido` | Aplicada en REQ-A10 y REQ-A12; propietarios reales a inventariar (VP-02) |
 | D3 | Revocar EXECUTE a PUBLIC sobre `registrar_detalle_pedido` y `calcular_total_pedido`; GRANT explícito de ambos solo a `rol_propietario_ventas`; REVOKE de PUBLIC sobre funciones trigger | Aplicada en REQ-A07 |
 | D4 | No otorgar UPDATE sobre `pedido.estado` hasta definir su caso de uso | Documentada como recomendación pendiente en design.md §9 |
-| D6 | Tres roles adicionales: `rol_app_autenticacion`, `rol_propietario_ventas` (OWNER de `api_registrar_detalle_pedido`), `rol_propietario_credenciales` | Aplicada en REQ-A01 |
+| D6 | Tres roles adicionales: `rol_app_autenticacion`, `rol_propietario_ventas` (OWNER de `api_registrar_detalle_pedido`), `rol_propietario_credenciales` | Aprobada 2026-11-02; aplicada en REQ-A01 |
 | D8 | Contraseña nueva no nula ni vacía; soporte no puede resetear cuentas ADMIN; otras políticas pendientes de definición | Documentada como recomendación en design.md §9 |
 | D9 | Propuesta de revocar CONNECT y TEMP a PUBLIC; sujeta a autorización sobre la instancia aislada | Documentada como pendiente de aprobación en design.md §9 |
 | D10 | Crear esquema dedicado `reportes` | Aplicada en REQ-A08 |
-| D11 | `SELECT ... FOR SHARE` sobre `usuario` exige SELECT de las columnas leídas y UPDATE sobre al menos una columna; se propone `UPDATE (celular)` para `rol_propietario_ventas` | Requisito comprobado en la POC (T07.09, T10; design.md §9 y §13.7); elección de `celular` pendiente de aprobación humana |
+| D11 | `SELECT ... FOR SHARE` sobre `usuario` exige SELECT de las columnas leídas y UPDATE sobre al menos una columna; se propone `UPDATE (celular)` para `rol_propietario_ventas` | Requisito comprobado en la POC (T07.09, T10; design.md §9 y §13.7); elección de `celular` aprobada 2026-11-02 para la implementación de laboratorio; riesgo residual RR-01 vigente |
 | D12 | Identidades efímeras `tst_u5_*` para verificar accesos de soporte y reportes; sin cuentas permanentes adicionales | Aplicada en REQ-A01 y REQ-A11 |
 | D13 | `admin_datos` sin CREATEROLE ni CREATEDB, no propietario de objetos canónicos, con privilegios explícitos | Aplicada en REQ-A01 y REQ-A02 |
 | D14 | POC en una instancia PostgreSQL 17.11 dedicada y descartable, con base única `foodstore_u5_poc` | Aprobada 2026-10-26; la ejecución de la POC se autoriza por separado (design.md §13) |
 | D15 | `rol_app_escritura` sin `INSERT (fecha)` sobre `pedido`; rige el default `CURRENT_DATE` | Aprobada 2026-10-26; aplicada en REQ-A03 |
-| D16 | `fn_autenticar` acepta solo `$2a$` y ejecuta un cálculo bcrypt equivalente en todas las ramas | Aprobada 2026-10-26; aplicada en REQ-A10 |
+| D16 | `fn_autenticar` acepta solo `$2a$` y ejecuta un cálculo bcrypt en todas las ramas; la equivalencia temporal no está acreditada (RR-06) | Aprobada 2026-10-26; aplicada en REQ-A10 |
 | D17 | La batería TPI no se ejecuta en la POC; se ejecuta en SEC-15 durante la implementación | Aprobada 2026-10-26 |
 | D18 | Privilegios operativos de `admin_datos` (design.md §2.2) | Aprobada 2026-10-26; aplicada en REQ-A01 |
 

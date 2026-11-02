@@ -4,15 +4,15 @@
 Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 **Integrantes:** Avalos Pablo, Blangetti Sofia, Suarez Ismael
 **Motor objetivo:** PostgreSQL 17.11
-> Ningún objeto de U5 ha sido instalado en la base de laboratorio todavía. `roles.sql` no existe.
-> Los contratos de este documento son propuestas pendientes de revisión humana e implementación.
+> **Estado de la Parte A (2026-11-02).** Los scripts de `unidades/unidad-5/sql/` se instalaron y
+> validaron en instancias PostgreSQL 17.11 descartables y aisladas, ya destruidas (§15). No se
+> instalaron en ninguna base compartida ni en bases de unidades anteriores. SEC-04 sigue pendiente
+> de aceptación formal del equipo y SEC-16 vale para el intervalo ensayado. D4, D8 (resto) y D9
+> siguen sin implementar.
 
-> **Estado de evidencia (2026-11-02).** La POC de permisos (§13) se ejecutó una vez en una
-> instancia PostgreSQL 17.11 descartable, ya destruida. Solo los resultados de §13.7 tienen
-> evidencia de ejecución, y esa evidencia vale para el entorno de la POC: la ruta de venta de
-> `rol_app_escritura` y `rol_propietario_ventas`. El resto del diseño (credenciales, soporte,
-> reportes, `admin_datos`, privilegios por defecto, auditoría, D9) sigue sin ejecutar. La
-> implementación real queda pendiente de revisión humana y autorización explícita.
+> **Estado de evidencia.** POC de permisos (§13.7, evidencia en `../poc_permisos/`) y validación
+> integral de la Parte A (§15, evidencia en `../validacion_parte_a/`). Cada evidencia vale para
+> su entorno de laboratorio y para lo que efectivamente se ejecutó.
 
 > **Revisión técnica final de la Parte A (2026-10-26, Claude Code).** Cambios principales:
 > contexto de ejecución SECURITY DEFINER → INVOKER y triggers (§5.0), privilegios mínimos por
@@ -251,9 +251,9 @@ y autenticar usuarios.
 -- Sin contraseña en el texto SQL. Si el rol necesita autenticarse por contraseña,
 -- se asigna después y fuera del script con el metacomando de psql: \password app_web
 CREATE ROLE app_web LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
-GRANT rol_app_lectura        TO app_web;  -- sin WITH ADMIN OPTION
-GRANT rol_app_escritura      TO app_web;
-GRANT rol_app_autenticacion  TO app_web;
+GRANT rol_app_lectura        TO app_web WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+GRANT rol_app_escritura      TO app_web WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+GRANT rol_app_autenticacion  TO app_web WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
 ```
 
 `\password` calcula el verificador SCRAM en el cliente y envía solo el verificador, de modo que la
@@ -303,7 +303,7 @@ Sin DML sobre tablas canónicas. Como `admin_datos` no puede leer `nombre`, `ape
 
 Las columnas `app_escritura` y `prop_ventas` fueron contrastadas en la POC (§13.7): la ruta de
 venta funciona con ellas, y cada privilegio de `prop_ventas` es necesario (T07). La columna
-elegida en D11 sigue pendiente de aprobación. Las demás columnas no tienen evidencia de
+elegida en D11 (`celular`) fue aprobada el 2026-11-02. Las demás columnas no tienen evidencia de
 ejecución. Toda celda vacía significa «ningún privilegio». Abreviaturas: S = SELECT, I = INSERT, U = UPDATE, X = EXECUTE; la lista entre
 paréntesis indica privilegio por columna.
 
@@ -384,6 +384,23 @@ ORDER BY 1, 3;
 | `app_web` | sí | sí | ninguno | tres grupos de aplicación | — |
 | `admin_datos` | sí | sí | ninguno | — | — |
 
+Las tres membresías de `app_web` tienen exactamente `admin_option = false`,
+`inherit_option = true`, `set_option = false`, concedidas explícitamente con
+`WITH INHERIT TRUE, SET FALSE, ADMIN FALSE` (PostgreSQL 16+). Las membresías efímeras
+`rol_soporte → tst_u5_soporte` y `rol_reportes → tst_u5_reportes` usan las mismas opciones;
+`tst_u5_sin_privilegios` no tiene membresías.
+
+Justificación frente a SEC-01..20: SEC-03/05/08/09/13/14/17 usan los privilegios
+heredados por `app_web`, no un cambio al rol de grupo. SEC-04/18 y las conexiones
+reales D12 necesitan herencia del grupo de la identidad efímera, no SET al grupo.
+Los `SET ROLE app_web`, `SET ROLE tst_u5_*` y los `SET ROLE` a grupos parten del
+superusuario de pruebas; no dependen de `set_option` de esas membresías.
+SEC-07 fija las tres opciones; SEC-10 conserva la prohibición de delegación mediante
+ADMIN FALSE. SEC-19 mantiene su identidad sin membresías y SEC-20 la limpieza.
+SEC-01/02/06/11/12/15/16 no requieren asumir grupos desde esos miembros: atributos,
+ADP, conservación canónica y controles de logs no cambian. Así SET FALSE no altera
+los accesos positivos previstos y reduce la capacidad de asumir otra identidad.
+
 Ninguna membresía tiene `admin_option = true`. «Atributos especiales» comprende SUPERUSER,
 CREATEDB, CREATEROLE, REPLICATION y BYPASSRLS.
 
@@ -407,7 +424,7 @@ Los objetos analíticos que no deben exponer datos personales (REQ-A09):
 | Objeto propuesto | Tipo | Política de ubicación | Expone datos personales |
 |---|---|---|---|
 | `mv_facturacion_categoria_mes` | materializada | Ver nota abajo | No — agrega por categoría/mes |
-| `v_resumen_ventas_rol_mes` | vista | Nueva en U5, en `reportes`; fuera de la POC | No — agrega por rol y mes, sin ID de usuario |
+| `v_resumen_ventas_rol_mes` | vista | Propuesta futura, fuera de la Parte A; sin requisito REQ-A aprobado que obligue a instalarla | No — intención de agregar por rol y mes, sin ID de usuario; definición pendiente |
 
 **Política para `mv_facturacion_categoria_mes`:**
 - Si la materializada **ya existe** en la base de U5 (por haber instalado U3 sobre ella),
@@ -566,7 +583,8 @@ Por D16 (aprobada) no se aceptan `$2b$` ni `$2y$`: la base solo contiene hashes 
 **Tiempo de respuesta (D16, RR-06).** Cuando el mail no existe o el hash almacenado no es válido,
 la función ejecuta igualmente un `crypt()` con una sal bcrypt nueva de costo por defecto (el mismo
 que usa `fn_resetear_password`), y descarta el resultado. Así todas las ramas pagan un cálculo
-bcrypt y el tiempo no revela si el mail existe. No se usa un hash ficticio literal: aparecería en
+bcrypt. La intención es que el tiempo no revele si el mail existe, pero esa equivalencia **no
+está acreditada** (RR-06): el costo por defecto puede diferir del costo de los hashes almacenados. No se usa un hash ficticio literal: aparecería en
 el texto DDL registrado por `log_statement = mod` y haría fallar la verificación de SEC-16.
 
 **Contrato propuesto:**
@@ -599,7 +617,7 @@ BEGIN
 
     -- Usuario inexistente o eliminado, o hash fuera del formato exacto de gen_salt('bf')
     -- (incluye SEED_NO_AUTH y hash_no_valido): cero filas, sin revelar la causa.
-    -- D16: se paga un cálculo bcrypt equivalente para no revelar la causa por tiempo.
+    -- D16: se paga un cálculo bcrypt para no revelar la causa por tiempo (equivalencia no acreditada, RR-06).
     IF NOT FOUND
        OR v_hash IS NULL
        OR v_hash !~ '^\$2a\$(0[4-9]|[12][0-9]|3[01])\$[./A-Za-z0-9]{53}$' THEN
@@ -630,8 +648,10 @@ COMMIT;
 - `search_path` fijo y referencias calificadas impiden la suplantación de esquema.
 - Los valores que no tienen el formato bcrypt exacto nunca se usan como sal de `crypt()`.
 - Mail inexistente, contraseña incorrecta y hash inválido devuelven cero filas, y las tres ramas
-  ejecutan un cálculo bcrypt de costo equivalente (D16). La equivalencia de tiempos se mide durante
-  la implementación; queda como riesgo residual menor (RR-06).
+  ejecutan un cálculo bcrypt (D16), con costos potencialmente distintos. La equivalencia de tiempos **no está
+  acreditada**: la rama ficticia usa el costo por defecto de `gen_salt('bf')` y los hashes
+  almacenados pueden tener otro costo (04–31). Solo una medición autorizada podría acreditarla.
+  Riesgo residual RR-06.
 - La contraseña no aparece en el texto de la sentencia cuando el llamante usa parámetros
   enlazados, y no aparece en el log **solo si** `log_parameter_max_length = 0` y
   `log_parameter_max_length_on_error = 0` (§7). Los mensajes de error no incluyen parámetros.
@@ -733,8 +753,8 @@ no están definidas. No se implementan hasta que el equipo las especifique.
 | RR-03 | La API no verifica que el pedido pertenezca al usuario final autenticado; `rol_app_escritura` puede crear pedidos para cualquier `usuario_id` | Igual que el procedimiento canónico: la base no conoce al usuario final. Responsabilidad de la aplicación; RLS fuera de alcance |
 | RR-04 | `S(id)` sobre `pedido` permite enumerar identificadores de pedidos | Solo identificadores, sin datos asociados |
 | RR-05 | El código canónico usa nombres sin calificar | `search_path` fijo, `pg_temp` al final, sin CREATE no confiable en `public` (SEC-17); D9 retira TEMP. Comprobado en la POC con TEMP permitido: una `pg_temp.producto` homónima no fue usada por la API (T11) |
-| RR-06 | Diferencia de tiempo en `fn_autenticar` permite inferir si un mail existe | Mitigado por D16 (cálculo bcrypt en todas las ramas); el costo de `gen_salt` y la variación de costo entre hashes dejan una diferencia menor, a medir |
-| RR-07 | Una reinstalación desde cero de `objetos_programables.sql` restaura el EXECUTE de PUBLIC | Reaplicar `roles.sql` y repetir SEC-13 |
+| RR-06 | Diferencia de tiempo en `fn_autenticar` permite inferir si un mail existe | Equivalencia temporal de bcrypt **no acreditada**: no hay mediciones. D16 conserva trabajo bcrypt en las ramas de búsqueda, pero el costo por defecto y los hashes de costo 04..31 pueden diferir; nulos/vacíos abortan antes. Las afirmaciones temporales de §5.2 son intención, no una garantía probada. No se modifica la lógica de autenticación; REVISAR: medición autorizada pendiente |
+| RR-07 | Una reinstalación desde cero de `objetos_programables.sql` restaura el EXECUTE de PUBLIC | Seguir [Recuperación manual de ACL tras reinstalar el TPI](../sql/README.md#recuperación-manual-de-acl-tras-reinstalar-el-tpi-rr-07), con autorización separada: verificar roles existentes, reaplicar solo ACL y repetir SEC-13, huella SEC-15 y matriz. No reejecutar `roles.sql`, recrear objetos canónicos ni cambiar sus propietarios |
 | RR-08 | El superusuario evita todos los controles | Uso limitado a la etapa de instalación autorizada |
 
 ---
@@ -837,12 +857,17 @@ global. Requiere `ALTER ROLE ... SET` ejecutado por superusuario. Con la misma c
 La opción elegida debe documentarse en la bitácora (Parte E) antes de ejecutar el simulacro.
 
 **Regla invariante:** En ninguna opción se registran contraseñas en texto plano, y ningún script
-contiene contraseñas literales. Las credenciales sintéticas se generan en tiempo de ejecución, se
-guardan en variables de psql y se envían como parámetros enlazados con `\bind` (psql 16+):
+contiene contraseñas literales. Las credenciales sintéticas se generan en el shell, **fuera del
+SQL**, viajan solo por el entorno del cliente, se leen con `\getenv` (psql 15+) y se envían como
+parámetros enlazados con `\bind` (psql 16+). Así ni el texto de las sentencias ni los scripts
+contienen el valor o la expresión que lo genera (procedimiento completo: `sql/pruebas/README.md`, M02):
 
 ```text
--- Valor sintético generado en el servidor; el texto de la sentencia no contiene el valor.
-SELECT 'u5syn_' || replace(gen_random_uuid()::text, '-', '') AS u5_pwd \gset
+# Shell: generar y exportar; nunca en archivos del repositorio ni en argumentos -v.
+U5_SYN_PWD="u5syn_$(openssl rand -hex 16)"; export U5_SYN_PWD
+
+-- psql: leer del entorno; el texto enviado al servidor no contiene el valor.
+\getenv u5_pwd U5_SYN_PWD
 
 -- Fixture (superusuario de prueba): el valor viaja como parámetro, no como literal.
 UPDATE public.usuario SET contrasena = public.crypt($1, public.gen_salt('bf'))
@@ -858,8 +883,10 @@ SELECT * FROM public.fn_autenticar($1, $2) \bind :'u5_mail' :'u5_pwd' \g
   consulta sin `\bind` la incluye en el texto enviado al servidor. No se usa con credenciales.
 - Prohibido imprimir esas variables (`\echo`, `\set` sin argumentos) o activar opciones de eco que
   muestren resultados del `\gset`.
-- El prefijo fijo `u5syn_` permite verificar la ausencia de valores sintéticos en los logs sin
-  conocer el valor aleatorio (SEC-16).
+- La verificación del log (SEC-16.N) busca con `grep -F` los **valores sintéticos exactos**
+  todavía presentes en el entorno, además de `$2a$` y `PASSWORD '`. No basta con buscar el prefijo
+  `u5syn_`: con `log_statement = 'all'`, una sentencia generadora lo registraría sin haber filtrado
+  ningún valor. Al terminar se hace `unset` de las variables de entorno, también ante un fallo.
 
 ### 7.4. Verificación de permisos del archivo de log (ajuste 4)
 
@@ -930,7 +957,7 @@ Las identidades efímeras usan el prefijo `tst_u5_`. Ningún criterio usa contra
 - R: Verificar después de cualquier `ALTER ROLE admin_datos`.
 
 **SEC-07** ⟳ — `app_web` es miembro exactamente de `rol_app_lectura`, `rol_app_escritura` y `rol_app_autenticacion`, sin ADMIN OPTION.
-- P: `SELECT roleid::regrole, admin_option, inherit_option FROM pg_auth_members WHERE member = 'app_web'::regrole` devuelve exactamente los tres roles, con `admin_option = false` e `inherit_option = true`.
+- P: `SELECT roleid::regrole, admin_option, inherit_option, set_option FROM pg_auth_members WHERE member = 'app_web'::regrole` devuelve exactamente los tres roles, con `admin_option = false`, `inherit_option = true` y `set_option = false` (§3.4).
 - N: `rol_soporte`, `rol_reportes` y los propietarios no aparecen en esa consulta; `pg_has_role('app_web', 'rol_propietario_ventas', 'MEMBER')` es `false`.
 - R: Verificar después de cualquier GRANT/REVOKE de membresía.
 
@@ -984,7 +1011,7 @@ Las identidades efímeras usan el prefijo `tst_u5_`. Ningún criterio usa contra
 
 **SEC-16** ⟳ — Las pruebas y el simulacro no registran contraseñas en logs.
 - P: Configuración preventiva verificada en `pg_settings` antes de la prueba: `log_parameter_max_length = 0`, `log_parameter_max_length_on_error = 0`, `log_file_mode = 0600`. Las llamadas a `fn_autenticar` y `fn_resetear_password` usan valores sintéticos generados en tiempo de ejecución (`u5syn_…`) enviados con `\bind` o con un driver.
-- N: Como **verificación** del control, no como protección: el log capturado no contiene el prefijo `u5syn_`, ni cadenas con formato bcrypt (`$2a$`), ni `PASSWORD '`. Si aparece alguna, la prueba falla y el log no se entrega a la IA.
+- N: Como **verificación** del control, no como protección: el log capturado no contiene los valores sintéticos exactos, ni cadenas con formato bcrypt (`$2a$`), ni `PASSWORD '`. Si aparece alguna, la prueba falla y el log no se entrega a la IA.
 - R: Revisar el log completo antes de entregarlo a la IA en la Parte C. El mecanismo de auditoría elegido (§7.3) se documenta en BITACORA.md.
 
 **SEC-17** ⟳ — Las tres funciones SECURITY DEFINER están endurecidas.
@@ -1033,7 +1060,9 @@ El equipo debe definir el caso de uso antes de incluir UPDATE de `pedido.estado`
 Los roles `rol_app_autenticacion`, `rol_propietario_ventas` y `rol_propietario_credenciales`
 están incorporados en el diseño (secciones 2.1 y 5). Su creación depende de la aprobación
 del equipo sobre los contratos SECURITY DEFINER de §5.
-**Estado: incorporado como propuesta en el design; aprobación del equipo requerida antes de implementar.**
+**Estado: aprobada (2026-11-02)**, en el prompt «Food Store — Unidad 5 — Implementación
+controlada de la Parte A»: los propietarios son NOLOGIN, NOINHERIT y no tienen miembros.
+Implementación en `unidades/unidad-5/sql/`, validada en laboratorio (§15).
 
 ### D8 — Restricciones sobre `fn_resetear_password`
 
@@ -1105,8 +1134,10 @@ análisis forense), `id` (identidad; `SET id = DEFAULT` renumeraría usuarios si
 tiene miembros (T13). Solo lo alcanza el código fijo de la API y de la cadena canónica, que nunca
 escribe esa columna. El riesgo crece si alguien obtiene permiso para modificar esas rutinas
 (RR-02).
-**Estado: requisito comprobado empíricamente (T07.09, T10); elección de `celular` pendiente de
-aprobación humana.**
+**Estado: requisito comprobado empíricamente (T07.09, T10). Elección de `celular` aprobada
+(2026-11-02) para la implementación de laboratorio:
+`GRANT UPDATE (celular) ON public.usuario TO rol_propietario_ventas;`, nunca UPDATE completo
+sobre `usuario`. El riesgo residual RR-01 sigue vigente.**
 
 ### D14 — Entorno de la POC
 
@@ -1130,8 +1161,9 @@ la sesión, guardados en el registro de prompts de Claude Code (Engram).
 | 2026-11-02 | Opción elegida: «Carpeta hermana del repo» | Ubicación de las salidas fuera del repositorio hasta la revisión humana |
 | 2026-11-02 | «La revisión humana acepta actualizar las especificaciones antes de realizar el siguiente commit» | Consolidación documental y copia de la evidencia a `unidades/unidad-5/poc_permisos/` |
 
-No hay otras aprobaciones registradas. D4, D6, D8 (resto), D9 y la columna de D11 siguen sin
-aprobar. El registro solo conserva la hora de los prompts del 2026-10-26.
+Hasta la ejecución de la POC no había otras aprobaciones registradas. Después, el 2026-11-02,
+el prompt «Food Store — Unidad 5 — Implementación controlada de la Parte A» aprobó D6 y la
+columna de D11 (§9). D4, D8 (resto) y D9 siguen sin aprobar. El registro solo conserva la hora de los prompts del 2026-10-26.
 
 ### D15 — Sin `INSERT (fecha)` sobre `pedido`
 
@@ -1221,18 +1253,19 @@ No eliminar los originales de `specs/`.
 
 ## 12. Lo que queda pendiente antes de implementar
 
-1. **Ejecutar las verificaciones previas (§14)** en la instancia autorizada y conservar su salida.
-   En particular VP-02: el propietario real de cada objeto canónico. D2 se aplica cualquiera sea
-   ese propietario; el resultado solo determina contra qué valor se comparan SEC-15 y REG-05.
+1. ~~Ejecutar las verificaciones previas (§14)~~ — **hecho en las instancias de validación**
+   (§15), con `00_precondiciones.sql`. En cualquier otra instancia hay que repetirlas.
 2. ~~Autorizar y ejecutar la POC (§13)~~ — **hecho el 2026-11-02**; resultados en §13.7. Queda
    abierta la limitación A-3 (§13.7.5).
-3. **Aprobar la columna de D11.** La necesidad del privilegio ya está comprobada (T07.09, T10).
-4. **Aprobar D6.** (D14–D18 aprobadas el 2026-10-26.)
+3. ~~Aprobar la columna de D11~~ — **aprobada el 2026-11-02** (`celular`).
+4. ~~Aprobar D6~~ — **aprobada el 2026-11-02**. (D14–D18 aprobadas el 2026-10-26.)
 5. **Aprobar D8 completa** — definir las políticas adicionales de contraseña.
 6. **Autorizar D9** — confirmar instancia aislada antes de REVOKE de CONNECT/TEMP a PUBLIC.
 7. **Definir D4** — especificar qué rol puede cambiar `pedido.estado` y bajo qué condición.
 8. **Elegir mecanismo complementario de auditoría (§7.3)** — Opción A, B o C.
-9. **Recibir revisión humana de este design.md** antes de escribir ningún SQL de implementación.
+9. ~~Recibir revisión humana de este design.md antes de escribir SQL de implementación~~ —
+   hecho; la implementación se escribió y validó después (§15).
+10. **Aceptación formal de SEC-04 por el equipo** (§15.4).
 
 ---
 
@@ -1486,7 +1519,7 @@ Solo vale para la instancia descartable. En la instancia de implementación hay 
 
 #### 13.7.7. Pendiente después de la POC
 
-- Aprobar la columna de D11.
+- ~~Aprobar la columna de D11~~ (aprobada el 2026-11-02).
 - Repetir la aserción de membresías de P8 en una corrida futura autorizada (A-3).
 - Comprobar por ablación los privilegios de `rol_app_escritura`, si el equipo lo requiere.
 - Todo lo listado en §13.6, las verificaciones VP en la instancia de implementación y SEC-01 a
@@ -1498,9 +1531,9 @@ Solo vale para la instancia descartable. En la instancia de implementación hay 
 
 Se ejecutan solo en una instancia autorizada, antes de la POC o de la implementación. Son consultas
 de lectura; su salida se conserva como evidencia. VP-00 a VP-12 se ejecutaron en la instancia
-descartable de la POC (P0 y tras P1; resultados en §13.7.6). VP-07 se ejecutó en forma
-parcial. Esos valores describen ese entorno: en la instancia de implementación, todas siguen
-pendientes.
+descartable de la POC (P0 y tras P1; resultados en §13.7.6), y de nuevo, mediante
+`00_precondiciones.sql`, en cada instancia de la validación integral (§15). Esos valores
+describen esos laboratorios: en cualquier otra instancia hay que repetirlas antes de instalar.
 
 | ID | Qué se verifica | Fuente de catálogo | Uso |
 |---|---|---|---|
@@ -1517,3 +1550,88 @@ pendientes.
 | VP-10 | Membresías existentes con `admin_option`; valor de `createrole_self_grant` | `pg_auth_members`, `pg_settings` | SEC-10 |
 | VP-11 | Presencia, propietario y opciones (`security_invoker`) de las vistas y la materializada de U3 | `pg_class`, `pg_class.reloptions` | §2.1, SEC-04 |
 | VP-12 | Secuencias de identidad de las cinco tablas y su ACL | `pg_depend`, `pg_get_serial_sequence`, `pg_class.relacl` | T09 |
+
+---
+
+## 15. Validación integral de la Parte A (2026-11-02)
+
+Resultados observados en laboratorio. La evidencia se conserva sin editar en
+[`../validacion_parte_a/`](../validacion_parte_a/README.md), con una carpeta por corrida. Los
+fuentes ejecutados (canon, U3 y `unidades/unidad-5/sql/**`) quedaron registrados por sha256 antes
+y después de cada corrida, y no cambiaron. Herramienta: Claude Code. Nada se ejecutó sobre
+instancias compartidas ni sobre bases de unidades anteriores.
+
+### 15.1. Entorno
+
+| Aspecto | Valor observado |
+|---|---|
+| Imagen | `postgres:17`, `sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3` |
+| Servidor y cliente | PostgreSQL y psql 17.11 (Debian 17.11-1.pgdg13+2) |
+| Aislamiento | Un contenedor nuevo por corrida, `--network none`, sin puertos publicados, repositorio montado en solo lectura; destruido con su volumen al terminar |
+| Base | `foodstore_tpi_oficial`, nombre que exige la guarda de la batería TPI (D17), creada solo dentro de cada contenedor |
+| Instalación | `schema.sql` (`-1`), seed, `objetos_programables.sql` (`-1`), vistas y materializada de U3, `pgcrypto` en `public` y luego el orden de `sql/README.md` con `u5_base_objetivo` |
+| Logging | Solo dentro del contenedor: `log_statement=mod`, `log_parameter_max_length=0`, `log_parameter_max_length_on_error=0`, `log_file_mode=0600`, `password_encryption=scram-sha-256` |
+
+### 15.2. Corridas
+
+| Corrida | Alcance | Resultado |
+|---|---|---|
+| `20261102T185421Z` | Primera validación integral | **BLOCKED** antes de ejecutar SQL, por un control defectuoso del arnés de captura. Se conserva sin cambios |
+| `20261102T190345Z` | Validación integral con el arnés corregido (solo la detección de arranque) | 207 RESULT PASS / 0 FAIL. Batería TPI 29/37/30, exit 0, antes y después, con salidas idénticas. SEC-01, 04 y 17 quedaron parciales por M05, M03 y M04 |
+| `20261102T191848Z` | Cierre experimental: M04, M05, SCRAM y revisión de SEC-04 | M04, M05 y SCRAM PASS. Hubo una incidencia del arnés antes de crear contenedores; se conserva con su corrección |
+
+### 15.3. Pruebas complementarias
+
+- **M04 — interrupción antes del COMMIT.** Se le pasó a psql el `funciones_seguridad.sql`
+  original, sin modificar, reteniendo su `COMMIT` final. Con la transacción abierta, otra
+  conexión no veía las funciones. `pg_terminate_backend` terminó la sesión: el log registra
+  `FATAL: 57P01: terminating connection due to administrator command` y esa sesión no envió
+  ROLLBACK. Después no existían las funciones ni sus ACL, y los permisos de `roles.sql` y los
+  propietarios estaban intactos. Un control separado con `ROLLBACK` explícito quedó registrado
+  como tal en otra sesión.
+- **M05 — segunda instalación limpia.** Reinstalación completa desde cero: 207 RESULT PASS /
+  0 FAIL, con los mismos casos y veredictos que la corrida `20261102T190345Z`. Las únicas
+  diferencias son campos naturalmente variables (identidades de instancia, PID, tiempos) y el
+  transporte de las salidas. La limpieza de roles y membresías se verificó de nuevo.
+- **SCRAM-SHA-256.** Reglas `pg_hba.conf` explícitas para loopback (127.0.0.1 y ::1) con
+  `scram-sha-256`, sin errores en `pg_hba_file_rules`. Rol temporal `tst_u5_scram` sin GRANT
+  directos ni membresías: solo lo que hereda de PUBLIC. Su verificador se calculó del lado del
+  cliente y se asignó con el registro de sentencias desactivado para esa sesión. Una conexión TCP
+  con `require_auth=scram-sha-256` se registró como `connection authenticated: ...
+  method=scram-sha-256`; una contraseña incorrecta dio `FATAL: 28P01`. El rol se eliminó. Las
+  búsquedas exactas de la contraseña y el verificador no tuvieron coincidencias en logs ni en
+  evidencias. Esta es la autenticación de conexión de PostgreSQL; la autenticación funcional de
+  `fn_autenticar` (bcrypt sobre `usuario.contrasena`) es otra cosa y la cubre SEC-18.
+
+### 15.4. SEC-04 — reidentificación
+
+El único objeto analítico que `rol_reportes` puede leer es `mv_facturacion_categoria_mes`:
+categoría, mes, cantidad de pedidos, unidades y facturación, sin columnas de usuario. Las cohortes
+del seed son pequeñas (3 y 2 usuarios por categoría y mes), así que no se acredita la ausencia de
+reidentificación con conocimiento auxiliar. La revisión humana del 2026-11-02 «acepta
+provisionalmente el uso académico de datos sintéticos y agregados, pero no autoriza exposición de
+datos personales reales». Las condiciones para la aceptación formal están en
+`../validacion_parte_a/20261102T191848Z/sec04/README.md`. **Estado: aceptación provisional,
+pendiente de aceptación formal del equipo.**
+
+### 15.5. Estado de los criterios de aceptación
+
+| Estado | Criterios |
+|---|---|
+| PASS | SEC-01 (con M05), SEC-02, SEC-03, SEC-05 a SEC-15, SEC-17 (con M04), SEC-18 a SEC-20 |
+| PASS limitado al intervalo ensayado | SEC-16: valores sintéticos exactos ausentes del log capturado, más SCRAM; no es una garantía universal |
+| Pendiente de aceptación formal | SEC-04 (§15.4) |
+
+Regresión: batería TPI con 29 grupos, 37 variantes, 30 NOTICE PASS y exit 0, antes y después de
+U5, en las dos instalaciones. F0/F1 solo difieren en los ACL que autoriza D3. P8.membresias, con
+la aserción corregida, dio PASS también después del COMMIT de la limpieza.
+
+### 15.6. Límites y riesgos que siguen vigentes
+
+- No se midieron concurrencia, serialización multisesión, tiempos de bcrypt (RR-06) ni estrés.
+- RR-01 (`UPDATE (celular)`), RR-03 (pertenencia del pedido al usuario final), RR-04 (enumeración
+  de IDs) y RR-07 (recuperación manual de ACL) siguen como riesgos del diseño.
+- D4, D8 (resto) y D9 siguen sin implementar. El mecanismo de auditoría de §7.3 (Parte C) sigue
+  sin elegir.
+- La evidencia vale para los laboratorios descriptos. En otra instancia hay que repetir las
+  precondiciones y la validación.
