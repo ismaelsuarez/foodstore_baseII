@@ -4,8 +4,23 @@
 Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 **Integrantes:** Avalos Pablo, Blangetti Sofia, Suarez Ismael
 **Motor objetivo:** PostgreSQL 17.11
-> Ningún objeto de U5 ha sido ejecutado en la base de laboratorio todavía.
-> Los contratos de este documento son propuestas pendientes de prueba.
+> Ningún objeto de U5 ha sido instalado en la base de laboratorio todavía; `roles.sql` no existe.
+> Los contratos de este documento son propuestas pendientes de implementación y de los criterios
+> SEC-01 a SEC-20.
+
+> **Estado de evidencia (2026-11-02).** La POC de permisos de `design.md` §13 se ejecutó una vez en
+> una instancia PostgreSQL 17.11 descartable, ya destruida. Sus resultados (`design.md` §13.7;
+> evidencia en `unidades/unidad-5/poc_permisos/`) cubren solo la ruta de venta de
+> `rol_app_escritura` y `rol_propietario_ventas`. El resto de los requisitos sigue sin evidencia
+> de ejecución. La aserción de membresías de la limpieza (P8.membresias) quedó pendiente de
+> repetición.
+
+> **Revisión técnica final de la Parte A (2026-10-26, Claude Code).** Corrige la
+> interpretación de la cadena SECURITY DEFINER → SECURITY INVOKER, el conjunto mínimo
+> de privilegios, la verificación de privilegios por defecto, las suposiciones sobre
+> propietarios, la validación bcrypt, los ejemplos con contraseñas literales, la lectura
+> de `pedido`, las pruebas de escalamiento y la trazabilidad REQ ↔ SEC. La numeración
+> REQ-A01…A12 y SEC-01…SEC-20 se conserva.
 
 ---
 
@@ -33,17 +48,24 @@ prompt de especificación, y las omiten donde hubieran aportado criterios que so
 ## Contexto del sistema
 
 Food Store es una base PostgreSQL que modela un comercio de comidas. Fue construida durante las
-Unidades 1 a 4 y opera con un único rol dueño de los objetos. El esquema canónico comprende:
+Unidades 1 a 4. El esquema canónico comprende:
 
 - **Cinco tablas:** `categoria`, `usuario`, `producto`, `pedido`, `detalle_pedido`
 - **Tres ENUM:** `forma_pago`, `rol`, `estado_pedido`
-- **Siete rutinas** y **cinco triggers** del TPI (ver `objetos_programables.sql`)
+- **Siete rutinas** y **cinco triggers** del TPI (ver `objetos_programables.sql`), todas
+  SECURITY INVOKER y sin `SET search_path`
 - **Cuatro vistas convencionales** y **una materializada** (Unidad 3, instaladas en base separada)
 - Un campo `usuario.contrasena VARCHAR(255)` que almacena el hash de la credencial
 - Un campo `usuario.rol ENUM('ADMIN','USUARIO')` de dominio de negocio (distinto de los roles del motor)
 
+**Propietarios reales: no verificados.** Las evidencias registradas instalan los objetos con
+`-U postgres`, lo que sugiere que su propietario es `postgres`, pero el diseño no lo asume:
+el propietario real de cada objeto canónico se inventaría antes de implementar (VP-02 en
+`design.md` §14) y se conserva sin cambios (D2). Ningún requisito depende de que
+`admin_datos` sea propietario de los objetos canónicos.
+
 Todo el trabajo de esta unidad se ejecuta sobre una copia de laboratorio explícitamente autorizada.
-No se modifica el esquema canónico ni los objetos programables existentes.
+No se modifica el esquema canónico ni las definiciones de los objetos programables existentes.
 
 ---
 
@@ -69,7 +91,7 @@ obligatorios según la consigna. Los tres adicionales son decisiones propias del
 | Rol | Tipo | Función declarada |
 |---|---|---|
 | `rol_app_lectura` | grupo (NOLOGIN) | Lectura del catálogo público; habilita SELECT sobre `v_productos_vigentes` (que ya incluye `categoria_nombre`) porque es el acceso mínimo para servir el sitio sin exponer tablas base ni datos de pedidos o usuarios |
-| `rol_app_escritura` | grupo (NOLOGIN) | Flujo operativo de compra; habilita la creación de pedidos (INSERT con columnas restringidas) y el EXECUTE sobre la única interfaz de venta autorizada, porque el backend necesita registrar órdenes sin poder leer datos de detalle arbitrarios ni modificar stock o totales directamente |
+| `rol_app_escritura` | grupo (NOLOGIN) | Flujo operativo de compra; habilita la creación de pedidos (INSERT con columnas restringidas y lectura de `pedido.id` para `RETURNING`) y el EXECUTE sobre la única interfaz de venta autorizada, porque el backend necesita registrar órdenes sin poder leer datos de pedidos o detalles ni modificar stock o totales directamente |
 | `rol_soporte` | grupo (NOLOGIN) | Atención al cliente; habilita lectura de identidad pública y resumen de pedidos porque soporte no debe ver contraseñas ni modificar datos de negocio |
 | `rol_reportes` | grupo (NOLOGIN) | Panel gerencial; habilita solo SELECT sobre objetos analíticos agregados porque reportes no debe modificar datos ni acceder a información individual identificable |
 
@@ -78,41 +100,47 @@ obligatorios según la consigna. Los tres adicionales son decisiones propias del
 | Rol | Tipo | Justificación |
 |---|---|---|
 | `rol_app_autenticacion` | grupo (NOLOGIN) | Agrupa el EXECUTE sobre `fn_autenticar` para separar la capacidad de autenticarse de la capacidad de leer catálogo o escribir pedidos; `app_web` necesita ambas y se las otorga como membresías independientes |
-| `rol_propietario_ventas` | grupo (NOLOGIN) | Propietario lógico únicamente de `api_registrar_detalle_pedido`; no tiene miembros. El propietario de las siete rutinas canónicas del TPI no cambia (D2) |
-| `rol_propietario_credenciales` | grupo (NOLOGIN) | Es el propietario lógico de `fn_autenticar` y `fn_resetear_password`; no tiene miembros — análogo a `rol_propietario_ventas` para las rutinas de credenciales |
+| `rol_propietario_ventas` | grupo (NOLOGIN) | Propietario únicamente de `api_registrar_detalle_pedido`; no tiene miembros. Es el **usuario efectivo** de toda la cadena de venta (ver REQ-A10). El propietario de las siete rutinas canónicas del TPI no cambia (D2) |
+| `rol_propietario_credenciales` | grupo (NOLOGIN) | Es el propietario de `fn_autenticar` y `fn_resetear_password`; no tiene miembros — análogo a `rol_propietario_ventas` para las rutinas de credenciales |
 
-Los roles propietarios NOLOGIN son NOINHERIT y no tienen miembros. Su único propósito es ser el
-OWNER de las rutinas SECURITY DEFINER para que esas funciones operen con el privilegio mínimo
-necesario, sin depender de los privilegios de `admin_datos`.
+Los roles propietarios NOLOGIN son NOINHERIT, no tienen miembros, no tienen `CREATE` sobre
+ningún esquema y no tienen atributos (SUPERUSER, CREATEDB, CREATEROLE, REPLICATION, BYPASSRLS).
+Su único propósito es ser el OWNER de las rutinas SECURITY DEFINER, de modo que esas rutinas
+—y todo lo que ejecutan— operen con el privilegio mínimo necesario.
 
 **Roles de login obligatorios:**
 
 | Rol | Tipo | Membresías |
 |---|---|---|
-| `app_web` | login | `rol_app_lectura`, `rol_app_escritura`, `rol_app_autenticacion` |
+| `app_web` | login | `rol_app_lectura`, `rol_app_escritura`, `rol_app_autenticacion` (todas sin ADMIN OPTION) |
 | `admin_datos` | login | Ninguna de los grupos de aplicación (D13) |
 
-`admin_datos` no hereda los grupos de la aplicación; su acceso es el de dueño del esquema,
-no el de un consumidor de la API de negocio.
+`admin_datos` no hereda los grupos de la aplicación ni es propietario de los objetos canónicos.
+Es un rol de administración de datos con privilegios explícitos de lectura y creación de objetos
+analíticos en `reportes` (detalle en `design.md` §2.2 y §3). La instalación de roles y permisos la
+ejecuta un superusuario durante una etapa de instalación autorizada, no `admin_datos`.
 
 **Verificación de soporte y reportes (D12):**
-`rol_soporte` y `rol_reportes` se verifican con identidades efímeras de prueba durante la
-implementación de la Parte A. No se crean cuentas de login permanentes para ellos.
+`rol_soporte` y `rol_reportes` se verifican con identidades efímeras de prueba (`tst_u5_*`) durante
+la implementación de la Parte A. No se crean cuentas de login permanentes para ellos.
 
 ### REQ-A02 — Principio de mínimo privilegio
 
 Cada rol recibe exactamente los privilegios necesarios para cumplir su función, sin permisos
 adicionales. En particular:
 
-- `rol_app_escritura` no recibe SELECT, INSERT ni UPDATE en bloque sobre `detalle_pedido`.
+- `rol_app_escritura` no recibe ningún privilegio sobre `detalle_pedido`.
   El acceso a esa tabla se canaliza exclusivamente a través de `api_registrar_detalle_pedido`.
-- `rol_app_escritura` no recibe UPDATE sobre `pedido.total`, `pedido.estado`, ni ningún campo
-  que no sea necesario para la creación de pedidos nuevos.
+- `rol_app_escritura` no recibe UPDATE sobre ninguna columna de `pedido` y su lectura de `pedido`
+  se limita a la columna `id`, necesaria para `INSERT ... RETURNING id`.
 - Ningún rol de aplicación puede modificar directamente `producto.stock`.
 - `app_web` no recibe DELETE ni TRUNCATE sobre ninguna tabla de dominio.
-- `admin_datos` no recibe SUPERUSER (decisión D13).
+- `admin_datos` no recibe SUPERUSER, CREATEROLE ni CREATEDB (decisión D13).
 - Ningún rol de aplicación recibe SUPERUSER, CREATEDB ni CREATEROLE.
+- Ningún rol de U5 tiene ADMIN OPTION sobre ningún otro rol.
 - Los roles de grupo no tienen atributo LOGIN.
+- Los propietarios NOLOGIN reciben privilegios **por columna** limitados a lo que la cadena
+  de ejecución realmente lee, bloquea o escribe (`design.md` §3).
 - La lectura del catálogo se limita a vistas que filtran registros eliminados (`v_productos_vigentes`),
   no a las tablas base directamente.
 
@@ -122,14 +150,17 @@ El script `roles.sql` debe incluir al menos un caso de permiso a nivel de column
 explícita requerida por la consigna.
 
 La forma elegida es `INSERT` restringido a las columnas necesarias de `pedido` para
-`rol_app_escritura`: `fecha`, `forma_pago`, `usuario_id`. Esto demuestra el mecanismo de
-permiso por columna sin otorgar UPDATE sobre `estado`, `total` ni `eliminado`.
+`rol_app_escritura`: `usuario_id` y `forma_pago`, más `SELECT (id)` para obtener el
+identificador generado mediante `RETURNING id`. Esto demuestra el mecanismo de permiso por
+columna sin otorgar acceso a `fecha`, `estado`, `total`, `eliminado` ni a los datos de otros
+pedidos. `fecha` toma siempre el default `CURRENT_DATE` del schema (D15, aprobada).
+
+Los propietarios NOLOGIN (`rol_propietario_ventas`, `rol_propietario_credenciales`) también
+reciben privilegios por columna; son casos adicionales del mismo mecanismo.
 
 El permiso redundante de `rol_soporte` sobre columnas de `usuario` (SELECT de id, nombre, etc.)
 se elimina de este diseño: `v_usuarios_publico` ya cumple esa función de forma más segura y
 mantenible, y duplicar el acceso vía columnas aumentaría la superficie de ataque sin beneficio.
-Si la cátedra exige demostrar permisos por columna en `usuario`, se documenta pero no se otorga
-en `roles.sql` operativo.
 
 ### REQ-A04 — Permisos por defecto (ALTER DEFAULT PRIVILEGES)
 
@@ -141,41 +172,63 @@ son necesarias:
 2. **EXECUTE global**: las funciones futuras creadas por `admin_datos` en cualquier esquema
    revocan EXECUTE a PUBLIC por defecto, como defensa en profundidad.
 
-No se aplica `ALTER DEFAULT PRIVILEGES` sobre todas las tablas de `public`: ese alcance es
-demasiado amplio y otorgaría permisos de INSERT/UPDATE a nuevas tablas operativas que pueden
-requerir un control diferente.
+No se aplica `ALTER DEFAULT PRIVILEGES` sobre `public`: ese alcance es demasiado amplio y
+otorgaría permisos automáticos sobre nuevas tablas operativas que pueden requerir un control
+diferente.
+
+La verificación se realiza sobre `pg_default_acl` (o con `\ddp` en psql). La vista
+`information_schema.default_privileges` no existe en PostgreSQL y no debe usarse.
 
 ### REQ-A05 — USAGE sobre esquema
 
 Todo rol que acceda a objetos del esquema `public` debe recibir `GRANT USAGE ON SCHEMA public`.
-Sin este privilegio, ningún otro permiso sobre los objetos del esquema es efectivo.
+Sin este privilegio, ningún otro permiso sobre los objetos del esquema es efectivo. Esto incluye
+a los propietarios NOLOGIN, porque el código que ejecutan resuelve nombres de `public` con su
+identidad. Ningún rol de U5 recibe `CREATE` sobre `public`.
 
 ### REQ-A06 — Verificación de privilegios
 
-La salida de `\du` y de una consulta sobre `information_schema.role_table_grants` debe confirmar
-que cada rol tiene exactamente los privilegios previstos en esta especificación: ni más, ni menos.
-La verificación se adjunta como evidencia en la entrega.
+La salida de `\du` y de las consultas de catálogo debe confirmar que cada rol tiene exactamente
+los privilegios previstos en esta especificación: ni más, ni menos. Como
+`information_schema.role_table_grants` no incluye privilegios por columna, sobre rutinas, sobre
+esquemas, privilegios por defecto ni membresías, la verificación combina:
+
+- `information_schema.role_table_grants` y `information_schema.role_column_grants`
+- `information_schema.role_routine_grants` o `aclexplode(pg_proc.proacl)`
+- `has_schema_privilege` / `pg_namespace.nspacl`
+- `pg_default_acl` (o `\ddp`)
+- `pg_auth_members` (incluidas `admin_option`, `inherit_option` y `set_option`)
+
+La comparación contra la matriz de `design.md` §3 se hace con EXCEPT bidireccional y se adjunta
+como evidencia en la entrega.
 
 ### REQ-A07 — Restricción de EXECUTE sobre rutinas (decisión D3)
 
 La decisión D3 aplica específicamente a `registrar_detalle_pedido` y `calcular_total_pedido`:
-se revoca EXECUTE a PUBLIC sobre ambas y se otorga explícitamente solo a los roles autorizados.
+se revoca EXECUTE a PUBLIC sobre ambas y se otorga explícitamente solo a
+`rol_propietario_ventas`, que es el usuario efectivo de la cadena de venta. `calcular_total_pedido`
+lo invocan las funciones trigger de total, que se ejecutan con ese mismo usuario efectivo; sin
+ese GRANT la venta falla.
 
 Las cinco funciones trigger (`fn_set_subtotal`, `fn_validar_detalle_vigente`,
 `fn_recalcular_total_insert`, `fn_recalcular_total_update`, `fn_recalcular_total_delete`)
-son invocadas exclusivamente por sus triggers; ningún rol de aplicación necesita ni debe tener
-EXECUTE sobre ellas. Se revoca PUBLIC como buena práctica, pero no se requiere GRANT de usuario.
+son invocadas exclusivamente por sus triggers. PostgreSQL verifica EXECUTE sobre la función
+trigger al crear el trigger, no al dispararlo (comprobado en la POC: `design.md` §13.7, T08). Se revoca
+PUBLIC como buena práctica y no se requiere GRANT a ningún rol.
 
-La verificación de qué tiene PUBLIC sobre las rutinas se realiza mediante ACL
-(`\df+` en psql o consultando `pg_proc.proacl`). El comportamiento de `proacl NULL`
-varía entre versiones de PostgreSQL; se prueba con roles reales (D12) antes de
-considerar el requisito cumplido.
+En todas las versiones vigentes, incluida PostgreSQL 17, `pg_proc.proacl NULL` significa
+privilegios por defecto: el propietario y **PUBLIC con EXECUTE**. Esto no cambió en PostgreSQL 15
+(ese cambio afectó a `CREATE` sobre el esquema `public`, no a EXECUTE sobre funciones). La
+verificación se realiza con `aclexplode(coalesce(proacl, acldefault('f', proowner)))` y con pruebas
+de comportamiento. Una reinstalación desde cero de `objetos_programables.sql` vuelve a crear las
+rutinas con el ACL por defecto, por lo que `roles.sql` debe aplicarse de nuevo después.
 
 ### REQ-A08 — Esquema dedicado `reportes`
 
 Se crea un esquema dedicado `reportes` para los objetos analíticos (decisión D10).
 `rol_reportes` recibe USAGE sobre ese esquema y SELECT sobre los objetos analíticos allí instalados.
-Los demás roles no reciben acceso a `reportes` salvo indicación explícita.
+`admin_datos` recibe USAGE y CREATE sobre `reportes`. Los demás roles no reciben acceso a
+`reportes` salvo indicación explícita.
 
 ### REQ-A09 — Protección de datos personales en objetos analíticos
 
@@ -189,19 +242,40 @@ o sobre versiones anonimizadas de los datos. Este requisito conecta con la Parte
 ### REQ-A10 — Interfaces controladas SECURITY DEFINER (decisión D1)
 
 El diseño contempla tres rutinas nuevas con SECURITY DEFINER, cada una con un propietario
-NOLOGIN distinto y `search_path` fijo. Ninguna duplica la lógica de negocio de los objetos
-canónicos.
+NOLOGIN y `search_path` fijo. Ninguna duplica la lógica de negocio de los objetos canónicos.
+
+**Contexto de ejecución (corrección de interpretación).** Una rutina SECURITY DEFINER se ejecuta
+con la identidad de su propietario. Una rutina SECURITY INVOKER se ejecuta con el **usuario
+efectivo del momento** (`current_user`), no con los privilegios de su propio propietario. Las
+funciones trigger sin SECURITY DEFINER se comportan igual: usan el usuario efectivo de la
+sentencia que las dispara. Por lo tanto, cuando `app_web` invoca `api_registrar_detalle_pedido`:
+
+1. El usuario efectivo pasa a ser `rol_propietario_ventas`.
+2. `registrar_detalle_pedido` (INVOKER) se ejecuta como `rol_propietario_ventas`.
+3. Los triggers de `detalle_pedido` y `calcular_total_pedido` también se ejecutan como
+   `rol_propietario_ventas`.
+4. Solo las verificaciones de claves foráneas se ejecutan con la identidad del propietario
+   de la tabla referenciada (mecanismo interno del motor).
+
+En consecuencia, `rol_propietario_ventas` necesita todos los privilegios que usa la cadena
+completa, y ninguno más. El propietario original de las rutinas canónicas no aporta privilegios
+a esa ejecución.
 
 **`api_registrar_detalle_pedido` (D1 — interfaz de venta):**
-Wrapper SECURITY DEFINER que invoca el procedimiento canónico `registrar_detalle_pedido`.
+Función SECURITY DEFINER que invoca el procedimiento canónico `registrar_detalle_pedido`.
 Es la única ruta autorizada para `rol_app_escritura` hacia las operaciones de venta.
 El propietario es `rol_propietario_ventas` (no el propietario del procedimiento canónico, que
 conserva su propietario original conforme a D2).
 
 **`fn_autenticar` (nueva — autenticación):**
 Valida credenciales mediante hash (`pgcrypto`) sin exponer `usuario.contrasena` a `app_web`.
-Rechaza parámetros nulos, marcadores académicos y hashes inválidos sin revelar información
-sensible. El propietario es `rol_propietario_credenciales`. Solo `rol_app_autenticacion` tiene EXECUTE.
+Solo compara contra el hash almacenado cuando este tiene el formato bcrypt exacto que produce
+`gen_salt('bf')` (`$2a$`, costo de dos dígitos, 53 caracteres del alfabeto bcrypt; 60 caracteres
+en total); `$2b$` y `$2y$` se rechazan (D16). Los marcadores académicos (`SEED_NO_AUTH`,
+`hash_no_valido`) y cualquier otro valor devuelven cero filas sin revelar la causa. Las ramas de
+mail inexistente y hash inválido ejecutan igualmente un cálculo bcrypt de costo equivalente, para
+que el tiempo de respuesta no revele si el mail existe (D16). El propietario es `rol_propietario_credenciales`.
+Solo `rol_app_autenticacion` tiene EXECUTE.
 
 **`fn_resetear_password` (nueva — reset de soporte):**
 Permite a `rol_soporte` forzar un cambio de contraseña sin UPDATE directo sobre `usuario`.
@@ -209,27 +283,37 @@ Bloquea la fila con FOR UPDATE entre la validación del rol y la actualización 
 condiciones de carrera concurrentes. El propietario es `rol_propietario_credenciales`.
 Solo `rol_soporte` tiene EXECUTE.
 
-Las tres rutinas se crean con:
+Las tres rutinas se crean, en una única transacción ejecutada por el superusuario de instalación, con:
 - `SECURITY DEFINER`
-- `SET search_path = public, pg_temp`
-- `REVOKE ALL ... FROM PUBLIC` antes del GRANT al rol específico
+- `SET search_path = public, pg_temp` (`pg_catalog` se busca implícitamente primero y `pg_temp`
+  queda explícitamente al final)
+- Referencias calificadas con esquema dentro de la rutina nueva
+- `ALTER ... OWNER TO` al propietario NOLOGIN, `REVOKE ALL ... FROM PUBLIC` y `GRANT EXECUTE`
+  al grupo autorizado antes del `COMMIT`
 
 El permiso PUBLIC de ejecución se revoca en todos los casos.
 
 ### REQ-A11 — Identidades temporales para pruebas
 
-Para verificar permisos se crean roles temporales de prueba con LOGIN y sin privilegios adicionales
-(decisión D12). Estos roles se eliminan al finalizar las pruebas. No se usan credenciales de
-producción para los ensayos, y no se registran contraseñas reales en la bitácora ni en el código.
+Para verificar permisos se crean roles temporales de prueba con prefijo `tst_u5_` y sin
+privilegios adicionales a los de sus grupos (decisión D12). Estos roles se eliminan al finalizar
+las pruebas. No se usan credenciales de producción para los ensayos.
+
+Ningún script, ejemplo ni evidencia contiene contraseñas literales. Las contraseñas sintéticas de
+prueba se generan en tiempo de ejecución, se transmiten como parámetros enlazados y se descartan.
+Los roles de login se crean sin `PASSWORD` en el texto SQL; si necesitan contraseña, se asigna con
+`\password` de psql, que envía el verificador SCRAM calculado en el cliente.
 
 ### REQ-A12 — Compatibilidad con objetos existentes
 
 El script `roles.sql` no modifica:
 - Las cinco tablas canónicas del schema raíz
-- Las siete rutinas ni los cinco triggers del TPI
+- Las definiciones ni los propietarios de las siete rutinas y los cinco triggers del TPI
 - Los objetos de U3 (índices, vistas, materializada) instalados en su base separada
 
-Los GRANT sobre rutinas existentes amplían el control de acceso sin alterar las definiciones.
+Los GRANT y REVOKE sobre rutinas existentes cambian su ACL sin alterar sus definiciones. La
+conservación se verifica comparando huellas de catálogo (definición, propietario, triggers)
+tomadas antes y después de aplicar `roles.sql`: solo pueden diferir los ACL previstos por D3.
 
 ---
 
@@ -245,6 +329,10 @@ La estrategia de auditoría del simulacro (decisión ajuste 2) debe:
 - **No registrar contraseñas en texto plano** — ni en el log nativo ni en el log del simulacro
 - El log producido en B alimenta directamente el simulacro de C
 
+Los parámetros enlazados solo protegen las contraseñas si el servidor no registra sus valores:
+`log_parameter_max_length = 0` y `log_parameter_max_length_on_error = 0` son condición previa de
+cualquier prueba que invoque `fn_autenticar` o `fn_resetear_password` (`design.md` §7).
+
 La verificación de permisos de lectura del archivo de log se documenta según el sistema operativo
 (Linux o Windows) donde se ejecute la prueba (ajuste 4 de la especificación).
 
@@ -252,7 +340,8 @@ La verificación de permisos de lectura del archivo de log se documenta según e
 
 El esquema de permisos diseñado en A es el que el simulacro de C pone a prueba. En particular:
 - El intento de otorgar membresía en `admin_datos` a un rol de bajo privilegio debe **fallar**
-  si el diseño de A es correcto.
+  si el diseño de A es correcto. En PostgreSQL 16+ ese GRANT exige ADMIN OPTION sobre
+  `admin_datos` (o SUPERUSER); ningún rol de U5 la tiene.
 - Si no falla, se trata de un hallazgo de defecto de seguridad que debe corregirse antes de continuar.
 - Los datos del log del simulacro se anonimizan antes de entregarse a la IA (mails, nombres,
   identificadores se reemplazan por tokens sintéticos).
@@ -267,22 +356,32 @@ o sobre agregaciones que no reidentifiquen individuos (requisito REQ-A09).
 
 ## Criterios de aceptación generales (SEC-01 a SEC-20)
 
-Los criterios SEC numerados se conservan y revisarán en el design.md para alinearlos con los
-requisitos de esta especificación. Aquí se listan las categorías:
+Los criterios detallados —con su prueba positiva, negativa y de regresión— se definen en
+`design.md` §8. La numeración se conserva. Trazabilidad entre requisitos y criterios:
 
-| Rango | Categoría |
-|---|---|
-| SEC-01 a SEC-04 | Existencia y atributos de los roles de grupo |
-| SEC-05 a SEC-07 | Existencia y membresías de los roles de login |
-| SEC-08 a SEC-10 | GRANT sobre tablas y vistas |
-| SEC-11 a SEC-13 | GRANT sobre rutinas (EXECUTE) |
-| SEC-14 a SEC-15 | Permisos por columna y ALTER DEFAULT PRIVILEGES |
-| SEC-16 a SEC-17 | Esquema `reportes` y sus permisos |
-| SEC-18 | SECURITY DEFINER con search_path fijo |
-| SEC-19 | Verificación con rol temporal (prueba negativa) |
-| SEC-20 | Ausencia de SUPERUSER en roles de aplicación |
-
-Los criterios detallados —con su prueba positiva, negativa y de regresión— se definen en design.md.
+| Criterio | Tema | Requisitos que verifica |
+|---|---|---|
+| SEC-01 | Siete roles de grupo NOLOGIN | REQ-A01 |
+| SEC-02 | Grupos sin SUPERUSER, CREATEDB, CREATEROLE | REQ-A02 |
+| SEC-03 | Equivalencia API ↔ procedimiento canónico; CALL directo denegado | REQ-A07, REQ-A10, REQ-A12 |
+| SEC-04 | `rol_reportes`: USAGE en `reportes` y solo objetos analíticos | REQ-A08, REQ-A09 |
+| SEC-05 | Venta solo por la API; DML directo sobre `detalle_pedido` denegado | REQ-A02, REQ-A10 |
+| SEC-06 | `admin_datos`: LOGIN sin SUPERUSER, CREATEDB, CREATEROLE; privilegios exactos | REQ-A01, REQ-A02 |
+| SEC-07 | Membresías exactas de `app_web`, sin ADMIN OPTION | REQ-A01, REQ-A06 |
+| SEC-08 | `pedido`: INSERT por columna y SELECT (id); sin acceso a `detalle_pedido` | REQ-A02, REQ-A03 |
+| SEC-09 | Sin DELETE ni TRUNCATE para la aplicación | REQ-A02 |
+| SEC-10 | Escalamiento por membresía denegado (ADMIN OPTION) | REQ-A02, dependencia A → C |
+| SEC-11 | ADP en `reportes`; nada automático en `public` | REQ-A04, REQ-A08 |
+| SEC-12 | ADP global: funciones futuras sin EXECUTE para PUBLIC | REQ-A04 |
+| SEC-13 | EXECUTE de rutinas: API sí; canónicas no | REQ-A07, REQ-A10 |
+| SEC-14 | Permisos por columna de `pedido` | REQ-A03 |
+| SEC-15 | Objetos canónicos intactos y funcionando | REQ-A12 |
+| SEC-16 | Contraseñas fuera de los logs | REQ-A11, dependencia A → B |
+| SEC-17 | Endurecimiento SECURITY DEFINER | REQ-A10 |
+| SEC-18 | Reset de soporte: alcance y prohibición sobre ADMIN | REQ-A10 |
+| SEC-19 | Pruebas negativas con identidad efímera sin membresías | REQ-A06, REQ-A11 |
+| SEC-20 | Sin SUPERUSER y sin residuos de identidades efímeras | REQ-A02, REQ-A11 |
+| — | Matriz exacta (EXCEPT bidireccional) | REQ-A05, REQ-A06 — verificación transversal de `design.md` §8 |
 
 ---
 
@@ -291,16 +390,21 @@ Los criterios detallados —con su prueba positiva, negativa y de regresión— 
 | ID | Decisión | Estado en este documento |
 |---|---|---|
 | D1 | `api_registrar_detalle_pedido` como interfaz SECURITY DEFINER que invoca el procedimiento canónico | Aplicada en REQ-A10 |
-| D2 | Conservar propietarios y definiciones de los siete objetos canónicos del TPI; `rol_propietario_ventas` es OWNER solo de `api_registrar_detalle_pedido` | Aplicada en REQ-A10 y REQ-A12 |
-| D3 | Revocar EXECUTE a PUBLIC sobre `registrar_detalle_pedido` y `calcular_total_pedido`; GRANT explícito solo a los roles que los necesitan; REVOKE de PUBLIC sobre funciones trigger | Aplicada en REQ-A07 |
+| D2 | Conservar propietarios reales y definiciones de los siete objetos canónicos del TPI; `rol_propietario_ventas` es OWNER solo de `api_registrar_detalle_pedido` | Aplicada en REQ-A10 y REQ-A12; propietarios reales a inventariar (VP-02) |
+| D3 | Revocar EXECUTE a PUBLIC sobre `registrar_detalle_pedido` y `calcular_total_pedido`; GRANT explícito de ambos solo a `rol_propietario_ventas`; REVOKE de PUBLIC sobre funciones trigger | Aplicada en REQ-A07 |
 | D4 | No otorgar UPDATE sobre `pedido.estado` hasta definir su caso de uso | Documentada como recomendación pendiente en design.md §9 |
 | D6 | Tres roles adicionales: `rol_app_autenticacion`, `rol_propietario_ventas` (OWNER de `api_registrar_detalle_pedido`), `rol_propietario_credenciales` | Aplicada en REQ-A01 |
 | D8 | Contraseña nueva no nula ni vacía; soporte no puede resetear cuentas ADMIN; otras políticas pendientes de definición | Documentada como recomendación en design.md §9 |
 | D9 | Propuesta de revocar CONNECT y TEMP a PUBLIC; sujeta a autorización sobre la instancia aislada | Documentada como pendiente de aprobación en design.md §9 |
 | D10 | Crear esquema dedicado `reportes` | Aplicada en REQ-A08 |
-| D11 | Verificar privilegios requeridos para `SELECT ... FOR SHARE` sobre `usuario` desde `registrar_detalle_pedido`; alternativa propuesta: `UPDATE(celular)` para `rol_propietario_ventas`; requiere prueba empírica en PG 17.11 | Documentada como pendiente de prueba en design.md §9 |
-| D12 | Identidades efímeras para verificar accesos de soporte y reportes; sin cuentas permanentes adicionales | Aplicada en REQ-A01 y REQ-A11 |
-| D13 | `admin_datos` sin CREATEROLE ni CREATEDB | Aplicada en REQ-A02 |
+| D11 | `SELECT ... FOR SHARE` sobre `usuario` exige SELECT de las columnas leídas y UPDATE sobre al menos una columna; se propone `UPDATE (celular)` para `rol_propietario_ventas` | Requisito comprobado en la POC (T07.09, T10; design.md §9 y §13.7); elección de `celular` pendiente de aprobación humana |
+| D12 | Identidades efímeras `tst_u5_*` para verificar accesos de soporte y reportes; sin cuentas permanentes adicionales | Aplicada en REQ-A01 y REQ-A11 |
+| D13 | `admin_datos` sin CREATEROLE ni CREATEDB, no propietario de objetos canónicos, con privilegios explícitos | Aplicada en REQ-A01 y REQ-A02 |
+| D14 | POC en una instancia PostgreSQL 17.11 dedicada y descartable, con base única `foodstore_u5_poc` | Aprobada 2026-10-26; la ejecución de la POC se autoriza por separado (design.md §13) |
+| D15 | `rol_app_escritura` sin `INSERT (fecha)` sobre `pedido`; rige el default `CURRENT_DATE` | Aprobada 2026-10-26; aplicada en REQ-A03 |
+| D16 | `fn_autenticar` acepta solo `$2a$` y ejecuta un cálculo bcrypt equivalente en todas las ramas | Aprobada 2026-10-26; aplicada en REQ-A10 |
+| D17 | La batería TPI no se ejecuta en la POC; se ejecuta en SEC-15 durante la implementación | Aprobada 2026-10-26 |
+| D18 | Privilegios operativos de `admin_datos` (design.md §2.2) | Aprobada 2026-10-26; aplicada en REQ-A01 |
 
 ---
 

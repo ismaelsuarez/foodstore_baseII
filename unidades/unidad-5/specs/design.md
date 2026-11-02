@@ -4,11 +4,29 @@
 Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 **Integrantes:** Avalos Pablo, Blangetti Sofia, Suarez Ismael
 **Motor objetivo:** PostgreSQL 17.11
-> Ningún objeto de U5 ha sido ejecutado en la base de laboratorio todavía.
-> Los contratos de este documento son propuestas pendientes de revisión humana y prueba.
+> Ningún objeto de U5 ha sido instalado en la base de laboratorio todavía. `roles.sql` no existe.
+> Los contratos de este documento son propuestas pendientes de revisión humana e implementación.
 
-> Este documento describe el diseño propuesto. Ningún SQL de este archivo ha sido ejecutado en
-> PostgreSQL. La implementación real queda pendiente de revisión humana y autorización explícita.
+> **Estado de evidencia (2026-11-02).** La POC de permisos (§13) se ejecutó una vez en una
+> instancia PostgreSQL 17.11 descartable, ya destruida. Solo los resultados de §13.7 tienen
+> evidencia de ejecución, y esa evidencia vale para el entorno de la POC: la ruta de venta de
+> `rol_app_escritura` y `rol_propietario_ventas`. El resto del diseño (credenciales, soporte,
+> reportes, `admin_datos`, privilegios por defecto, auditoría, D9) sigue sin ejecutar. La
+> implementación real queda pendiente de revisión humana y autorización explícita.
+
+> **Revisión técnica final de la Parte A (2026-10-26, Claude Code).** Cambios principales:
+> contexto de ejecución SECURITY DEFINER → INVOKER y triggers (§5.0), privilegios mínimos por
+> columna derivados de la cadena completa (§3, §5.0), propietarios reales no asumidos (§3.2, §14),
+> verificación de privilegios por defecto con `pg_default_acl` (§6), validación bcrypt exacta
+> (§5.2), eliminación de contraseñas literales (§2.2, §7.3, §8), lectura de `pedido` limitada a
+> `id` (§2.1), escalamiento con ADMIN OPTION (SEC-10), plan de POC (§13) e inventario de
+> verificaciones previas (§14).
+
+> **Consolidación de la POC (2026-11-02, Claude Code).** Resultados observados en §13.7;
+> evidencia en [`../poc_permisos/`](../poc_permisos/README.md). Las afirmaciones que decían «a
+> confirmar en la POC» indican ahora el caso que las comprobó o que siguen sin comprobar.
+> Correcciones del plan: T03 (diez sentencias), T11 (tabla temporal con columnas explícitas),
+> T12 (entre P4 y P5) y T14 (diferencias esperadas). D11 documentada con evidencia (§9).
 
 ---
 
@@ -20,9 +38,9 @@ Se aplica el modelo de **roles de grupo + roles de login** descrito en la Clase 
 
 - **Roles de grupo** (NOLOGIN): definen qué se puede hacer. Se revisan y estabilizan
   de forma independiente de quién se conecta.
-- **Roles de login** (LOGIN + PASSWORD): representan conexiones reales. Adquieren
-  capacidades mediante membresía en roles de grupo. Cambiar la responsabilidad de un
-  servicio o persona es un ajuste de membresía, no una reescritura de privilegios.
+- **Roles de login** (LOGIN): representan conexiones reales. Adquieren capacidades mediante
+  membresía en roles de grupo. Cambiar la responsabilidad de un servicio o persona es un
+  ajuste de membresía, no una reescritura de privilegios.
 
 ### 1.2. Jerarquía de roles
 
@@ -37,7 +55,7 @@ Se aplica el modelo de **roles de grupo + roles de login** descrito en la Clase 
 │  rol_soporte                 │  rol_propietario_credenciales│
 │  rol_reportes                │  (sin miembros — solo OWNER) │
 └──────────────────┬──────────────────────────────────────────┘
-                   │ GRANT (membresía)
+                   │ GRANT (membresía, sin ADMIN OPTION)
       ┌────────────▼──────────────────┐
       │     ROLES DE LOGIN            │
       ├───────────────────────────────┤
@@ -52,9 +70,9 @@ Se aplica el modelo de **roles de grupo + roles de login** descrito en la Clase 
 ```
 
 Los roles `rol_propietario_ventas` y `rol_propietario_credenciales` son NOLOGIN sin miembros.
-Su único propósito es ser OWNER de las rutinas SECURITY DEFINER correspondientes, de modo que
-esas funciones corran con el mínimo privilegio necesario y no con los privilegios amplios de
-`admin_datos`.
+Su único propósito es ser OWNER de las rutinas SECURITY DEFINER correspondientes. Como esas
+rutinas se ejecutan con la identidad de su propietario, el propietario define el techo de
+privilegios de todo lo que la rutina ejecuta (§5.0).
 
 ---
 
@@ -62,7 +80,7 @@ esas funciones corran con el mínimo privilegio necesario y no con los privilegi
 
 ### 2.1. Roles de grupo
 
-#### `rol_app_lectura` — NOLOGIN, NOINHERIT opcional
+#### `rol_app_lectura` — NOLOGIN
 
 **Justificación:** Sirve el catálogo público del sitio. Solo necesita leer productos vigentes
 a través de la vista `v_productos_vigentes`, que ya proyecta `categoria_nombre`. No necesita
@@ -73,13 +91,15 @@ ver pedidos ni usuarios.
 | `v_productos_vigentes` | SELECT | public |
 | SCHEMA public | USAGE | — |
 
-**Excluido deliberadamente:** SELECT directo sobre la tabla `categoria`. La vista
-`v_productos_vigentes` (U3) ya expone `categoria_id` y `categoria_nombre` junto con los
-productos, filtrando por `eliminado = FALSE` en ambas tablas. Si se necesita consultar
-categorías de forma independiente de los productos (por ejemplo, para poblar un selector
-en la UI), el equipo debe crear una vista específica `v_categorias_vigentes` y otorgar
-SELECT sobre ella a `rol_app_lectura`. Esta vista no existe en el modelo oficial actual
-y no se crea en U5 sin autorización explícita.
+La vista no usa `security_invoker`: accede a las tablas base con los privilegios de su propietario,
+por lo que `rol_app_lectura` no necesita privilegios sobre `producto` ni `categoria`. Las vistas de
+U3 deben estar instaladas en la base de U5 (VP-11); si no lo están, su instalación requiere
+autorización separada.
+
+**Excluido deliberadamente:** SELECT directo sobre la tabla `categoria`. Si se necesita consultar
+categorías de forma independiente de los productos, el equipo debe crear una vista específica
+`v_categorias_vigentes` y otorgar SELECT sobre ella a `rol_app_lectura`. Esta vista no existe en
+el modelo oficial actual y no se crea en U5 sin autorización explícita.
 
 > Si la cátedra exige demostrar acceso directo a una tabla de catálogo, documentarlo
 > en BITACORA.md y crear `v_categorias_vigentes` en ese momento.
@@ -90,24 +110,30 @@ y no se crea en U5 sin autorización explícita.
 
 **Justificación:** Crea pedidos y accede a la interfaz de venta autorizada. No puede leer ni
 modificar `detalle_pedido` directamente — esa tabla se gestiona exclusivamente a través de
-`api_registrar_detalle_pedido`. No puede modificar `estado`, `total` ni `eliminado` en `pedido`.
+`api_registrar_detalle_pedido`. No puede leer ni modificar `estado`, `total` ni `eliminado` en `pedido`.
 
 | Objeto | Privilegio | Esquema | Nota |
 |---|---|---|---|
-| `pedido` | INSERT (columnas: `fecha`, `forma_pago`, `usuario_id`) | public | Permiso por columna — práctica REQ-A03 |
-| `pedido` | SELECT | public | Para consultar sus propios pedidos creados |
+| `pedido` | INSERT (`usuario_id`, `forma_pago`) | public | Permiso por columna — REQ-A03; sin `fecha` (D15) |
+| `pedido` | SELECT (`id`) | public | Solo para `INSERT ... RETURNING id` |
 | `api_registrar_detalle_pedido(bigint,bigint,integer)` | EXECUTE | public | Única interfaz de venta autorizada (D1) |
 | SCHEMA public | USAGE | — | — |
 
 **Excluido deliberadamente:**
+- SELECT sobre las demás columnas de `pedido`. La versión inicial otorgaba SELECT sobre toda la
+  tabla «para consultar sus propios pedidos», pero sin RLS ese privilegio expone todos los pedidos
+  de todos los usuarios. Si la aplicación necesita consultar pedidos, debe hacerlo mediante una
+  vista o rutina específica que se diseñe aparte.
 - DELETE, TRUNCATE, UPDATE sobre `pedido`
 - Todo privilegio sobre `detalle_pedido` (tabla base)
 - EXECUTE directo sobre `registrar_detalle_pedido` (el procedimiento canónico del TPI)
 - EXECUTE sobre `calcular_total_pedido` (función interna; el total lo mantienen los triggers)
 
-**Nota:** El INSERT por columna sobre `pedido` es el permiso por columna requerido por REQ-A03.
-El campo `total` lo calcula el trigger; `estado` inicia siempre en PENDIENTE por default del schema;
-`eliminado` inicia en FALSE. Ninguno de estos campos necesita ser otorgado al rol operativo.
+**Nota:** La FK `fk_pedido_usuario` se verifica con la identidad del propietario de `usuario`
+(mecanismo interno del motor), por lo que el INSERT no requiere SELECT sobre `usuario`.
+**Comprobado en la POC (T04.1):** `app_web`, sin ningún privilegio sobre `usuario`, insertó un
+pedido de U1. `fecha` inicia en `CURRENT_DATE` (D15: la aplicación no puede registrar pedidos
+con otra fecha), `estado` en PENDIENTE, `total` en 0 y `eliminado` en FALSE por default del schema.
 
 ---
 
@@ -129,9 +155,6 @@ y la identidad pública de usuarios (sin contraseña ni celular). No escribe dat
   por columna que habría que mantener sincronizado con la vista.
 - Cualquier privilegio sobre `producto`, `pedido` o `detalle_pedido`.
 
-> Si la cátedra exige demostrar permisos por columna específicamente sobre `usuario`, puede
-> documentarse como ejemplo complementario sin incluirlo en `roles.sql` operativo.
-
 ---
 
 #### `rol_reportes` — NOLOGIN
@@ -141,13 +164,10 @@ No accede a datos individuales identificables.
 
 | Objeto | Privilegio | Esquema |
 |---|---|---|
-| `mv_facturacion_categoria_mes` | SELECT | reportes (ver §4) |
-| Vistas analíticas futuras | SELECT | reportes |
+| `mv_facturacion_categoria_mes` | SELECT | ubicación real (ver §4) |
+| Objetos analíticos futuros de `admin_datos` | SELECT (por ADP) | reportes |
 | SCHEMA reportes | USAGE | — |
-
-> La vista materializada `mv_facturacion_categoria_mes` fue creada en U3 sobre el esquema
-> `public` de la base de laboratorio de esa unidad. En la base de U5, si se reinstala,
-> se ubica en el esquema `reportes` conforme a D10.
+| SCHEMA public | USAGE | solo si la materializada permanece en `public` |
 
 ---
 
@@ -164,156 +184,208 @@ la rotación o restricción futura de la identidad de login de la aplicación.
 
 ---
 
-#### `rol_propietario_ventas` — NOLOGIN, sin miembros (D6)
+#### `rol_propietario_ventas` — NOLOGIN, NOINHERIT, sin miembros (D6)
 
 **Justificación:** Propietario de `api_registrar_detalle_pedido`. Como esa función es
-SECURITY DEFINER, corre con los privilegios de este rol. Dado que `registrar_detalle_pedido`
-es SECURITY INVOKER, hereda el usuario efectivo del caller — es decir, también corre bajo
-`rol_propietario_ventas`. Este rol necesita todos los privilegios que el procedimiento
-canónico usa internamente.
+SECURITY DEFINER, se ejecuta con la identidad de este rol, y todo lo que invoca sin SECURITY
+DEFINER —el procedimiento canónico, sus triggers y `calcular_total_pedido`— también se ejecuta
+con esta identidad (§5.0). Por eso este rol necesita exactamente los privilegios de la cadena
+completa. El propietario original de las rutinas canónicas no aporta privilegios a esa ejecución.
 
 El propietario de `registrar_detalle_pedido` y demás rutinas del TPI no cambia (D2).
-
 Este rol no tiene miembros. Nadie se conecta como él ni lo hereda.
 
-**Privilegios requeridos sobre tablas (sujetos a verificación empírica — D11):**
+**Privilegios mínimos (derivados en §5.0; necesidad comprobada por ablación en la POC, T07 —
+23/23 —, salvo USAGE sobre `public`, que no se ablacionó; ver §13.7):**
 
 | Objeto | Privilegio | Por qué |
 |---|---|---|
-| `pedido` | SELECT, UPDATE | `FOR UPDATE` para bloquear el pedido antes de modificar |
-| `usuario` | SELECT | `FOR SHARE` para verificar baja lógica del usuario |
-| `usuario` | UPDATE (col: `celular`)⁷ | `FOR SHARE` puede requerir UPDATE sobre ≥1 columna en PG17 |
-| `producto` | SELECT, UPDATE | `FOR UPDATE` para leer precio/stock; UPDATE para descontar stock |
-| `detalle_pedido` | INSERT, SELECT | INSERT de la línea; PERFORM para detectar duplicado |
-| SCHEMA public | USAGE | resolución de nombres |
-| `registrar_detalle_pedido(bigint,bigint,integer)` | EXECUTE | CALL desde la función wrapper |
+| SCHEMA public | USAGE | Resolución de nombres con su identidad |
+| `pedido` | SELECT (`id`, `usuario_id`, `eliminado`) | Bloqueo y lectura del pedido; validación del trigger de vigencia |
+| `pedido` | UPDATE (`total`) | Recalculo de total; además habilita `FOR UPDATE` / `FOR SHARE` |
+| `usuario` | SELECT (`id`, `eliminado`) | Baja lógica del usuario del pedido |
+| `usuario` | UPDATE (`celular`) — D11 | Solo para habilitar `FOR SHARE`; la cadena nunca escribe esa columna |
+| `producto` | SELECT (`id`, `precio`, `stock`, `disponible`, `eliminado`) | Bloqueo, validación y precio histórico |
+| `producto` | UPDATE (`stock`) | Descuento de stock; además habilita `FOR UPDATE` / `FOR SHARE` |
+| `detalle_pedido` | SELECT (`pedido_id`, `producto_id`, `subtotal`, `eliminado`) | Detección de duplicado y agregado de `calcular_total_pedido` |
+| `detalle_pedido` | INSERT (`pedido_id`, `producto_id`, `cantidad`, `precio_unitario`) | Alta de la línea |
+| `registrar_detalle_pedido(bigint,bigint,integer)` | EXECUTE | CALL desde la función |
+| `calcular_total_pedido(bigint)` | EXECUTE | Invocada por los triggers de total con esta identidad |
 
-⁷ Riesgo residual documentado: un atacante con acceso a `rol_propietario_ventas` podría
-ejecutar `UPDATE usuario SET celular = ...`. Se acepta porque `celular` es nullable y sin
-lógica de negocio; el equipo puede elegir otra columna igualmente inocua si lo prefiere.
-
-**Lo que este rol no necesita** (los triggers AFTER corren bajo el OWNER de la función trigger,
-que es el OWNER canónico, no el usuario efectivo de la cadena):
-- EXECUTE sobre `calcular_total_pedido`
-- EXECUTE sobre las cinco funciones trigger
+**No necesita (comprobado en la POC):** EXECUTE sobre las cinco funciones trigger (EXECUTE se
+verifica al crear el trigger, no al dispararlo; T08), privilegios sobre las secuencias de
+identidad (el valor generado por `GENERATED ALWAYS AS IDENTITY` no exige USAGE sobre la
+secuencia; T09) ni privilegios adicionales para las FK (la venta de T01 funciona sin REFERENCES
+ni otro GRANT fuera de la matriz).
 
 ---
 
-#### `rol_propietario_credenciales` — NOLOGIN, sin miembros (D6)
+#### `rol_propietario_credenciales` — NOLOGIN, NOINHERIT, sin miembros (D6)
 
 **Justificación:** Propietario de `fn_autenticar` y `fn_resetear_password`. Al ser OWNER,
-estas funciones SECURITY DEFINER corren con el mínimo privilegio (SELECT sobre `usuario`
-incluyendo `contrasena`; UPDATE sobre `usuario.contrasena`) sin exponer esos privilegios a
+estas funciones SECURITY DEFINER se ejecutan con su identidad, sin exponer esos privilegios a
 `app_web` ni a `rol_soporte`.
 
 Este rol no tiene miembros.
 
-**Privilegios requeridos:**
+**Privilegios mínimos:**
 
 | Objeto | Privilegio | Para qué |
 |---|---|---|
-| `usuario` | SELECT | `fn_autenticar` necesita leer `contrasena` y `mail` |
-| `usuario.contrasena` | UPDATE (columna) | `fn_resetear_password` necesita actualizar solo esa columna |
-| SCHEMA public | USAGE | — |
+| SCHEMA public | USAGE | Resolución de `usuario`, `crypt` y `gen_salt` |
+| `usuario` | SELECT (`id`, `mail`, `contrasena`, `rol`, `eliminado`) | Búsqueda por mail y comparación de hash; validación del destino del reset |
+| `usuario` | UPDATE (`contrasena`) | Reset; además habilita `FOR UPDATE` en `fn_resetear_password` |
+| `public.crypt(text,text)`, `public.gen_salt(text)` | EXECUTE | Heredado de PUBLIC según el ACL de `pgcrypto` (VP-07) |
 
 ---
 
 ### 2.2. Roles de login
 
-#### `app_web` — LOGIN, PASSWORD (marcador académico, no credencial real)
+#### `app_web` — LOGIN
 
 **Justificación:** Es la identidad que usa el backend de la aplicación web para conectarse.
 Acumula los privilegios necesarios para servir el catálogo, gestionar el flujo de compra
 y autenticar usuarios.
 
 ```sql
-CREATE ROLE app_web WITH LOGIN PASSWORD 'PLACEHOLDER_NO_USAR_EN_PRODUCCION';
-GRANT rol_app_lectura        TO app_web;
+-- Sin contraseña en el texto SQL. Si el rol necesita autenticarse por contraseña,
+-- se asigna después y fuera del script con el metacomando de psql: \password app_web
+CREATE ROLE app_web LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+GRANT rol_app_lectura        TO app_web;  -- sin WITH ADMIN OPTION
 GRANT rol_app_escritura      TO app_web;
 GRANT rol_app_autenticacion  TO app_web;
 ```
 
-**Atributos:** Sin SUPERUSER, sin CREATEDB, sin CREATEROLE, sin BYPASSRLS.
+`\password` calcula el verificador SCRAM en el cliente y envía solo el verificador, de modo que la
+contraseña no queda en el script, en el historial del repositorio ni en el log del servidor. El
+verificador igualmente se trata como dato sensible.
 `CONNECTION LIMIT` a definir según criterio operativo del equipo (la Clase 1 sugiere 50).
 
 ---
 
-#### `admin_datos` — LOGIN, PASSWORD (marcador académico)
+#### `admin_datos` — LOGIN
 
-**Justificación:** Administrador de la base y rol de la cátedra. Es el propietario del esquema.
-Gestiona la instalación y mantenimiento de los objetos.
+**Justificación:** Rol de administración de datos de la cátedra: consulta los datos de dominio y
+crea objetos analíticos en `reportes`. **No es propietario de los objetos canónicos** (D2: se
+conservan los propietarios reales inventariados en VP-02) y no instala roles ni permisos: esa
+etapa la ejecuta un superusuario con autorización explícita.
 
 **Decisión D13 — sin CREATEROLE ni CREATEDB:**
 La Clase 1 mostraba `admin_datos WITH LOGIN PASSWORD ... CREATEDB CREATEROLE`.
-La decisión D13 revierte esos atributos. Justificación: CREATEROLE permite crear roles con
-cualquier privilegio que `admin_datos` tenga, lo cual podría usarse para escalar privilegios
-de forma indirecta. CREATEDB no es necesario para administrar una base existente.
+La decisión D13 revierte esos atributos. En PostgreSQL 16+ un rol con CREATEROLE administra los
+roles que crea (recibe ADMIN OPTION sobre ellos); en la operación normal no se crean roles, y la
+incorporación de identidades es un procedimiento administrativo separado. CREATEDB no es necesario
+para administrar una base existente.
 
 ```sql
-CREATE ROLE admin_datos WITH LOGIN PASSWORD 'PLACEHOLDER_NO_USAR_EN_PRODUCCION';
--- Sin CREATEDB, sin CREATEROLE
+-- Sin contraseña en el texto SQL (ver app_web).
+CREATE ROLE admin_datos LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
 ```
 
-> Si la cátedra requiere que `admin_datos` pueda crear objetos en el esquema, el privilegio
-> correcto es `GRANT CREATE ON SCHEMA public TO admin_datos`, no el atributo global CREATEDB.
+**Privilegios operativos (D18, aprobada):**
+
+| Objeto | Privilegio |
+|---|---|
+| Base de datos | CONNECT (explícito si se aprueba D9) |
+| SCHEMA public | USAGE (sin CREATE) |
+| SCHEMA reportes | USAGE, CREATE |
+| `categoria`, `producto`, `pedido`, `detalle_pedido` | SELECT |
+| `usuario` | SELECT (`id`, `rol`, `eliminado`, `created_at`) |
+| `mv_facturacion_categoria_mes` | SELECT |
+
+Sin DML sobre tablas canónicas. Como `admin_datos` no puede leer `nombre`, `apellido`, `mail`,
+`celular` ni `contrasena`, tampoco puede construir en `reportes` un objeto que los exponga
+(control preventivo de REQ-A09).
 
 ---
 
-## 3. Mapa consolidado de privilegios
+## 3. Matriz definitiva de privilegios propuestos
 
-### 3.1. Sobre tablas y vistas (esquema public)
+Las columnas `app_escritura` y `prop_ventas` fueron contrastadas en la POC (§13.7): la ruta de
+venta funciona con ellas, y cada privilegio de `prop_ventas` es necesario (T07). La columna
+elegida en D11 sigue pendiente de aprobación. Las demás columnas no tienen evidencia de
+ejecución. Toda celda vacía significa «ningún privilegio». Abreviaturas: S = SELECT, I = INSERT, U = UPDATE, X = EXECUTE; la lista entre
+paréntesis indica privilegio por columna.
 
-| Objeto | rol_app_lectura | rol_app_escritura | rol_soporte | rol_reportes | rol_prop_ventas¹ | rol_prop_cred² |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| `categoria` | — | — | — | — | — | — |
-| `usuario` | — | — | — | — | SELECT, UPD(celular)⁴ | SELECT, UPD(contrasena)⁵ |
-| `producto` | — | — | — | — | SELECT, UPDATE | — |
-| `pedido` | — | SELECT⁶, INS(col)³ | — | — | SELECT, UPDATE | — |
-| `detalle_pedido` | — | — | — | — | INSERT, SELECT | — |
-| `v_productos_vigentes` | SELECT | — | — | — | — | — |
-| `v_usuarios_publico` | — | — | SELECT | — | — | — |
-| `v_pedidos_resumen` | — | — | SELECT | — | — | — |
-| `v_pedido_detalle` | — | — | — | — | — | — |
+### 3.1. Tablas y vistas (esquema public)
 
-¹ `rol_propietario_ventas` — OWNER de `api_registrar_detalle_pedido`; hereda estos privilegios como
-  usuario efectivo cuando `registrar_detalle_pedido` (SECURITY INVOKER) se ejecuta dentro de la cadena.
-  **Sujeto a verificación empírica en PG 17.11** — ver D11 §9.
-² `rol_propietario_credenciales` — OWNER de `fn_autenticar` y `fn_resetear_password`.
-³ INSERT restringido a columnas `fecha`, `forma_pago`, `usuario_id` — práctica REQ-A03.
-⁴ `SELECT` requerido por `FOR SHARE`; `UPDATE(celular)` requerido en PG17 por `FOR SHARE` sobre ≥1 col.
-  Riesgo residual documentado en §2.1.
-⁵ `UPDATE(contrasena)` columna única; `SELECT` completo para comparar hash en `fn_autenticar`.
-⁶ SELECT sobre `pedido` para `rol_app_escritura` no implica visibilidad restringida a pedidos propios —
-  sin RLS activo, este SELECT ve todos los pedidos. Si se requiere aislamiento, es necesario implementar
-  Row-Level Security, que está fuera del alcance de U5 sin autorización explícita.
+| Objeto | app_lectura | app_escritura | soporte | reportes | prop_ventas | prop_credenciales | admin_datos |
+|---|---|---|---|---|---|---|---|
+| `categoria` | | | | | | | S |
+| `usuario` | | | | | S(id, eliminado); U(celular)¹ | S(id, mail, contrasena, rol, eliminado); U(contrasena) | S(id, rol, eliminado, created_at) |
+| `producto` | | | | | S(id, precio, stock, disponible, eliminado); U(stock) | | S |
+| `pedido` | | I(usuario_id, forma_pago)²; S(id) | | | S(id, usuario_id, eliminado); U(total) | | S |
+| `detalle_pedido` | | | | | S(pedido_id, producto_id, subtotal, eliminado); I(pedido_id, producto_id, cantidad, precio_unitario) | | S |
+| `v_productos_vigentes` | S | | | | | | |
+| `v_usuarios_publico` | | | S | | | | |
+| `v_pedidos_resumen` | | | S | | | | |
+| `v_pedido_detalle` | | | | | | | |
+| `mv_facturacion_categoria_mes` | | | | S | | | S |
 
-### 3.2. Sobre rutinas (esquema public)
+¹ D11: privilegio nominal requerido por `FOR SHARE`; riesgo residual RR-01 (§5.4).
+² D15 (aprobada): sin `fecha`; se usa el default `CURRENT_DATE`.
 
-| Rutina | Tipo | OWNER (no cambia) | PUBLIC tras D3 | GRANT explícito |
+`app_web` no recibe privilegios directos: los obtiene solo por herencia de sus tres grupos.
+Ningún rol recibe DELETE, TRUNCATE, REFERENCES, TRIGGER ni MAINTAIN sobre tablas de dominio.
+
+### 3.2. Rutinas
+
+| Rutina | Tipo | OWNER | PUBLIC | GRANT EXECUTE explícito |
 |---|---|---|---|---|
-| `registrar_detalle_pedido(bigint,bigint,integer)` | procedimiento (TPI) | `admin_datos` (D2) | REVOKE | GRANT EXECUTE → `rol_propietario_ventas`⁶ |
-| `calcular_total_pedido(bigint)` | función SQL (TPI) | `admin_datos` | REVOKE | — (solo triggers y `admin_datos`) |
-| `fn_set_subtotal()` | fn trigger (TPI) | `admin_datos` | REVOKE | — (solo triggers) |
-| `fn_validar_detalle_vigente()` | fn trigger (TPI) | `admin_datos` | REVOKE | — (solo triggers) |
-| `fn_recalcular_total_insert()` | fn trigger (TPI) | `admin_datos` | REVOKE | — (solo triggers) |
-| `fn_recalcular_total_update()` | fn trigger (TPI) | `admin_datos` | REVOKE | — (solo triggers) |
-| `fn_recalcular_total_delete()` | fn trigger (TPI) | `admin_datos` | REVOKE | — (solo triggers) |
-| `api_registrar_detalle_pedido(bigint,bigint,integer)` | función (nueva) | `rol_propietario_ventas` | REVOKE | GRANT EXECUTE → `rol_app_escritura` |
-| `fn_autenticar(text,text)` | función (nueva) | `rol_propietario_credenciales` | REVOKE | GRANT EXECUTE → `rol_app_autenticacion` |
-| `fn_resetear_password(bigint,text)` | función (nueva) | `rol_propietario_credenciales` | REVOKE | GRANT EXECUTE → `rol_soporte` |
+| `registrar_detalle_pedido(bigint,bigint,integer)` | procedimiento TPI, INVOKER | real, sin cambio (VP-02, D2) | revocado (D3) | `rol_propietario_ventas` |
+| `calcular_total_pedido(bigint)` | función SQL TPI, INVOKER | real, sin cambio | revocado (D3) | `rol_propietario_ventas` |
+| `fn_set_subtotal()` | función trigger TPI | real, sin cambio | revocado | — |
+| `fn_validar_detalle_vigente()` | función trigger TPI | real, sin cambio | revocado | — |
+| `fn_recalcular_total_insert()` | función trigger TPI | real, sin cambio | revocado | — |
+| `fn_recalcular_total_update()` | función trigger TPI | real, sin cambio | revocado | — |
+| `fn_recalcular_total_delete()` | función trigger TPI | real, sin cambio | revocado | — |
+| `api_registrar_detalle_pedido(bigint,bigint,integer)` | función nueva, DEFINER | `rol_propietario_ventas` | revocado | `rol_app_escritura` |
+| `fn_autenticar(text,text)` | función nueva, DEFINER | `rol_propietario_credenciales` | revocado | `rol_app_autenticacion` |
+| `fn_resetear_password(bigint,text)` | función nueva, DEFINER | `rol_propietario_credenciales` | revocado | `rol_soporte` |
 
-⁶ `rol_propietario_ventas` necesita EXECUTE sobre `registrar_detalle_pedido` para que la función
-  wrapper pueda invocarlo. Este GRANT no cambia el OWNER del procedimiento (D2).
+El propietario real de las siete rutinas canónicas no se asume: la versión inicial lo daba por
+`admin_datos`, pero las evidencias de instalación usan `-U postgres`. Se inventaría en VP-02 y se
+conserva. El propietario conserva EXECUTE implícito por ser dueño; la POC y la implementación usan
+al superusuario de instalación para las ejecuciones directas de comparación.
 
-**Nota sobre `calcular_total_pedido`:** Esta función es invocada por los triggers AFTER de
-`detalle_pedido`. Los triggers corren bajo el OWNER de la función trigger, que es `admin_datos`.
-Ningún rol de aplicación necesita EXECUTE sobre ella.
+**ACL por defecto:** en PostgreSQL 17, como en versiones anteriores, `proacl NULL` significa
+«propietario + PUBLIC con EXECUTE». La afirmación de la versión inicial de que PostgreSQL 15
+dejó de otorgar EXECUTE a PUBLIC sobre funciones era incorrecta: el cambio de PostgreSQL 15 retiró
+`CREATE` a PUBLIC sobre el esquema `public`. Consulta de verificación:
 
-**Verificación de proacl NULL:**
-Antes de cualquier REVOKE, consultar `pg_proc.proacl` para las siete rutinas del TPI.
-Si el valor es NULL, PUBLIC tiene EXECUTE implícito (comportamiento de PG 14 y anteriores;
-en PG 15+ las funciones nuevas no lo otorgan por defecto, pero las instaladas previamente
-pueden tenerlo). Verificar con el rol efímero (D12) antes de concluir que el REVOKE es efectivo.
+```sql
+SELECT p.oid::regprocedure AS rutina,
+       pg_get_userbyid(p.proowner) AS propietario,
+       CASE a.grantee WHEN 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END AS beneficiario,
+       a.privilege_type
+FROM pg_proc p
+CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+WHERE p.pronamespace = 'public'::regnamespace
+ORDER BY 1, 3;
+```
+
+### 3.3. Esquemas, base de datos y privilegios por defecto
+
+| Objeto | Privilegios |
+|---|---|
+| SCHEMA public | Propietario real (VP-05). USAGE: PUBLIC (default) y explícito a los roles de U5 que lo usan. CREATE: ningún rol de U5 ni PUBLIC |
+| SCHEMA reportes | Propietario: superusuario de instalación. USAGE: `rol_reportes`, `admin_datos`. CREATE: solo `admin_datos` |
+| Base de datos | CONNECT/TEMP de PUBLIC según D9; si se aprueba, CONNECT explícito a `app_web`, `admin_datos` y a las identidades `tst_u5_*` durante las pruebas |
+| `pg_default_acl` | Exactamente dos entradas (§6) |
+
+### 3.4. Atributos y membresías
+
+| Rol | LOGIN | INHERIT | Atributos especiales | Miembro de | Miembros |
+|---|---|---|---|---|---|
+| `rol_app_lectura`, `rol_app_escritura`, `rol_app_autenticacion` | no | sí | ninguno | — | `app_web` |
+| `rol_soporte` | no | sí | ninguno | — | `tst_u5_soporte` (solo pruebas) |
+| `rol_reportes` | no | sí | ninguno | — | `tst_u5_reportes` (solo pruebas) |
+| `rol_propietario_ventas`, `rol_propietario_credenciales` | no | no | ninguno | — | ninguno |
+| `app_web` | sí | sí | ninguno | tres grupos de aplicación | — |
+| `admin_datos` | sí | sí | ninguno | — | — |
+
+Ninguna membresía tiene `admin_option = true`. «Atributos especiales» comprende SUPERUSER,
+CREATEDB, CREATEROLE, REPLICATION y BYPASSRLS.
 
 ---
 
@@ -322,8 +394,10 @@ pueden tenerlo). Verificar con el rol efímero (D12) antes de concluir que el RE
 ### 4.1. Creación
 
 ```sql
+-- Ejecutado por el superusuario de instalación, que queda como propietario del esquema.
 CREATE SCHEMA IF NOT EXISTS reportes;
 GRANT USAGE ON SCHEMA reportes TO rol_reportes;
+GRANT USAGE, CREATE ON SCHEMA reportes TO admin_datos;
 ```
 
 ### 4.2. Objetos a instalar en `reportes`
@@ -333,7 +407,7 @@ Los objetos analíticos que no deben exponer datos personales (REQ-A09):
 | Objeto propuesto | Tipo | Política de ubicación | Expone datos personales |
 |---|---|---|---|
 | `mv_facturacion_categoria_mes` | materializada | Ver nota abajo | No — agrega por categoría/mes |
-| `v_resumen_ventas_rol_mes` | vista | Nueva en U5, en `reportes` | No — agrega por rol y mes, sin ID de usuario |
+| `v_resumen_ventas_rol_mes` | vista | Nueva en U5, en `reportes`; fuera de la POC | No — agrega por rol y mes, sin ID de usuario |
 
 **Política para `mv_facturacion_categoria_mes`:**
 - Si la materializada **ya existe** en la base de U5 (por haber instalado U3 sobre ella),
@@ -348,8 +422,8 @@ test de reidentificación: ¿puede un analista determinar la identidad de un usu
 a partir de los datos expuestos? Si la respuesta es sí, el objeto no se instala sin
 anonimización adicional.
 
-> **Nota sobre REFRESH CONCURRENTLY:** `admin_datos` puede ejecutar el REFRESH directamente
-> como propietario del objeto. Si se delega a otro rol, requiere definición separada.
+> **Nota sobre REFRESH:** el refresco lo ejecuta el propietario real de la materializada. Si se
+> delega, PostgreSQL 17 ofrece el privilegio MAINTAIN; su uso requiere una decisión separada.
 
 ---
 
@@ -358,58 +432,77 @@ anonimización adicional.
 Las tres rutinas nuevas tienen SECURITY DEFINER, `search_path` fijo y propietario NOLOGIN
 propio. Ninguna duplica la lógica de los objetos canónicos.
 
+### 5.0. Contexto de ejecución y cadena de privilegios
+
+**Regla.** Una rutina SECURITY DEFINER cambia el usuario efectivo (`current_user`) a su
+propietario durante su ejecución. Una rutina SECURITY INVOKER —y una función trigger sin
+SECURITY DEFINER— se ejecuta con el **usuario efectivo del momento**, no con los privilegios de
+su propio propietario. `session_user` sigue siendo la identidad conectada (`app_web`).
+
+**Corrección.** La versión inicial afirmaba que los triggers AFTER «corren bajo el OWNER de la
+función trigger». Es incorrecto: las cinco funciones trigger del TPI son INVOKER y se ejecutan
+como `rol_propietario_ventas` cuando la sentencia que las dispara se ejecuta dentro de la API.
+Por eso `rol_propietario_ventas` sí necesita EXECUTE sobre `calcular_total_pedido` y privilegios
+sobre las columnas que leen y escriben los triggers.
+
+```
+app_web (session_user)                              current_user
+└─ SELECT public.api_registrar_detalle_pedido(...)  app_web → necesita X sobre la API
+   └─ [SECURITY DEFINER]                            rol_propietario_ventas
+      └─ CALL public.registrar_detalle_pedido(...)  rol_propietario_ventas (INVOKER)
+         ├─ BEFORE trg_detalle_vigente              rol_propietario_ventas
+         ├─ BEFORE trg_subtotal                     rol_propietario_ventas
+         ├─ FK fk_detalle_pedido_*                  propietario de pedido/producto (interno)
+         ├─ AFTER trg_total_detalle_insert          rol_propietario_ventas
+         │  └─ calcular_total_pedido(...)           rol_propietario_ventas (INVOKER)
+         └─ UPDATE producto                         rol_propietario_ventas
+```
+
+**Cadena completa, sentencia por sentencia** (líneas de `tpi/sql/objetos_programables.sql`):
+
+| # | Origen | Sentencia | Privilegios exigidos al usuario efectivo |
+|---|---|---|---|
+| 1 | API | `CALL public.registrar_detalle_pedido(...)` | USAGE public; X sobre el procedimiento |
+| 2 | proc. L257 | `SELECT usuario_id FROM pedido WHERE id = ... AND eliminado = FALSE FOR UPDATE` | S(id, usuario_id, eliminado) + U sobre ≥1 columna de `pedido` |
+| 3 | proc. L262 | `PERFORM 1 FROM pedido WHERE id = ...` (solo ruta de error) | S(id) |
+| 4 | proc. L272 | `SELECT eliminado FROM usuario WHERE id = ... FOR SHARE` | S(id, eliminado) + U sobre ≥1 columna de `usuario` (D11) |
+| 5 | proc. L285 | `SELECT precio, stock, disponible, eliminado FROM producto ... FOR UPDATE` | S(id, precio, stock, disponible, eliminado) + U sobre ≥1 columna |
+| 6 | proc. L307 | `PERFORM 1 FROM detalle_pedido WHERE pedido_id = ... AND producto_id = ...` | S(pedido_id, producto_id) |
+| 7 | proc. L317 | `INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)` | I sobre esas cuatro columnas. `subtotal` lo asigna el trigger y no exige INSERT; `id`, `eliminado` y `created_at` toman default |
+| 8 | `fn_validar_detalle_vigente` L88/L101/L114 | `FOR SHARE` sobre `pedido`, `usuario`, `producto` | Cubierto por 2, 4 y 5 |
+| 9 | `fn_set_subtotal` L41 | Búsqueda de precio solo si `precio_unitario` es NULL; el procedimiento siempre lo envía | Ninguno en esta ruta (si ocurriera: S(id, precio) + U sobre `producto`, ya cubiertos) |
+| 10 | FK | `fk_detalle_pedido_pedido`, `fk_detalle_pedido_producto` | Ninguno adicional para el usuario efectivo (comprobado: T01) |
+| 11 | `fn_recalcular_total_insert` L156 | Lectura de la transition table `nuevos` | Ninguno |
+| 12 | `fn_recalcular_total_insert` L158 | `UPDATE pedido p SET total = calcular_total_pedido(p.id) WHERE p.id = ...` | U(total), S(id); X sobre `calcular_total_pedido` |
+| 13 | `calcular_total_pedido` L17 | `SELECT COALESCE(SUM(subtotal), 0) FROM detalle_pedido WHERE pedido_id = ... AND eliminado = FALSE` | S(pedido_id, subtotal, eliminado) |
+| 14 | proc. L320 | `UPDATE producto SET stock = stock - ... WHERE id = ...` | U(stock), S(id, stock) |
+| 15 | — | Ejecución de funciones trigger y secuencias de identidad | Ninguno (comprobado: T08, T09) |
+
+**Regla de bloqueo de filas.** PostgreSQL exige, para `FOR UPDATE`, `FOR NO KEY UPDATE`,
+`FOR SHARE` y `FOR KEY SHARE`, privilegio UPDATE sobre al menos una columna de cada tabla
+bloqueada, además de SELECT sobre las columnas leídas. Para `pedido` lo satisface `U(total)` y para
+`producto` `U(stock)`, que la cadena ya necesita. Para `usuario` ninguna escritura es necesaria:
+el privilegio UPDATE es puramente habilitante y su elección es la decisión D11.
+
+El conjunto resultante es el de §2.1 y §3.1. La POC lo validó por ablación: retirar cualquiera
+de los 23 privilegios individuales hizo fallar la venta con 42501 (T07, §13.7). Se confirmó
+también la regla de bloqueo para `usuario` y `pedido` (T10).
+
 ### 5.1. `api_registrar_detalle_pedido` — interfaz de venta (D1)
 
 **Propósito:** Único punto de entrada para `rol_app_escritura` hacia las operaciones de venta.
-Invoca el procedimiento canónico sin duplicar su lógica. La función es SECURITY DEFINER con
-propietario `rol_propietario_ventas`.
+Invoca el procedimiento canónico sin duplicar su lógica. Se invoca con `SELECT`, no con `CALL`,
+porque es una función.
 
 **Propietario:** `rol_propietario_ventas`
-**Operación atómica:** CREATE + ALTER OWNER + REVOKE + GRANT en la misma transacción.
-
-**Análisis de la cadena de ejecución — CORRECCIÓN CRÍTICA:**
-En PostgreSQL, una rutina SECURITY INVOKER llamada desde una función SECURITY DEFINER
-**hereda el usuario efectivo de la función invocadora**, no el OWNER de la rutina llamada.
-
-```
-CALL api_registrar_detalle_pedido(...)
-  → corre como: rol_propietario_ventas   (SECURITY DEFINER)
-    → CALL registrar_detalle_pedido(...) (SECURITY INVOKER por defecto)
-       → corre como: rol_propietario_ventas  ← mismo usuario efectivo
-```
-
-**Consecuencia:** `rol_propietario_ventas` necesita todos los privilegios que
-`registrar_detalle_pedido` requiere internamente para ejecutarse. Esto incluye:
-
-| Objeto | Privilegio | Por qué lo necesita `registrar_detalle_pedido` |
-|---|---|---|
-| `pedido` | SELECT, UPDATE | `SELECT ... FOR UPDATE` para bloquear el pedido |
-| `usuario` | SELECT | `SELECT ... FOR SHARE` para verificar baja lógica |
-| `usuario` | UPDATE (columna) | `FOR SHARE` puede exigir UPDATE sobre ≥1 columna⁷ |
-| `producto` | SELECT, UPDATE | `SELECT ... FOR UPDATE` para stock; `UPDATE stock` |
-| `detalle_pedido` | INSERT, SELECT | INSERT de la línea + `PERFORM` de duplicado |
-| SCHEMA public | USAGE | resolución de nombres |
-| `registrar_detalle_pedido(bigint,bigint,integer)` | EXECUTE | CALL desde la función wrapper |
-
-⁷ `FOR SHARE` en PostgreSQL 17 requiere SELECT (confirmado). El requerimiento adicional
-de UPDATE sobre al menos una columna está documentado en la fuente. La columna propuesta
-es `celular` (nullable, sin lógica de negocio). **Riesgo residual:** si `rol_propietario_ventas`
-es comprometido, un atacante podría ejecutar `UPDATE usuario SET celular = ...`. Se acepta
-como el costo mínimo del diseño; el equipo puede elegir otra columna igualmente inocua.
-
-Los triggers AFTER (`fn_recalcular_total_*`) se disparan sobre `detalle_pedido` bajo el
-OWNER de la **función trigger** (`admin_datos`), no bajo el usuario efectivo de la cadena.
-Por eso `rol_propietario_ventas` **no necesita** EXECUTE sobre `calcular_total_pedido`
-ni privilegios sobre las tablas que solo usan esos triggers.
-
-> **Todos los privilegios de la tabla anterior están sujetos a verificación empírica en
-> PG 17.11 antes de considerarlos definitivos.** Ver D11 §9.
+**Operación atómica:** CREATE + ALTER OWNER + REVOKE + GRANT en la misma transacción, ejecutada
+por el superusuario de instalación.
 
 **Contrato propuesto:**
 ```sql
 BEGIN;
 
-CREATE OR REPLACE FUNCTION public.api_registrar_detalle_pedido(
+CREATE FUNCTION public.api_registrar_detalle_pedido(
     p_pedido_id   BIGINT,
     p_producto_id BIGINT,
     p_cantidad    INTEGER
@@ -420,16 +513,14 @@ SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    -- Referencias calificadas con esquema para evitar resolución ambigua
+    -- Referencia calificada; el procedimiento canónico hereda este search_path
     CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad);
 END;
 $$;
 
--- Asignar propietario explícitamente: nunca debe quedar en manos de postgres u otro superusuario
 ALTER FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)
     OWNER TO rol_propietario_ventas;
 
--- Revocar antes de que finalice la transacción, sin ventana de exposición
 REVOKE ALL ON FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER) FROM PUBLIC;
 GRANT  EXECUTE ON FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)
     TO rol_app_escritura;
@@ -437,19 +528,21 @@ GRANT  EXECUTE ON FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, I
 COMMIT;
 ```
 
+Se usa `CREATE FUNCTION` y no `CREATE OR REPLACE`: si la función ya existiera, el script debe
+fallar en lugar de conservar en silencio un propietario o ACL anteriores.
+
 **Garantías:**
 - `rol_app_escritura` no necesita EXECUTE sobre el procedimiento canónico del TPI.
-- La lógica de validación, locks y descuento de stock permanece íntegra en el procedimiento
+- La lógica de validación, bloqueos y descuento de stock permanece íntegra en el procedimiento
   canónico; esta función no la duplica.
-- `search_path` fijo y referencias calificadas impiden la suplantación de esquema.
-- El `ALTER FUNCTION ... OWNER TO` dentro de la misma transacción garantiza que en ningún
-  instante la función quede bajo propiedad de `postgres` u otro superusuario.
-- El REVOKE dentro de la misma transacción elimina la ventana en que PUBLIC tendría EXECUTE.
-
-**Riesgo residual (D2):** El procedimiento canónico conserva `admin_datos` como OWNER.
-`rol_propietario_ventas` recibe GRANT EXECUTE sobre él, sin transferir propiedad.
-
----
+- El procedimiento canónico, los triggers y `calcular_total_pedido` usan nombres sin calificar
+  y heredan `search_path = public, pg_temp`. `pg_catalog` se busca implícitamente primero y
+  `pg_temp` queda explícitamente al final; las funciones y operadores nunca se buscan en
+  `pg_temp`. La protección depende además de que ningún rol no confiable tenga CREATE en
+  `public` (SEC-17, VP-05).
+- Como la creación ocurre en una sola transacción, ningún otro rol observa la función con
+  ACL por defecto (PUBLIC con EXECUTE) ni con propietario superusuario.
+- La transacción pertenece al llamante, igual que en el procedimiento canónico.
 
 ### 5.2. `fn_autenticar` — autenticación de usuarios
 
@@ -460,11 +553,27 @@ sin revelar la causa específica del fallo.
 **Propietario:** `rol_propietario_credenciales`
 **Operación atómica:** CREATE + ALTER OWNER + REVOKE + GRANT en la misma transacción.
 
+**Validación bcrypt para `pgcrypto`.** La versión inicial aceptaba cualquier valor de 60
+caracteres que coincidiera con `LIKE '$2%$%'`. Ese patrón acepta prefijos que `pgcrypto` no
+implementa (por ejemplo `$2$`), para los cuales `crypt()` falla con error en lugar de devolver
+un hash. Además, `pgcrypto` interpreta cualquier sal sin prefijo reconocido como sal DES, por lo
+que no puede confiarse en `crypt()` para rechazar valores mal formados. El diseño valida
+exactamente el formato que genera `crypt(p, gen_salt('bf'))`: `$2a$`, costo de dos dígitos entre
+04 y 31, `$` y 53 caracteres del alfabeto bcrypt (`./A-Za-z0-9`), 60 caracteres en total.
+Por D16 (aprobada) no se aceptan `$2b$` ni `$2y$`: la base solo contiene hashes generados por
+`gen_salt('bf')`.
+
+**Tiempo de respuesta (D16, RR-06).** Cuando el mail no existe o el hash almacenado no es válido,
+la función ejecuta igualmente un `crypt()` con una sal bcrypt nueva de costo por defecto (el mismo
+que usa `fn_resetear_password`), y descarta el resultado. Así todas las ramas pagan un cálculo
+bcrypt y el tiempo no revela si el mail existe. No se usa un hash ficticio literal: aparecería en
+el texto DDL registrado por `log_statement = mod` y haría fallar la verificación de SEC-16.
+
 **Contrato propuesto:**
 ```sql
 BEGIN;
 
-CREATE OR REPLACE FUNCTION public.fn_autenticar(
+CREATE FUNCTION public.fn_autenticar(
     p_mail       TEXT,
     p_contrasena TEXT
 )
@@ -484,27 +593,20 @@ BEGIN
         RAISE EXCEPTION 'Credenciales inválidas' USING ERRCODE = '28P01';
     END IF;
 
-    -- Recuperar el hash almacenado sin exponer su valor al caller
     SELECT u.contrasena INTO v_hash
     FROM public.usuario u
     WHERE u.mail = p_mail AND u.eliminado = FALSE;
 
-    -- Si no existe el usuario: respuesta opaca, sin revelar la causa
-    IF NOT FOUND THEN
+    -- Usuario inexistente o eliminado, o hash fuera del formato exacto de gen_salt('bf')
+    -- (incluye SEED_NO_AUTH y hash_no_valido): cero filas, sin revelar la causa.
+    -- D16: se paga un cálculo bcrypt equivalente para no revelar la causa por tiempo.
+    IF NOT FOUND
+       OR v_hash IS NULL
+       OR v_hash !~ '^\$2a\$(0[4-9]|[12][0-9]|3[01])\$[./A-Za-z0-9]{53}$' THEN
+        PERFORM public.crypt(p_contrasena, public.gen_salt('bf'));
         RETURN;
     END IF;
 
-    -- Verificar formato válido de hash bcrypt antes de invocar crypt()
-    -- Un hash bcrypt válido comienza con $2a$, $2b$ o $2y$ y tiene exactitud de 60 chars.
-    -- SEED_NO_AUTH, hash_no_valido y cadenas cortas devolverán FOUND=false sin lanzar error.
-    IF v_hash IS NULL
-       OR length(v_hash) <> 60
-       OR v_hash NOT LIKE '$2%$%' THEN
-        -- Hash inválido o marcador académico: no autenticar, no revelar por qué
-        RETURN;
-    END IF;
-
-    -- Invocar crypt() solo con un hash bien formado para evitar excepciones inesperadas
     RETURN QUERY
     SELECT u.id, u.rol
     FROM public.usuario u
@@ -514,7 +616,6 @@ BEGIN
 END;
 $$;
 
--- Asignar propietario explícitamente: nunca debe quedar en manos de postgres u otro superusuario
 ALTER FUNCTION public.fn_autenticar(TEXT, TEXT)
     OWNER TO rol_propietario_credenciales;
 
@@ -527,22 +628,22 @@ COMMIT;
 **Garantías:**
 - `app_web` (miembro de `rol_app_autenticacion`) nunca lee `usuario.contrasena` directamente.
 - `search_path` fijo y referencias calificadas impiden la suplantación de esquema.
-- Los marcadores académicos (`SEED_NO_AUTH`, `hash_no_valido`) y hashes con formato incorrecto
-  devuelven cero filas sin lanzar excepciones desde `crypt()`.
-- Los intentos fallidos retornan cero filas de forma opaca (mismo comportamiento para mail
-  inexistente, contraseña incorrecta o hash inválido), sin revelar la causa del fallo.
-- La contraseña no aparece en el log cuando el caller usa parámetros enlazados reales.
+- Los valores que no tienen el formato bcrypt exacto nunca se usan como sal de `crypt()`.
+- Mail inexistente, contraseña incorrecta y hash inválido devuelven cero filas, y las tres ramas
+  ejecutan un cálculo bcrypt de costo equivalente (D16). La equivalencia de tiempos se mide durante
+  la implementación; queda como riesgo residual menor (RR-06).
+- La contraseña no aparece en el texto de la sentencia cuando el llamante usa parámetros
+  enlazados, y no aparece en el log **solo si** `log_parameter_max_length = 0` y
+  `log_parameter_max_length_on_error = 0` (§7). Los mensajes de error no incluyen parámetros.
 
 **Diferencia con intentos de login a PostgreSQL:**
 Un intento de login fallido a la base (contraseña incorrecta de `app_web` al conectarse)
-aparece en el log como `connection failure` con `log_connections = on`. Una autenticación
-de negocio fallida a través de `fn_autenticar` devuelve cero filas; no es un error de conexión
-ni aparece en el log como tal. El simulacro de la Parte C distingue estos dos eventos.
+aparece en el log como error de autenticación. Una autenticación de negocio fallida a través de
+`fn_autenticar` devuelve cero filas; no es un error de conexión ni aparece en el log como tal.
+El simulacro de la Parte C distingue estos dos eventos.
 
-**Requiere `pgcrypto`:** `crypt()` pertenece a esa extensión. Debe instalarse antes:
-```sql
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-```
+**Requiere `pgcrypto`:** `crypt()` y `gen_salt()` pertenecen a esa extensión, que se instala en
+`public` (VP-07). Su instalación en la base de U5 requiere autorización.
 
 ---
 
@@ -559,7 +660,7 @@ la actualización para evitar condiciones de carrera concurrentes.
 ```sql
 BEGIN;
 
-CREATE OR REPLACE FUNCTION public.fn_resetear_password(
+CREATE FUNCTION public.fn_resetear_password(
     p_usuario_id BIGINT,
     p_nueva      TEXT
 )
@@ -577,8 +678,7 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    -- Bloquear la fila primero (FOR UPDATE) para serializar la validación y la actualización
-    -- Evita que un cambio concurrente de rol entre SELECT y UPDATE deje el estado inconsistente
+    -- FOR UPDATE serializa la validación del rol y la actualización
     SELECT u.rol INTO v_rol_usuario
     FROM public.usuario u
     WHERE u.id = p_usuario_id AND u.eliminado = FALSE
@@ -602,7 +702,6 @@ BEGIN
 END;
 $$;
 
--- Asignar propietario explícitamente: nunca debe quedar en manos de postgres u otro superusuario
 ALTER FUNCTION public.fn_resetear_password(BIGINT, TEXT)
     OWNER TO rol_propietario_credenciales;
 
@@ -616,41 +715,71 @@ COMMIT;
 - `rol_soporte` no tiene UPDATE directo sobre `usuario`.
 - El bloqueo FOR UPDATE entre la validación y el UPDATE elimina la ventana de tiempo en
   que un cambio concurrente de `usuario.rol` (ADMIN ↔ USUARIO) podría invalidar la validación.
-- Las referencias a `public.crypt` y `public.gen_salt` son calificadas para evitar resolución
-  ambigua si existiera otro esquema en `search_path`.
+  El bloqueo es posible porque el propietario tiene `U(contrasena)`.
+- Las referencias a `public.crypt` y `public.gen_salt` son calificadas.
+- Ningún mensaje de error incluye la contraseña nueva.
 - La transacción pertenece al caller; si falla, la contraseña no cambia.
 
 **Restricciones de D8 no aprobadas aún:**
 Las políticas adicionales (longitud mínima, historial de contraseñas, notificación al usuario)
 no están definidas. No se implementan hasta que el equipo las especifique.
 
+### 5.4. Riesgos residuales del diseño
+
+| ID | Riesgo | Mitigación / estado |
+|---|---|---|
+| RR-01 | `rol_propietario_ventas` tiene `U(celular)` sobre `usuario` solo para poder bloquear con `FOR SHARE`. La necesidad de algún UPDATE está comprobada (T07.09, T10.2); el privilegio permitiría escribir `celular` de cualquier usuario a quien ejecute SQL arbitrario con esa identidad | Rol NOLOGIN sin miembros (T13); solo código fijo se ejecuta con su identidad; ninguna sentencia de la cadena escribe `celular`. Decisión D11 |
+| RR-02 | `rol_propietario_ventas` puede escribir `pedido.total` y `producto.stock` de cualquier fila | Solo a través del código canónico. El riesgo se traslada a quien pueda modificar las rutinas o crear triggers en esas tablas: propietarios reales (VP-02); ningún rol de U5 tiene TRIGGER ni es propietario |
+| RR-03 | La API no verifica que el pedido pertenezca al usuario final autenticado; `rol_app_escritura` puede crear pedidos para cualquier `usuario_id` | Igual que el procedimiento canónico: la base no conoce al usuario final. Responsabilidad de la aplicación; RLS fuera de alcance |
+| RR-04 | `S(id)` sobre `pedido` permite enumerar identificadores de pedidos | Solo identificadores, sin datos asociados |
+| RR-05 | El código canónico usa nombres sin calificar | `search_path` fijo, `pg_temp` al final, sin CREATE no confiable en `public` (SEC-17); D9 retira TEMP. Comprobado en la POC con TEMP permitido: una `pg_temp.producto` homónima no fue usada por la API (T11) |
+| RR-06 | Diferencia de tiempo en `fn_autenticar` permite inferir si un mail existe | Mitigado por D16 (cálculo bcrypt en todas las ramas); el costo de `gen_salt` y la variación de costo entre hashes dejan una diferencia menor, a medir |
+| RR-07 | Una reinstalación desde cero de `objetos_programables.sql` restaura el EXECUTE de PUBLIC | Reaplicar `roles.sql` y repetir SEC-13 |
+| RR-08 | El superusuario evita todos los controles | Uso limitado a la etapa de instalación autorizada |
+
 ---
 
 ## 6. `ALTER DEFAULT PRIVILEGES` (REQ-A04)
 
 Solo se aplican `ALTER DEFAULT PRIVILEGES` donde hay beneficio claro y alcance acotado.
-No se aplica sobre todas las tablas de `public` porque otorgaría INSERT/UPDATE automático
-a nuevas tablas operativas que pueden requerir un control más restrictivo.
+No se aplica sobre `public` porque otorgaría privilegios automáticos a nuevas tablas operativas
+que pueden requerir un control más restrictivo.
 
 ```sql
--- 1. Objetos analíticos futuros en reportes: accesibles por rol_reportes automáticamente
+-- 1. Objetos analíticos futuros de admin_datos en reportes: SELECT para rol_reportes.
+--    "TABLES" incluye tablas, vistas y vistas materializadas.
 ALTER DEFAULT PRIVILEGES FOR ROLE admin_datos IN SCHEMA reportes
     GRANT SELECT ON TABLES TO rol_reportes;
 
--- 2. Funciones futuras creadas por admin_datos: revocar EXECUTE a PUBLIC por defecto
---    PostgreSQL 17 concede EXECUTE a PUBLIC sobre funciones por defecto; esta sentencia
---    revierte ese comportamiento para todas las funciones futuras de admin_datos.
+-- 2. Funciones futuras de admin_datos en cualquier esquema: sin EXECUTE para PUBLIC.
+--    PostgreSQL 17 otorga EXECUTE a PUBLIC sobre funciones nuevas por defecto.
+--    Un REVOKE de este tipo solo es efectivo sin IN SCHEMA.
 ALTER DEFAULT PRIVILEGES FOR ROLE admin_datos
     REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 ```
 
+**Verificación.** La vista `information_schema.default_privileges` que citaba la versión inicial
+no existe en PostgreSQL. Se usa `\ddp` en psql o la consulta:
+
+```sql
+SELECT pg_get_userbyid(d.defaclrole)     AS rol_creador,
+       coalesce(n.nspname, '(global)')   AS esquema,
+       d.defaclobjtype                   AS tipo,      -- r = tablas, f = funciones
+       d.defaclacl                       AS acl
+FROM pg_default_acl d
+LEFT JOIN pg_namespace n ON n.oid = d.defaclnamespace
+ORDER BY 1, 2, 3;
+```
+
+Resultado esperado tras `roles.sql`: exactamente dos filas, ambas con `rol_creador = admin_datos`.
+1. `esquema = reportes`, `tipo = r`, ACL con una entrada `rol_reportes=r/admin_datos`.
+2. `esquema = (global)`, `tipo = f`, ACL sin entrada para PUBLIC (ninguna entrada con la forma `=X/…`).
+
 **Qué no se incluye y por qué:**
-- `ALTER DEFAULT PRIVILEGES ... GRANT SELECT ON TABLES TO rol_app_lectura IN SCHEMA public`:
-  nuevas tablas en `public` pueden ser operativas o de staging; el acceso de lectura general
-  no es automáticamente correcto para `rol_app_lectura`.
-- `ALTER DEFAULT PRIVILEGES ... GRANT INSERT, UPDATE ON TABLES TO rol_app_escritura IN SCHEMA public`:
-  prohibido por la corrección del prompt; INSERT/UPDATE sobre tablas futuras de `public`
-  se otorgará caso por caso.
+- `ALTER DEFAULT PRIVILEGES ... IN SCHEMA public GRANT SELECT ON TABLES TO rol_app_lectura`:
+  nuevas tablas en `public` pueden ser operativas o de staging.
+- `ALTER DEFAULT PRIVILEGES ... IN SCHEMA public GRANT INSERT, UPDATE ON TABLES TO rol_app_escritura`:
+  INSERT/UPDATE sobre tablas futuras de `public` se otorga caso por caso.
 
 ---
 
@@ -661,24 +790,30 @@ ALTER DEFAULT PRIVILEGES FOR ROLE admin_datos
 Parámetros a activar (sobre la instancia de desarrollo):
 - `log_connections = on`
 - `log_disconnections = on`
-- `log_statement = 'mod'` (DDL y DML de modificación; no todas las consultas)
+- `log_statement = 'mod'` (DDL y DML de modificación de nivel superior; no todas las consultas)
+
+Parámetros preventivos obligatorios antes de cualquier prueba con credenciales:
+- `log_parameter_max_length = 0` (por defecto `-1`: los valores de los parámetros enlazados se
+  registran completos junto a las sentencias registradas)
+- `log_parameter_max_length_on_error = 0`
+- `password_encryption = 'scram-sha-256'`
+- `log_file_mode = 0600`
+
+Todos requieren superusuario y se aplican en la Parte B. El estado actual se inventaría en VP-09.
 
 ### 7.2. Qué registra `log_statement = mod` y qué no
 
-`log_statement = 'mod'` registra sentencias DDL y DML de modificación (INSERT, UPDATE, DELETE,
-TRUNCATE), pero **no registra SELECT**. Esto es relevante para el diseño del simulacro de la
-Parte C:
+`log_statement` registra sentencias de **nivel superior**. Con `mod` registra DDL e INSERT, UPDATE,
+DELETE, TRUNCATE; no registra SELECT ni CALL, y nunca registra las sentencias que se ejecutan
+dentro de funciones o procedimientos.
 
 | Evento del simulacro | `log_statement = mod` | Mecanismo complementario requerido |
 |---|---|---|
-| Intentos fallidos de login | Sí — vía `log_connections` | Ninguno |
+| Intentos fallidos de login | Sí — error de autenticación (con `log_connections` también los intentos) | Ninguno |
 | Login exitoso | Sí — vía `log_connections` | Ninguno |
 | Lectura masiva `SELECT * FROM usuario` | **No registrado** | Ver §7.3 |
-| `CALL api_registrar_detalle_pedido(...)` | Sí (la llamada aparece, no los parámetros) | Ninguno |
-| Intento de GRANT a rol de bajo privilegio | Sí (DDL) | Ninguno |
-
-La lectura masiva de `usuario` es el evento central del simulacro de la Parte C. Con `mod` solo
-no queda rastro de ese SELECT en el log. Se necesita un mecanismo complementario.
+| `SELECT api_registrar_detalle_pedido(...)` | **No registrado** (es un SELECT; el INSERT y el UPDATE internos tampoco) | Ver §7.3 si el simulacro lo requiere |
+| Intento de GRANT a rol de bajo privilegio | Sí (DDL); si falla, también como error | Ninguno |
 
 ### 7.3. Mecanismo complementario para el simulacro (Parte C)
 
@@ -687,32 +822,44 @@ se propone una de las siguientes opciones. El equipo elige una antes de implemen
 
 **Opción A — `log_statement = 'all'` temporalmente:**
 Activar `all` solo durante la ejecución del simulacro, sobre la instancia de laboratorio
-descartable. Riesgo: si el dataset contiene datos reales, el log captura las filas.
-Mitigación obligatoria: el dataset del simulacro usa exclusivamente datos sintéticos.
+descartable. El log registra el texto de las sentencias y, salvo que `log_parameter_max_length = 0`,
+los valores de los parámetros enlazados. El dataset del simulacro usa exclusivamente datos sintéticos.
 
 **Opción B — función de auditoría en la misma sesión:**
 Antes del SELECT masivo, el script de simulacro registra un evento en una tabla de auditoría
 de sesión (creada para el simulacro). Esto no requiere cambiar `log_statement`.
 
-**Opción C — `log_min_duration_statement = 0` sobre la conexión del simulacro:**
-Activa el log de duración para todas las sentencias de esa conexión, incluyendo SELECT,
-sin cambiar la configuración global. Require `ALTER ROLE rol_prueba_simulacro SET ...`.
+**Opción C — `log_min_duration_statement = 0` para el rol del simulacro:**
+Registra todas las sentencias de ese rol, incluidas las SELECT, sin cambiar la configuración
+global. Requiere `ALTER ROLE ... SET` ejecutado por superusuario. Con la misma condición sobre
+`log_parameter_max_length` que la opción A.
 
 La opción elegida debe documentarse en la bitácora (Parte E) antes de ejecutar el simulacro.
 
-**Regla invariante:** En ninguna opción se registran contraseñas en texto plano.
-El script de simulacro llama a `fn_autenticar` usando parámetros enlazados reales:
+**Regla invariante:** En ninguna opción se registran contraseñas en texto plano, y ningún script
+contiene contraseñas literales. Las credenciales sintéticas se generan en tiempo de ejecución, se
+guardan en variables de psql y se envían como parámetros enlazados con `\bind` (psql 16+):
 
-- **Con psql 16+ y el metacomando `\bind`:**
-  ```sql
-  SELECT * FROM fn_autenticar($1, $2) \bind 'usuario@test.com' 'contrasena_prueba' \g
-  ```
-- **Con cualquier driver de aplicación** (libpq, JDBC, psycopg2, etc.): usar parámetros
-  posicionales (`$1`, `$2`) nunca concatenación de strings.
+```text
+-- Valor sintético generado en el servidor; el texto de la sentencia no contiene el valor.
+SELECT 'u5syn_' || replace(gen_random_uuid()::text, '-', '') AS u5_pwd \gset
 
-`\set` en psql realiza sustitución textual en el buffer de la consulta antes de enviarla —
-no es enlace de parámetros y puede exponer el valor si el log captura la sentencia.
-No usar `\set` con credenciales en los scripts de prueba del simulacro.
+-- Fixture (superusuario de prueba): el valor viaja como parámetro, no como literal.
+UPDATE public.usuario SET contrasena = public.crypt($1, public.gen_salt('bf'))
+WHERE id = $2 \bind :'u5_pwd' :'u5_uid' \g
+
+-- Prueba: el texto enviado contiene solo $1 y $2.
+SELECT * FROM public.fn_autenticar($1, $2) \bind :'u5_mail' :'u5_pwd' \g
+```
+
+- Con cualquier driver de aplicación (libpq, JDBC, psycopg, etc.): parámetros posicionales,
+  nunca concatenación de strings.
+- `\set` con un valor literal deja la contraseña escrita en el script, y su interpolación en una
+  consulta sin `\bind` la incluye en el texto enviado al servidor. No se usa con credenciales.
+- Prohibido imprimir esas variables (`\echo`, `\set` sin argumentos) o activar opciones de eco que
+  muestren resultados del `\gset`.
+- El prefijo fijo `u5syn_` permite verificar la ausencia de valores sintéticos en los logs sin
+  conocer el valor aleatorio (SEC-16).
 
 ### 7.4. Verificación de permisos del archivo de log (ajuste 4)
 
@@ -725,13 +872,13 @@ Los permisos esperados:
 ```
 -rw------- 1 postgres postgres ... postgresql-<fecha>.log
 ```
-Solo el usuario del sistema operativo `postgres` y los miembros del grupo `postgres` deben
-poder leerlo. El archivo no debe ser legible por `world` (bit `o+r` debe estar ausente).
+Solo el usuario del sistema operativo `postgres` debe poder leerlo (`log_file_mode = 0600`).
+El archivo no debe ser legible por otros usuarios (bit `o+r` ausente).
 
 Verificación:
 ```bash
-ls -la $(psql -U postgres -t -c "SHOW log_directory;")
-# Confirmar owner=postgres, group=postgres, permisos 600 o 640 máximo
+ls -la "$(psql -U postgres -At -c 'SHOW data_directory;')/$(psql -U postgres -At -c 'SHOW log_directory;')"
+# Confirmar owner=postgres y permisos 600 (640 solo si el grupo está justificado)
 ```
 
 **En Windows:** El archivo de log se ubica en `%PGDATA%\log\`. Los permisos se verifican
@@ -743,127 +890,130 @@ de PostgreSQL y los administradores del sistema deben tener acceso.
 ## 8. Criterios de aceptación (SEC-01 a SEC-20)
 
 Cada criterio define una prueba positiva (P), negativa (N) y de regresión (R).
-La numeración original se conserva. Los criterios cuyo significado cambió se marcan con ⟳.
+La numeración original se conserva. ⟳ = cambió en la revisión del 2026-10-26.
+Convenciones: las pruebas de comportamiento se ejecutan desde una sesión del superusuario de
+pruebas con `SET ROLE`, dentro de `BEGIN … ROLLBACK`; «42501» significa `insufficient_privilege`.
+Las identidades efímeras usan el prefijo `tst_u5_`. Ningún criterio usa contraseñas literales.
 
 ### Existencia y atributos de roles
 
-**SEC-01** — Los siete roles de grupo existen y tienen NOLOGIN.
-- P: `\du` muestra los cuatro roles obligatorios y los tres adicionales (D6) sin atributo LOGIN.
-- N: `psql -U rol_app_lectura` falla con error de autenticación.
+**SEC-01** ⟳ — Los siete roles de grupo existen y tienen NOLOGIN.
+- P: `SELECT rolname, rolcanlogin FROM pg_roles WHERE rolname IN (<los siete>)` devuelve siete filas con `rolcanlogin = false`; `\du` se adjunta como evidencia.
+- N: Un intento de conexión como `rol_app_lectura` falla porque el rol no puede iniciar sesión (solo si se ejecuta la prueba de conexión; la verificación principal es el catálogo).
 - R: Reejecutar `roles.sql` en una base limpia; los siete roles existen con atributos correctos.
 
-**SEC-02** — Ningún rol de grupo tiene SUPERUSER, CREATEDB ni CREATEROLE.
-- P: `SELECT rolname, rolsuper, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname LIKE 'rol_%'` devuelve todo `false`.
+**SEC-02** ⟳ — Ningún rol de grupo tiene SUPERUSER, CREATEDB, CREATEROLE, REPLICATION ni BYPASSRLS; los propietarios son NOINHERIT.
+- P: `SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls, rolinherit FROM pg_roles WHERE rolname IN (<los siete>)` devuelve `false` en los cinco atributos, y `rolinherit = false` para los dos propietarios. Se usa lista explícita, no `LIKE 'rol_%'` (`_` es comodín).
 - N: N/A.
 - R: Verificar después de cualquier `ALTER ROLE`.
 
 **SEC-03** ⟳ — `api_registrar_detalle_pedido` y `registrar_detalle_pedido` producen resultados equivalentes.
-- P: Con los mismos parámetros de entrada válidos, invocar `api_registrar_detalle_pedido` y el procedimiento canónico directamente (como `admin_datos`) produce el mismo estado final en `detalle_pedido`, `producto.stock` y `pedido.total`.
-- N: Con `SET ROLE rol_app_escritura`, `CALL registrar_detalle_pedido(...)` falla con 42501 (acceso denegado al procedimiento directo).
-- R: Verificar la equivalencia después de cualquier cambio en `api_registrar_detalle_pedido` o en `registrar_detalle_pedido`.
+- P: Partiendo del mismo estado de fixture, en dos transacciones separadas con ROLLBACK: (a) el superusuario de pruebas ejecuta `CALL registrar_detalle_pedido(...)`; (b) con `SET ROLE app_web` se ejecuta `SELECT api_registrar_detalle_pedido(...)` con los mismos argumentos. Ambas producen la misma línea (`cantidad`, `precio_unitario`, `subtotal`), el mismo `producto.stock` y el mismo `pedido.total`. (La versión inicial usaba `admin_datos`, que no tiene EXECUTE sobre el procedimiento ni privilegios de escritura.)
+- N: Con `SET ROLE app_web`, `CALL registrar_detalle_pedido(...)` falla con 42501. Los errores de negocio (22023, 23503, 23505, 23514) llegan intactos a través de la API.
+- R: Verificar la equivalencia después de cualquier cambio en la API o en el procedimiento.
 
-**SEC-04** — `rol_reportes` tiene USAGE sobre `reportes` y SELECT sobre objetos en él.
-- P: Con `SET ROLE rol_reportes`, `SELECT * FROM reportes.mv_facturacion_categoria_mes LIMIT 1` funciona.
-- N: Con `SET ROLE rol_reportes`, `SELECT * FROM usuario` falla con 42501.
+**SEC-04** ⟳ — `rol_reportes` tiene USAGE sobre `reportes` y SELECT solo sobre objetos analíticos.
+- P: Con `SET ROLE rol_reportes` (y por conexión real como `tst_u5_reportes`, D12), `SELECT * FROM <esquema real>.mv_facturacion_categoria_mes LIMIT 1` funciona.
+- N: Con el mismo rol, `SELECT * FROM public.usuario` y `SELECT * FROM public.pedido` fallan con 42501.
 - R: Verificar después de cada instalación de un nuevo objeto en `reportes`.
 
 ### Membresías y accesos de login
 
-**SEC-05** ⟳ — INSERT directo sobre `detalle_pedido` falla por permisos para `rol_app_escritura`.
-- P: Con `SET ROLE rol_app_escritura`, `SELECT api_registrar_detalle_pedido(...)` funciona (datos válidos, transacción revertida).
-- N: Con `SET ROLE rol_app_escritura`, `INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal) VALUES (...)` falla con 42501.
-- R: Verificar con `information_schema.role_table_grants` que `rol_app_escritura` no tiene ningún privilegio sobre `detalle_pedido`.
+**SEC-05** ⟳ — La venta solo es posible a través de la API; el DML directo sobre `detalle_pedido` falla.
+- P: Con `SET ROLE app_web`, `SELECT api_registrar_detalle_pedido(...)` con datos válidos de fixture funciona (transacción revertida).
+- N: Con `SET ROLE app_web`: `INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) VALUES (...)`, `UPDATE detalle_pedido SET cantidad = ...`, `DELETE FROM detalle_pedido WHERE id = -1` y `SELECT * FROM detalle_pedido` fallan con 42501.
+- R: `information_schema.role_table_grants` y `information_schema.role_column_grants` no devuelven filas de `rol_app_escritura` ni de `app_web` sobre `detalle_pedido`.
 
-**SEC-06** — `admin_datos` tiene LOGIN y no tiene SUPERUSER, CREATEDB ni CREATEROLE (D13).
-- P: `SELECT rolsuper, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname = 'admin_datos'` devuelve todo `false`.
-- N: N/A.
+**SEC-06** ⟳ — `admin_datos` tiene LOGIN, no tiene SUPERUSER, CREATEDB ni CREATEROLE (D13) y tiene exactamente sus privilegios operativos.
+- P: `SELECT rolcanlogin, rolsuper, rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname = 'admin_datos'` devuelve `true, false, false, false`. Con `SET ROLE admin_datos`, `SELECT count(*) FROM categoria` funciona y `CREATE TABLE reportes.tst_u5_tmp (x int)` funciona (revertido).
+- N: Con `SET ROLE admin_datos`: `CREATE ROLE tst_u5_x` falla con 42501; `INSERT INTO categoria ...`, `SELECT contrasena FROM usuario` y `CREATE TABLE public.tst_u5_tmp (x int)` fallan con 42501.
 - R: Verificar después de cualquier `ALTER ROLE admin_datos`.
 
-**SEC-07** — `app_web` es miembro exactamente de `rol_app_lectura`, `rol_app_escritura` y `rol_app_autenticacion`. No es miembro de `rol_soporte` ni `rol_reportes`.
-- P: `SELECT roleid::regrole FROM pg_auth_members WHERE member = 'app_web'::regrole` devuelve exactamente los tres roles esperados.
-- N: `rol_soporte` y `rol_reportes` no aparecen en esa consulta para `app_web`.
+**SEC-07** ⟳ — `app_web` es miembro exactamente de `rol_app_lectura`, `rol_app_escritura` y `rol_app_autenticacion`, sin ADMIN OPTION.
+- P: `SELECT roleid::regrole, admin_option, inherit_option FROM pg_auth_members WHERE member = 'app_web'::regrole` devuelve exactamente los tres roles, con `admin_option = false` e `inherit_option = true`.
+- N: `rol_soporte`, `rol_reportes` y los propietarios no aparecen en esa consulta; `pg_has_role('app_web', 'rol_propietario_ventas', 'MEMBER')` es `false`.
 - R: Verificar después de cualquier GRANT/REVOKE de membresía.
 
 ### GRANT sobre tablas y vistas
 
-**SEC-08** — `rol_app_escritura` tiene INSERT (columnas restringidas) y SELECT sobre `pedido`. No tiene ningún privilegio sobre `detalle_pedido`.
-- P: Con `SET ROLE rol_app_escritura`, `INSERT INTO pedido (fecha, forma_pago, usuario_id) VALUES (CURRENT_DATE, 'EFECTIVO', 1)` funciona (transacción revertida).
-- N: Con `SET ROLE rol_app_escritura`, `UPDATE pedido SET estado = 'CANCELADO' WHERE id = 1` falla con 42501. `SELECT * FROM detalle_pedido` falla con 42501.
-- R: Verificar con `information_schema.role_table_grants` y `information_schema.column_privileges`.
+**SEC-08** ⟳ — `rol_app_escritura` tiene INSERT por columnas y `SELECT (id)` sobre `pedido`; no tiene ningún privilegio sobre `detalle_pedido`.
+- P: Con `SET ROLE app_web`, `INSERT INTO pedido (forma_pago, usuario_id) VALUES ('EFECTIVO', <usuario de fixture>) RETURNING id` funciona (transacción revertida) y el pedido queda con `fecha = CURRENT_DATE`.
+- N: Con `SET ROLE app_web`: `SELECT * FROM pedido`, `SELECT total FROM pedido`, `UPDATE pedido SET estado = 'CANCELADO' WHERE id = <id>` y `SELECT * FROM detalle_pedido` fallan con 42501.
+- R: `information_schema.role_column_grants` para `rol_app_escritura` sobre `pedido` devuelve exactamente INSERT en (`usuario_id`, `forma_pago`) y SELECT en (`id`) (D15).
 
 **SEC-09** — `rol_app_escritura` no tiene DELETE ni TRUNCATE sobre ninguna tabla de dominio.
-- P: `information_schema.role_table_grants` no devuelve DELETE ni TRUNCATE para `rol_app_escritura`.
-- N: Con `SET ROLE rol_app_escritura`, `DELETE FROM pedido WHERE id = -1` falla con 42501.
+- P: `information_schema.role_table_grants` no devuelve DELETE ni TRUNCATE para ningún rol de U5.
+- N: Con `SET ROLE app_web`, `DELETE FROM pedido WHERE id = -1` y `TRUNCATE detalle_pedido` fallan con 42501.
 - R: Verificar después de cualquier GRANT sobre tablas de dominio.
 
-**SEC-10** ⟳ — El intento de escalamiento de privilegios del simulacro falla.
-- P: El diseño de roles de A es correcto si el intento de otorgar membresía en `admin_datos` a un rol de bajo privilegio produce error de permisos en la Parte C.
-- N: Si ese GRANT no falla, es un defecto de seguridad que debe corregirse antes de continuar con el TP.
-- R: Verificar que ningún rol de aplicación tiene CREATEROLE (único atributo que habilitaría crear ese GRANT).
+**SEC-10** ⟳ — El intento de escalamiento de privilegios por membresía falla.
+- P: `SELECT member::regrole, admin_option FROM pg_auth_members WHERE roleid = 'admin_datos'::regrole` devuelve cero filas, y ninguna membresía de roles de U5 tiene `admin_option = true`. En PostgreSQL 16+ conceder la membresía de un rol exige ADMIN OPTION sobre ese rol (o SUPERUSER); CREATEROLE por sí solo ya no alcanza, y un rol no tiene ADMIN OPTION implícita sobre sí mismo.
+- N: Con `SET ROLE` sucesivo a `tst_u5_soporte`, `rol_soporte`, `app_web` y `admin_datos`, `GRANT admin_datos TO tst_u5_soporte` falla con error de permiso (SQLSTATE esperado 42501, a confirmar). Con `SET ROLE app_web`, `GRANT rol_app_escritura TO tst_u5_soporte` también falla. Si alguno no falla, es un defecto de seguridad que debe corregirse antes de continuar con el TP.
+- R: Ningún rol de U5 tiene CREATEROLE ni SUPERUSER, y ninguna membresía tiene ADMIN OPTION.
 
-### GRANT sobre rutinas (EXECUTE)
+### GRANT sobre rutinas (EXECUTE) y privilegios por defecto
 
-**SEC-11** ⟳ — Verificación de privilegios futuros en `reportes`: `ALTER DEFAULT PRIVILEGES` produce el efecto esperado.
-- P: Crear un objeto de prueba como `admin_datos` en el esquema `reportes` y verificar que `rol_reportes` hereda SELECT automáticamente; luego eliminar el objeto de prueba.
-- N: Crear un objeto de prueba como `admin_datos` en `public` y verificar que `rol_app_escritura` NO hereda INSERT automáticamente (la corrección eliminó ese ALTER DEFAULT PRIVILEGES).
-- R: Verificar `information_schema.default_privileges` después de aplicar `roles.sql`.
-
-> **Verificación de proacl NULL (D3):** Antes de REVOKE, confirmar `pg_proc.proacl` para las siete
-> rutinas del TPI. Un valor NULL implica que PUBLIC tiene EXECUTE implícito. Ejecutar la prueba
-> negativa con el rol efímero (D12) para verificar el efecto real del REVOKE, no solo el ACL.
+**SEC-11** ⟳ — `ALTER DEFAULT PRIVILEGES` en `reportes` produce el efecto esperado y no existe ninguno sobre `public`.
+- P: Con `SET ROLE admin_datos`, `CREATE TABLE reportes.tst_u5_adp (x int)` (revertido); `has_table_privilege('rol_reportes', 'reportes.tst_u5_adp', 'SELECT')` es `true`.
+- N: Una tabla creada en `public` por el superusuario de pruebas (revertido) no otorga privilegios a ningún grupo: `has_table_privilege(<grupo>, 'public.tst_u5_adp', <privilegio>)` es `false` para los cuatro grupos de aplicación. `admin_datos` no puede crear en `public` (42501).
+- R: La consulta de §6 sobre `pg_default_acl` (o `\ddp`) devuelve exactamente las dos filas esperadas.
 
 **SEC-12** ⟳ — `ALTER DEFAULT PRIVILEGES` revoca EXECUTE a PUBLIC sobre funciones futuras de `admin_datos`.
-- P: Crear una función de prueba como `admin_datos` y verificar que un rol efímero sin membresías no puede ejecutarla (42501).
-- N: Antes de aplicar el `ALTER DEFAULT PRIVILEGES`, el mismo rol efímero sí puede ejecutar funciones recién creadas.
-- R: Verificar `information_schema.default_privileges` para confirmar que la sentencia sigue activa.
+- P: Con `SET ROLE admin_datos`, `CREATE FUNCTION reportes.tst_u5_fn() RETURNS int LANGUAGE sql AS 'SELECT 1'` (revertido); `aclexplode(proacl)` no contiene beneficiario 0 (PUBLIC) y `has_function_privilege('tst_u5_sin_privilegios', 'reportes.tst_u5_fn()', 'EXECUTE')` es `false`. Se usa la función de catálogo porque una llamada real fallaría antes por falta de USAGE sobre `reportes` y ocultaría el resultado.
+- N (control): la misma función creada por el superusuario de pruebas (sin ADP para ese rol) devuelve `true` en la misma consulta.
+- R: La fila global de tipo `f` de `pg_default_acl` sigue presente y sin PUBLIC.
 
-**SEC-13** — `rol_app_escritura` tiene EXECUTE sobre `api_registrar_detalle_pedido`. No tiene EXECUTE sobre `registrar_detalle_pedido` ni `calcular_total_pedido`.
-- P: Con `SET ROLE app_web`, `SELECT api_registrar_detalle_pedido(...)` funciona con datos válidos de prueba (transacción revertida).
-- N: Con `SET ROLE app_web`, `CALL registrar_detalle_pedido(...)` falla con 42501. `SELECT calcular_total_pedido(1)` falla con 42501.
-- R: Verificar con `\df+` después de cualquier cambio en las rutinas.
+**SEC-13** ⟳ — `rol_app_escritura` tiene EXECUTE sobre `api_registrar_detalle_pedido` y no sobre `registrar_detalle_pedido` ni `calcular_total_pedido`.
+- P: Con `SET ROLE app_web`, `SELECT api_registrar_detalle_pedido(...)` funciona con datos de fixture (transacción revertida).
+- N: Con `SET ROLE app_web`, `CALL registrar_detalle_pedido(...)` y `SELECT calcular_total_pedido(<id>)` fallan con 42501.
+- R: La consulta `aclexplode` de §3.2 muestra, para las dos rutinas canónicas de D3, solo al propietario real y a `rol_propietario_ventas`, y ninguna entrada PUBLIC en las diez rutinas de §3.2.
 
-### Permisos por columna, rutinas de soporte y ALTER DEFAULT PRIVILEGES
+### Permisos por columna y conservación de objetos canónicos
 
-**SEC-14** — `rol_app_escritura` puede INSERT en `pedido` solo sobre las columnas autorizadas (`fecha`, `forma_pago`, `usuario_id`). No puede INSERT/UPDATE sobre otras columnas de `pedido`.
-- P: Con `SET ROLE rol_app_escritura`, `INSERT INTO pedido (fecha, forma_pago, usuario_id) VALUES (CURRENT_DATE, 'EFECTIVO', 1)` funciona (transacción revertida).
-- N: Con `SET ROLE rol_app_escritura`, `INSERT INTO pedido (fecha, forma_pago, usuario_id, total) VALUES (...)` falla con 42501.
+**SEC-14** — `rol_app_escritura` puede hacer INSERT en `pedido` solo sobre las columnas autorizadas.
+- P: Con `SET ROLE app_web`, `INSERT INTO pedido (forma_pago, usuario_id) VALUES ('EFECTIVO', <usuario de fixture>)` funciona (transacción revertida).
+- N: Con `SET ROLE app_web`, el mismo INSERT agregando `fecha`, `total`, `estado` o `eliminado` falla con 42501.
 - R: Verificar `information_schema.column_privileges` para `rol_app_escritura` sobre `pedido`.
 
-**SEC-15** ⟳ — Las siete rutinas y cinco triggers canónicos del TPI siguen funcionando después de aplicar todos los REVOKE/GRANT de U5. Los propietarios originales no cambiaron.
-- P: Los cinco triggers se disparan en INSERT/UPDATE/DELETE sobre `detalle_pedido` cuando lo ejecuta `admin_datos`. `calcular_total_pedido` devuelve el total correcto. Las cuatro vistas de U3 devuelven filas.
-- N: `SELECT proname, rolname AS owner FROM pg_proc JOIN pg_roles ON pg_roles.oid = pg_proc.proowner WHERE proname IN ('calcular_total_pedido','fn_set_subtotal','fn_validar_detalle_vigente','registrar_detalle_pedido','fn_recalcular_total_insert','fn_recalcular_total_update','fn_recalcular_total_delete')` confirma que todos tienen `admin_datos` como owner, no `rol_propietario_ventas`.
-- R: Ejecutar esta batería después de `roles.sql` y después de cualquier REVOKE adicional.
+**SEC-15** ⟳ — Las siete rutinas y cinco triggers canónicos siguen intactos y funcionando; los propietarios reales no cambiaron.
+- P: La batería TPI (`tpi/pruebas/pruebas_objetos_programables.sql`) mantiene 29 grupos / 37 variantes / 30 NOTICE PASS con exit 0, ejecutada por el superusuario en una base autorizada con el nombre que exige su guarda.
+- N: Las huellas de catálogo tomadas antes (F0) y después (F1) de `roles.sql` coinciden: `md5(pg_get_functiondef(oid))`, `proowner`, `prosecdef` y `proconfig` de las siete rutinas; `pg_get_triggerdef` y `tgenabled` de los cinco triggers; `relowner` y definición de columnas de las cinco tablas. Solo difieren los `proacl` previstos por D3 y las funciones trigger. Los propietarios se comparan contra el inventario VP-02, no contra un valor supuesto.
+- R: Ejecutar después de `roles.sql` y después de cualquier REVOKE adicional.
 
-### Esquema `reportes` y privacidad
+### Contraseñas, SECURITY DEFINER y reset
 
-**SEC-16** ⟳ — El simulacro de la Parte C no registra contraseñas en logs. El log distingue intentos de login a PostgreSQL de autenticaciones vía `fn_autenticar`.
-- P: Ejecutar el script del simulacro con parámetros enlazados reales (`\bind` en psql 16+ o driver de aplicación con `$1/$2`). Revisar el log resultante: no debe contener la cadena de la contraseña de prueba ni ningún hash de contraseña.
-- N: N/A — no se ejecuta intencionalmente una prueba que filtre contraseñas al log.
-- R: Revisar el log completo antes de entregarlo a la IA en la Parte C para confirmar la ausencia de credenciales. El mecanismo de auditoría elegido (§7.3) se documenta en BITACORA.md.
+**SEC-16** ⟳ — Las pruebas y el simulacro no registran contraseñas en logs.
+- P: Configuración preventiva verificada en `pg_settings` antes de la prueba: `log_parameter_max_length = 0`, `log_parameter_max_length_on_error = 0`, `log_file_mode = 0600`. Las llamadas a `fn_autenticar` y `fn_resetear_password` usan valores sintéticos generados en tiempo de ejecución (`u5syn_…`) enviados con `\bind` o con un driver.
+- N: Como **verificación** del control, no como protección: el log capturado no contiene el prefijo `u5syn_`, ni cadenas con formato bcrypt (`$2a$`), ni `PASSWORD '`. Si aparece alguna, la prueba falla y el log no se entrega a la IA.
+- R: Revisar el log completo antes de entregarlo a la IA en la Parte C. El mecanismo de auditoría elegido (§7.3) se documenta en BITACORA.md.
 
-**SEC-17** ⟳ — Las tres funciones SECURITY DEFINER tienen `prosecdef = true`, `search_path` fijo y referencias calificadas.
-- P: `SELECT proname, prosecdef, proconfig FROM pg_proc WHERE proname IN ('api_registrar_detalle_pedido','fn_autenticar','fn_resetear_password')` muestra `prosecdef = true` y `proconfig` con `search_path=public,pg_temp` para las tres.
-- N: Con `SET ROLE app_web`, `SELECT contrasena FROM public.usuario LIMIT 1` falla con 42501.
-- R: Verificar `prosecdef` y `proowner` después de cualquier `CREATE OR REPLACE` de esas funciones. Confirmar que el OWNER no cambió.
+**SEC-17** ⟳ — Las tres funciones SECURITY DEFINER están endurecidas.
+- P: `SELECT proname, prosecdef, proconfig, pg_get_userbyid(proowner) FROM pg_proc WHERE proname IN ('api_registrar_detalle_pedido','fn_autenticar','fn_resetear_password')` muestra `prosecdef = true`, `array_to_string(proconfig, ';')` = `search_path=public, pg_temp` (valor observado en la POC, T13) y el propietario NOLOGIN previsto; `aclexplode` no muestra PUBLIC. Los propietarios no tienen miembros, no pueden iniciar sesión y `has_schema_privilege(<propietario>, <esquema>, 'CREATE')` es `false` para `public` y `reportes`. Ningún rol de U5 ni PUBLIC tiene CREATE sobre `public`.
+- N: Con `SET ROLE app_web`, `SELECT contrasena FROM public.usuario LIMIT 1` falla con 42501. Si `app_web` puede crear tablas temporales (D9 no aprobada), una tabla `pg_temp.producto` creada por `app_web` no es usada por la API: el stock se descuenta en `public.producto` (POC T11).
+- R: Verificar `prosecdef`, `proconfig`, `proowner` y ACL después de cualquier recreación. La creación ocurre en una sola transacción: si se interrumpe antes del COMMIT, la función no existe (POC T12).
 
-### Identidades efímeras
+**SEC-18** ⟳ — `rol_soporte` tiene EXECUTE sobre `fn_resetear_password` y no puede resetear cuentas ADMIN.
+- P: Con `SET ROLE tst_u5_soporte`, `SELECT public.fn_resetear_password($1, $2) \bind :'u5_uid' :'u5_pwd' \g` sobre un usuario USUARIO de fixture funciona (transacción revertida); el nuevo `contrasena` cumple el formato bcrypt de §5.2.
+- N: Con el mismo rol: destino ADMIN → 42501; contraseña vacía → 22023; usuario eliminado o inexistente → 23503; `UPDATE usuario SET contrasena = ...` directo → 42501; `SELECT calcular_total_pedido(<id>)` → 42501.
+- R: Verificar que el OWNER es `rol_propietario_credenciales` y que el ACL no cambió.
 
-**SEC-18** ⟳ — `rol_soporte` tiene EXECUTE sobre `fn_resetear_password` exclusivamente; no puede resetear cuentas ADMIN.
-- P: Con `SET ROLE rol_soporte`, `SELECT fn_resetear_password(<id_usuario_no_admin>, 'nueva_valida')` funciona (transacción revertida).
-- N: Con `SET ROLE rol_soporte`, `SELECT fn_resetear_password(<id_usuario_admin>, 'nueva')` falla con 42501. `SELECT calcular_total_pedido(1)` falla con 42501.
-- R: Verificar con `\df+` que el OWNER es `rol_propietario_credenciales`.
+### Identidades efímeras y ausencia de SUPERUSER
 
-**SEC-19** — Las pruebas negativas se ejecutan con un rol efímero sin membresías.
-- P: El rol efímero puede conectarse a la base.
-- N: El rol efímero no puede ejecutar ninguna rutina del TPI ni acceder a tablas de dominio.
-- R: Al finalizar las pruebas, el rol efímero fue eliminado: `SELECT rolname FROM pg_roles WHERE rolname = 'rol_prueba_efimero'` devuelve cero filas.
+**SEC-19** ⟳ — Las pruebas negativas se ejecutan con una identidad efímera sin membresías (`tst_u5_sin_privilegios`).
+- P: La identidad existe, no tiene membresías ni atributos especiales, y se puede asumir con `SET ROLE` (o conectarse, si se otorga CONNECT para la prueba).
+- N: Con esa identidad, cualquier CALL o SELECT sobre las rutinas de §3.2 y sobre tablas y vistas de dominio falla con 42501.
+- R: Al finalizar, `SELECT rolname FROM pg_roles WHERE rolname LIKE 'tst\_u5\_%'` devuelve cero filas.
 
-### Ausencia de SUPERUSER
-
-**SEC-20** ⟳ — Ningún rol creado por `roles.sql` tiene SUPERUSER. Todas las identidades efímeras de prueba fueron eliminadas al finalizar las verificaciones.
-- P: `SELECT rolname FROM pg_roles WHERE rolsuper = TRUE` no incluye ninguno de los nueve roles del esquema de U5.
+**SEC-20** ⟳ — Ningún rol creado por `roles.sql` tiene SUPERUSER y no quedan identidades efímeras.
+- P: `SELECT rolname FROM pg_roles WHERE rolsuper` no incluye ninguno de los nueve roles de U5.
 - N: N/A.
-- R: Verificar como último paso del script de permisos. Verificar que `SELECT rolname FROM pg_roles WHERE rolname LIKE '%efimero%' OR rolname LIKE '%temp%' OR rolname LIKE '%prueba%'` devuelve cero filas después de las pruebas.
+- R: Como último paso, `pg_roles` coincide con el inventario esperado (roles previos de VP-01 + nueve roles de U5) y no hay roles `tst_u5_*`.
+
+### Verificación transversal de la matriz
+
+Además de los criterios numerados, la unión de `role_table_grants`, `role_column_grants`,
+`aclexplode(proacl)`, `has_schema_privilege`, `pg_default_acl` y `pg_auth_members` se compara con
+la matriz de §3 mediante EXCEPT bidireccional. Resultado esperado: 0 filas en ambos sentidos.
 
 ---
 
@@ -875,7 +1025,7 @@ La numeración original se conserva. Los criterios cuyo significado cambió se m
 (PENDIENTE → CONFIRMADO → TERMINADO / CANCELADO). Ningún rol de aplicación recibe UPDATE
 sobre él hasta que el equipo defina qué rol, bajo qué condición y con qué validaciones
 puede cambiar el estado de un pedido.
-**Estado: recomendación documentada — no aprobada como decisión de implementación.** 
+**Estado: recomendación documentada — no aprobada como decisión de implementación.**
 El equipo debe definir el caso de uso antes de incluir UPDATE de `pedido.estado` en `roles.sql`.
 
 ### D6 — Tres roles adicionales
@@ -895,57 +1045,122 @@ del equipo sobre los contratos SECURITY DEFINER de §5.
 - Longitud mínima de la contraseña nueva.
 - Historial de contraseñas (no reutilizar las N anteriores).
 - Notificación al usuario tras el reset.
-- Otras políticas de seguridad de credenciales.
+- Ruta de reset para cuentas ADMIN.
 
 **Estado: restricciones aprobadas incorporadas; las demás pendientes de definición por el equipo.**
 
 ### D9 — Revocar CONNECT y TEMP a PUBLIC
 
 **Propuesta:** `REVOKE CONNECT ON DATABASE <nombre_base> FROM PUBLIC` y
-`REVOKE TEMP ON DATABASE <nombre_base> FROM PUBLIC`. Esto impide que cualquier rol sin
-privilegio explícito se conecte a la base o cree tablas temporales.
+`REVOKE TEMP ON DATABASE <nombre_base> FROM PUBLIC`, con CONNECT explícito a `app_web`,
+`admin_datos` y a las identidades `tst_u5_*` durante las pruebas. Retirar TEMP elimina además el
+vector de tablas temporales de RR-05.
 
-**Riesgo:** Afecta toda la instancia de la base, no solo el esquema de Food Store. Si existen
-otras aplicaciones o usuarios en la misma base que no tienen CONNECT otorgado explícitamente,
+**Riesgo:** Si existen otros roles que se conectan a la misma base sin CONNECT explícito,
 dejarían de poder conectarse.
 
 **Condición:** Requiere autorización explícita sobre la instancia aislada de laboratorio
 de U5, donde se confirme que no hay otras conexiones que se rompan.
 **Estado: pendiente de autorización — no aprobada.**
 
-### D11 — Privilegio para `SELECT ... FOR SHARE` sobre `usuario` desde `registrar_detalle_pedido`
+### D11 — Privilegio UPDATE habilitante para `FOR SHARE` sobre `usuario`
 
-**Contexto:** El procedimiento canónico `registrar_detalle_pedido` ejecuta:
-```sql
-SELECT eliminado INTO v_usuario_eliminado
-FROM usuario
-WHERE id = v_usuario_id
-FOR SHARE;
-```
-Si `rol_propietario_ventas` es el OWNER del procedimiento (para que `api_registrar_detalle_pedido`
-corra como SECURITY DEFINER con ese rol), entonces `rol_propietario_ventas` necesita los
-privilegios que ese SELECT FOR SHARE requiere sobre `usuario`.
+**Contexto corregido:** `rol_propietario_ventas` **no** es propietario del procedimiento canónico
+(D2); es el propietario de la API y, por lo tanto, el usuario efectivo con el que se ejecutan el
+procedimiento y su `SELECT eliminado FROM usuario WHERE id = ... FOR SHARE` (L272), y también el
+mismo bloqueo en `fn_validar_detalle_vigente` (L101).
 
-**Comportamiento esperado en PostgreSQL 17:**
-`SELECT ... FOR SHARE` requiere SELECT sobre la tabla (confirmado por la documentación).
-En algunas versiones, el motor también exige UPDATE sobre al menos una columna al tomar
-locks de fila con `FOR SHARE`. Este requisito adicional está documentado pero necesita
-verificación empírica en PG 17.11.
+**Requisito del motor:** documentado por PostgreSQL —`FOR SHARE` exige UPDATE sobre al menos una
+columna de la tabla bloqueada, además de SELECT sobre las columnas leídas—. La duda ya no es si
+hace falta, sino qué columna se otorga.
 
-**Alternativa propuesta:**
-Otorgar `GRANT UPDATE (celular) ON usuario TO rol_propietario_ventas`. La columna `celular`
-es opcional (nullable) y no participa en ninguna regla de negocio de las ventas. Usarla
-como columna de UPDATE nominal permite satisfacer el requerimiento del motor sin exponer
-columnas funcionales como `contrasena`, `rol` o `eliminado`.
+**Evidencia de la POC (2026-11-02, §13.7):**
 
-**Riesgo residual:** Aunque `celular` no tiene lógica de negocio, el privilegio UPDATE
-sobre ella existe formalmente. Un rol que comprometa a `rol_propietario_ventas` tendría
-UPDATE sobre `celular`. Se documenta como riesgo aceptado si el equipo aprueba la alternativa.
+| Caso | Condición | Observado |
+|---|---|---|
+| T10.1 | `rol_propietario_ventas` con la matriz completa: `SELECT eliminado FROM usuario WHERE id = U1 FOR SHARE` | Sin error |
+| T10.2 | Igual, tras `REVOKE UPDATE (celular) ON usuario` | 42501 |
+| T10.3 | Tras `REVOKE UPDATE (total) ON pedido`: `SELECT usuario_id FROM pedido WHERE id = O1 FOR UPDATE` | 42501 |
+| T07.09 | Venta completa por la API sin `UPDATE (celular)` | 42501 en `SELECT eliminado FROM usuario … FOR SHARE` de `registrar_detalle_pedido` (línea 34 del cuerpo) |
+| T07.07, T07.08 | Venta sin `SELECT (id)` o sin `SELECT (eliminado)` de `usuario` | 42501 en la misma sentencia |
 
-**Estado: alternativa propuesta — no aprobada hasta prueba real en PG 17.11.**
-La prueba de D11 es independiente de SEC-11 (que verifica ALTER DEFAULT PRIVILEGES futuros
-en `reportes`). El resultado de D11 se documenta como evidencia separada en `docs/` y
-actualiza la matriz §3.1 cuando esté disponible.
+**Permisos requeridos sobre `usuario`, comprobados:** `SELECT (id, eliminado)` y UPDATE sobre
+alguna columna. Con la matriz actual, ese UPDATE es `UPDATE (celular)`.
+
+**Alcance de la validación.** La POC demuestra que el bloqueo exige UPDATE y que, en la matriz
+propuesta, `UPDATE (celular)` es el privilegio que lo satisface. No demuestra que `celular` sea
+la mejor columna: no se probaron alternativas. Tampoco cubre el `FOR SHARE` sobre `usuario` de
+`fn_validar_detalle_vigente`. La ablación se detiene en el primer fallo, y ese primer fallo fue
+el del procedimiento; el trigger usa la misma identidad y la misma tabla. La evidencia vale para
+la ruta de venta, no para DML directo ni para concurrencia.
+
+**Alternativa propuesta:** `GRANT UPDATE (celular) ON usuario TO rol_propietario_ventas`.
+`celular` es nullable y no participa en reglas de venta, autenticación ni en las agregaciones de
+las Partes C y D. Alternativas descartadas: `created_at` (lo usan las cargas de U4, la Parte D y el
+análisis forense), `id` (identidad; `SET id = DEFAULT` renumeraría usuarios sin pedidos), y
+`contrasena`, `rol`, `eliminado` (funcionales).
+
+**Riesgo residual:** RR-01 (§5.4). Quien ejecute SQL arbitrario con la identidad de
+`rol_propietario_ventas` podría escribir `celular` de cualquier usuario. El rol es NOLOGIN y no
+tiene miembros (T13). Solo lo alcanza el código fijo de la API y de la cadena canónica, que nunca
+escribe esa columna. El riesgo crece si alguien obtiene permiso para modificar esas rutinas
+(RR-02).
+**Estado: requisito comprobado empíricamente (T07.09, T10); elección de `celular` pendiente de
+aprobación humana.**
+
+### D14 — Entorno de la POC
+
+Los roles de PostgreSQL son globales del clúster: crearlos en una instancia compartida modificaría
+roles reales aunque la base fuera descartable. **Decisión:** una instancia PostgreSQL 17.11
+dedicada y descartable (contenedor o clúster `initdb` propio, en un puerto distinto), con una
+única base `foodstore_u5_poc`, destruida al terminar. Alternativa descartada: un clúster
+compartido con prefijos `poc_u5_` en los roles, porque no prueba los nombres reales y deja
+residuos globales.
+**Estado: aprobada (2026-10-26).** Crear y destruir la instancia forma parte de la ejecución de la
+POC, que se autoriza por separado.
+
+**Autorizaciones registradas que justificaron ejecutar la POC.** Las fuentes son los prompts de
+la sesión, guardados en el registro de prompts de Claude Code (Engram).
+
+| Fecha | Texto literal | Alcance |
+|---|---|---|
+| 2026-10-26 13:32 | «Apruebo D14, D15, D16, D17 y D18» | Aprobación de las cinco decisiones de diseño; D14 no autoriza por sí sola la ejecución |
+| 2026-10-26 13:36 | «Sí, autorizo la POC en la instancia descartable» | Autorización separada de la ejecución |
+| 2026-11-02 | «Si por favor», en respuesta a «¿Querés que arranquemos por la POC?» | Inicio de la ejecución en esta sesión |
+| 2026-11-02 | Opción elegida: «Carpeta hermana del repo» | Ubicación de las salidas fuera del repositorio hasta la revisión humana |
+| 2026-11-02 | «La revisión humana acepta actualizar las especificaciones antes de realizar el siguiente commit» | Consolidación documental y copia de la evidencia a `unidades/unidad-5/poc_permisos/` |
+
+No hay otras aprobaciones registradas. D4, D6, D8 (resto), D9 y la columna de D11 siguen sin
+aprobar. El registro solo conserva la hora de los prompts del 2026-10-26.
+
+### D15 — Sin `INSERT (fecha)` sobre `pedido`
+
+Con `INSERT (fecha)`, la aplicación podría registrar pedidos con cualquier fecha. Sin esa columna,
+el default `CURRENT_DATE` del schema la fija. No cambia reglas de negocio: solo qué columna puede
+escribir la aplicación. **Decisión:** `rol_app_escritura` recibe `INSERT (usuario_id, forma_pago)`;
+REQ-A03 sigue demostrando el permiso por columna.
+**Estado: aprobada (2026-10-26).** Aplicada en §2.1, §3.1, SEC-08, SEC-14 y T04.
+
+### D16 — Formato bcrypt aceptado y tiempo de respuesta de `fn_autenticar`
+
+**Decisión:** aceptar solo `$2a$`, que es lo que genera `gen_salt('bf')`; `$2b$` y `$2y$` se
+rechazan. Para RR-06, las ramas «mail inexistente» y «hash inválido» ejecutan un `crypt()` con sal
+bcrypt nueva de costo por defecto y descartan el resultado (§5.2). No se usa un hash ficticio
+literal porque quedaría en el log de DDL.
+**Estado: aprobada (2026-10-26).** Aplicada en §5.2 y §5.4.
+
+### D17 — Batería TPI fuera de la POC
+
+La batería exige por guarda la base `foodstore_tpi_oficial`. **Decisión:** no se ejecuta en la POC;
+la POC verifica la conservación con huellas de catálogo (T14) y la batería completa se ejecuta en
+SEC-15 durante la implementación, en una base autorizada.
+**Estado: aprobada (2026-10-26).**
+
+### D18 — Privilegios operativos de `admin_datos`
+
+El detalle de §2.2 (SELECT sobre cuatro tablas, SELECT por columna sobre `usuario`, USAGE/CREATE en
+`reportes`, sin DML) concreta D13, que solo definía atributos.
+**Estado: aprobada (2026-10-26).**
 
 ---
 
@@ -956,11 +1171,11 @@ anteriores:
 
 | Prueba | Qué verifica |
 |---|---|
-| REG-01 | Las siete rutinas y cinco triggers del TPI responden correctamente después de aplicar los REVOKE/GRANT de D3 |
-| REG-02 | `api_registrar_detalle_pedido` funciona cuando la invoca un rol miembro de `rol_app_escritura`; `registrar_detalle_pedido` sigue funcionando cuando lo invoca `admin_datos` directamente |
-| REG-03 | Los triggers de subtotal y total siguen disparándose correctamente (no dependen de privilegios de usuario) |
-| REG-04 | Las cuatro vistas de U3 siguen siendo consultables con `admin_datos` |
-| REG-05 | Los propietarios canónicos no cambiaron: las siete rutinas del TPI tienen `admin_datos` como OWNER; `api_registrar_detalle_pedido` tiene `rol_propietario_ventas`; `fn_autenticar` y `fn_resetear_password` tienen `rol_propietario_credenciales` |
+| REG-01 | Las siete rutinas y cinco triggers del TPI responden correctamente después de aplicar los REVOKE/GRANT de D3 (batería TPI, SEC-15) |
+| REG-02 | `api_registrar_detalle_pedido` funciona cuando la invoca un miembro de `rol_app_escritura`; `registrar_detalle_pedido` sigue funcionando cuando lo invoca su propietario real o el superusuario |
+| REG-03 | Los triggers de subtotal y total siguen disparándose correctamente dentro y fuera de la API |
+| REG-04 | Las cuatro vistas de U3 siguen siendo consultables por sus roles beneficiarios y por el superusuario |
+| REG-05 | Los propietarios canónicos coinciden con VP-02; `api_registrar_detalle_pedido` tiene `rol_propietario_ventas`; `fn_autenticar` y `fn_resetear_password` tienen `rol_propietario_credenciales` |
 
 ---
 
@@ -1006,38 +1221,299 @@ No eliminar los originales de `specs/`.
 
 ## 12. Lo que queda pendiente antes de implementar
 
-**Paso previo obligatorio — inventario de propietarios:**
-Antes de aplicar cualquier REVOKE o GRANT sobre las rutinas del TPI, ejecutar en la base
-de laboratorio de U5:
-```sql
-SELECT proname, rolname AS owner
-FROM pg_proc
-JOIN pg_roles ON pg_roles.oid = pg_proc.proowner
-WHERE pronamespace = 'public'::regnamespace
-  AND proname IN (
-    'registrar_detalle_pedido','calcular_total_pedido',
-    'fn_set_subtotal','fn_validar_detalle_vigente',
-    'fn_recalcular_total_insert','fn_recalcular_total_update','fn_recalcular_total_delete'
-  );
-```
-Este resultado documenta quién es el OWNER real de cada rutina canónica. Si el OWNER no es
-`admin_datos`, D2 no puede aplicarse sin intervención humana adicional. No asumir el resultado:
-verificar antes de proceder. Conservar la salida como evidencia en `docs/`.
+1. **Ejecutar las verificaciones previas (§14)** en la instancia autorizada y conservar su salida.
+   En particular VP-02: el propietario real de cada objeto canónico. D2 se aplica cualquiera sea
+   ese propietario; el resultado solo determina contra qué valor se comparan SEC-15 y REG-05.
+2. ~~Autorizar y ejecutar la POC (§13)~~ — **hecho el 2026-11-02**; resultados en §13.7. Queda
+   abierta la limitación A-3 (§13.7.5).
+3. **Aprobar la columna de D11.** La necesidad del privilegio ya está comprobada (T07.09, T10).
+4. **Aprobar D6.** (D14–D18 aprobadas el 2026-10-26.)
+5. **Aprobar D8 completa** — definir las políticas adicionales de contraseña.
+6. **Autorizar D9** — confirmar instancia aislada antes de REVOKE de CONNECT/TEMP a PUBLIC.
+7. **Definir D4** — especificar qué rol puede cambiar `pedido.estado` y bajo qué condición.
+8. **Elegir mecanismo complementario de auditoría (§7.3)** — Opción A, B o C.
+9. **Recibir revisión humana de este design.md** antes de escribir ningún SQL de implementación.
 
-1. **Aprobar D6** — confirmar que el equipo acepta los tres roles adicionales y sus contratos.
-2. **Resolver D11 (prueba de cadena SECURITY DEFINER → INVOKER)** — ejecutar en PG 17.11
-   y confirmar si `rol_propietario_ventas` necesita o no privilegios sobre tablas cuando
-   `registrar_detalle_pedido` es invocado desde `api_registrar_detalle_pedido`. Esta prueba
-   es independiente de SEC-11 (que verifica ALTER DEFAULT PRIVILEGES).
-3. **Aprobar D8 completa** — definir las políticas adicionales de contraseña no especificadas.
-4. **Autorizar D9** — confirmar instancia aislada antes de REVOKE de CONNECT/TEMP a PUBLIC.
-5. **Definir D4** — especificar qué rol puede cambiar `pedido.estado` y bajo qué condición.
-6. **Verificar `pgcrypto`** — confirmar instalación en la base de U5.
-7. **Elegir mecanismo complementario de auditoría (§7.3)** — Opción A, B o C.
-8. **Recibir revisión humana de este design.md** antes de escribir ningún SQL de implementación.
+---
 
-**Contradicción pendiente de resolución humana (D11):**
-Si la prueba de la cadena SECURITY DEFINER → INVOKER confirma que `rol_propietario_ventas`
-necesita privilegios sobre tablas, la columna de esa fila en §3.1 se actualiza con esos
-privilegios y se decide si `UPDATE(celular)` es aceptable como riesgo residual.
-Si confirma que no los necesita, la columna queda vacía y el diseño es más limpio.
+## 13. Plan técnico de la POC de permisos
+
+Las secciones 13.1 a 13.6 son el plan: hipótesis, pasos, resultados esperados y criterios
+PASS/FAIL. Los valores esperados se derivaron de los fixtures sintéticos, no de ejecuciones.
+La POC se ejecutó una vez, el 2026-11-02, y sus resultados observados están en §13.7. Cuatro
+puntos del plan se corrigieron después de la ejecución porque no coincidían con lo que se podía
+probar o ejecutar. Esos puntos señalan su versión anterior (D-1 a D-4, §13.7.4).
+
+### 13.1. Objetivo e hipótesis
+
+Comprobar, antes de escribir `roles.sql` definitivo, que la cadena de venta funciona con la
+matriz mínima de `rol_propietario_ventas` y que cada privilegio de esa matriz es necesario.
+
+| Hipótesis | Enunciado | Pruebas |
+|---|---|---|
+| H1 | La API ejecutada por un rol limitado registra la venta correctamente | T01, T02 |
+| H2 | El acceso directo a `detalle_pedido`, al procedimiento y a `calcular_total_pedido` está denegado | T03 |
+| H3 | Los errores de negocio del procedimiento llegan intactos a través de la API | T05 |
+| H4 | `FOR SHARE` y `FOR UPDATE` exigen UPDATE sobre al menos una columna | T07, T10 |
+| H5 | Cada privilegio de la matriz es necesario (minimalidad) | T07 |
+| H6 | Triggers y `calcular_total_pedido` se ejecutan con el usuario efectivo de la API; las funciones trigger y las secuencias de identidad no requieren GRANT | T01, T07, T08, T09 |
+| H7 | Un error en la cadena no deja efectos parciales | T06 |
+| H8 | `search_path` fijo impide usar tablas temporales homónimas | T11 |
+| H9 | La creación atómica no deja ventana con ACL por defecto | T12, T13 |
+| H10 | Propietarios y definiciones canónicos se conservan | T14 |
+
+### 13.2. Aislamiento y guardas
+
+- Instancia PostgreSQL 17.11 dedicada y descartable (D14); base única `foodstore_u5_poc`.
+  No se usan `foodstore_tpi_oficial`, `foodstore_tpi_cierre_b` ni bases de U3/U4.
+- Guardas al inicio de cada script (si alguna falla, el script se detiene con `ON_ERROR_STOP=1`):
+  - `current_database() = 'foodstore_u5_poc'`
+  - `current_setting('server_version_num')::int` entre 170000 y 179999 (y `server_version = '17.11'`
+    registrado como evidencia)
+  - `pg_database` contiene solo `postgres`, `template0`, `template1` y `foodstore_u5_poc`
+  - Ningún rol de U5 ni `tst_u5_*` existe antes del paso P3
+- Ejecución con `psql -X -v ON_ERROR_STOP=1`; cada caso negativo se aísla en `SAVEPOINT` o en su
+  propia transacción, y se verifica el SQLSTATE exacto (no basta con «hubo error»).
+- Sin contraseñas: los roles de la POC no tienen contraseña; las pruebas usan `SET ROLE` desde la
+  sesión del superusuario de la instancia descartable. Las pruebas de conexión real quedan para la
+  implementación (D12).
+- Logs y salidas de la POC se guardan fuera del repositorio hasta su revisión humana. Tras esa
+  revisión (2026-11-02) se incorporaron, sin editar, en
+  [`unidades/unidad-5/poc_permisos/`](../poc_permisos/README.md).
+
+### 13.3. Pasos
+
+| Paso | Acción | Ejecutor |
+|---|---|---|
+| P0 | Guardas e inventario VP-01…VP-12 sobre la instancia vacía | superusuario |
+| P1 | `schema.sql` (`-1`) y `tpi/sql/objetos_programables.sql` (`-1`) sin modificaciones; sin seed | superusuario |
+| P2 | Huella F0 (VP-02, VP-03, VP-04) y fixtures sintéticos (§13.4); IDs capturados con `\gset` | superusuario |
+| P3 | Roles de la POC: `rol_app_escritura`, `rol_propietario_ventas`, `app_web` (LOGIN sin contraseña, miembro de `rol_app_escritura`), `tst_u5_sin_privilegios` | superusuario |
+| P4 | GRANT de la matriz §3 para esos roles; REVOKE de D3 y de las funciones trigger | superusuario |
+| P4b | T12: creación revertida de la API. Va antes de P5, porque después la función ya existe y `CREATE FUNCTION` fallaría por duplicado (corregido, D-3) | superusuario |
+| P5 | Creación atómica de la API (§5.1) | superusuario |
+| P6 | Pruebas T01–T11 y T13 (§13.5); T14 se evalúa en P7 | `SET ROLE` según el caso |
+| P7 | Huella F1 y comparación con F0 | superusuario |
+| P8 | Limpieza: `DROP OWNED` / `DROP ROLE` de los roles de la POC, verificación sin residuos y destrucción de la instancia | superusuario |
+
+### 13.4. Fixtures sintéticos
+
+| Ref. | Tabla | Datos |
+|---|---|---|
+| C1 | `categoria` | nombre `POC categoría` |
+| U1 | `usuario` | `POC Uno`, mail `poc.u1@ejemplo.test`, rol USUARIO, vigente, `contrasena = 'POC_SIN_CREDENCIAL'` (marcador, no hash) |
+| U2 | `usuario` | `POC Dos`, mail `poc.u2@ejemplo.test`, rol USUARIO, `eliminado = TRUE` |
+| P1 | `producto` | precio 1250.50, stock 10, disponible, vigente, categoría C1 |
+| P2 | `producto` | precio 300.00, stock 2, disponible, vigente |
+| P3 | `producto` | precio 100.00, stock 5, `disponible = FALSE` |
+| P4 | `producto` | precio 100.00, stock 5, `eliminado = TRUE` |
+| O1 | `pedido` | usuario U1, EFECTIVO, vigente, total 0 |
+| O2 | `pedido` | usuario U2 (eliminado), EFECTIVO, vigente |
+| O3 | `pedido` | usuario U1, EFECTIVO, `eliminado = TRUE` |
+
+### 13.5. Casos de prueba y resultados esperados
+
+Salvo indicación, cada caso corre en `BEGIN … ROLLBACK` y las llamadas a la API se hacen con
+`SET ROLE app_web`; las verificaciones de estado se hacen con `RESET ROLE`.
+
+| Caso | Acción | Resultado esperado | PASS si | FAIL si |
+|---|---|---|---|---|
+| T01 | `SELECT api_registrar_detalle_pedido(O1, P1, 3)` | Una línea: cantidad 3, precio_unitario 1250.50, subtotal 3751.50; P1 stock 7; O1 total 3751.50 | Todos los valores coinciden | Cualquier error (en especial 42501) o valor distinto |
+| T02 | Tras T01 en la misma transacción: `api(O1, P2, 2)` | Segunda línea subtotal 600.00; P2 stock 0; O1 total 4351.50. Tras ROLLBACK: estado igual a los fixtures | Coincide antes y después del ROLLBACK | Total o stock incorrectos, o estado residual |
+| T03 | Como `app_web`: INSERT, UPDATE, DELETE y SELECT sobre `detalle_pedido`; `CALL registrar_detalle_pedido(O1, P1, 1)`; `SELECT calcular_total_pedido(O1)`; `UPDATE producto SET stock = 0`; `UPDATE pedido SET total = 0`; `SELECT total FROM pedido`; `SELECT * FROM usuario` | Todos 42501 | Las diez sentencias enumeradas devuelven 42501 (corregido, D-1: la versión anterior decía «los once casos», pero enumeraba diez) | Alguno tiene éxito u otro SQLSTATE |
+| T04 | Como `app_web`: `INSERT INTO pedido (usuario_id, forma_pago) VALUES (U1, 'TARJETA') RETURNING id`; el mismo agregando `fecha`; el mismo agregando `total` | El primero devuelve un id y el pedido tiene `fecha = CURRENT_DATE`; los otros dos 42501 | Los tres resultados | El primero falla o alguno de los otros tiene éxito |
+| T05 | API con: cantidad 0; cantidad NULL; pedido inexistente (-1); O3; O2; P3; P4; `(O1, P2, 3)`; `(O1, P1, 1)` dos veces | 22023; 22023; 23503; 23514; 23514; 23514; 23514; 23514; 23505 (segunda llamada) | Cada SQLSTATE coincide; tras `ROLLBACK TO SAVEPOINT` no hay efectos | Algún 42501 (falta privilegio) u otro SQLSTATE |
+| T06 | (a) T01 OK, `SAVEPOINT s`, `api(O1, P2, 5)` → 23514, `ROLLBACK TO s`. (b) En otra transacción: `REVOKE EXECUTE ON FUNCTION calcular_total_pedido(bigint) FROM rol_propietario_ventas`, `SAVEPOINT s`, `api(O1, P1, 1)` → 42501 en el trigger AFTER, `ROLLBACK TO s` | (a) estado = T01 (1 línea, P1 7, P2 2, total 3751.50). (b) sin línea nueva, P1 10, O1 total 0: la fila insertada antes del fallo del trigger no persiste | Ambos estados coinciden | Cualquier efecto parcial |
+| T07 | Ablación: para cada uno de los 23 privilegios individuales de `rol_propietario_ventas` (EXECUTE ×2; `pedido` S×3, U×1; `usuario` S×2, U×1; `producto` S×5, U×1; `detalle_pedido` S×4, I×4; USAGE se excluye porque PUBLIC lo conserva), en su propia transacción: REVOKE de ese privilegio y `api(O1, P1, 1)` | Cada ablación falla con 42501 | 23/23 fallan con 42501 | Una ablación tiene éxito → ese privilegio no es necesario: se retira de la matriz y se documenta el hallazgo |
+| T08 | Catálogo: sin EXECUTE de `rol_propietario_ventas` ni de PUBLIC sobre las cinco funciones trigger; T01 PASS | Los triggers se disparan igual | Catálogo sin GRANT y T01 PASS | T01 falla con permiso denegado sobre una función trigger → hipótesis refutada, se revisa la matriz |
+| T09 | Catálogo: ningún GRANT sobre las secuencias de identidad de `detalle_pedido`; T01 PASS | La línea recibe `id` | Catálogo sin GRANT y T01 PASS | Error de permiso sobre la secuencia |
+| T10 | `SET ROLE rol_propietario_ventas`: `SELECT eliminado FROM usuario WHERE id = U1 FOR SHARE` con la matriz completa; luego `REVOKE UPDATE (celular)` y repetir; luego `REVOKE UPDATE (total) ON pedido` y `SELECT usuario_id FROM pedido WHERE id = O1 FOR UPDATE` | OK; 42501; 42501 | Las tres respuestas coinciden | Cualquier otra respuesta (resuelve D11 en sentido contrario) |
+| T11 | Como `app_web`: `CREATE TEMP TABLE producto (id BIGINT, nombre VARCHAR(120), precio NUMERIC(12,2), stock INTEGER, disponible BOOLEAN, categoria_id BIGINT, eliminado BOOLEAN)` e inserción de una fila con el id de P1 y stock 999; luego `api(O1, P1, 1)`. Corregido, D-2: la versión anterior usaba `(LIKE public.producto)`, que exige SELECT sobre la tabla origen y falla con 42501 por esa causa, no por TEMP | Si TEMP está permitido: `public.producto` P1 pasa a 9 y la tabla temporal queda en 999. Si D9 retiró TEMP: el CREATE falla con 42501 | Una de las dos ramas, completa | La API lee o modifica la tabla temporal |
+| T12 | En P4b, antes de P5 (corregido, D-3): `BEGIN; CREATE FUNCTION public.api_…; ALTER … OWNER …; ROLLBACK;` y luego `to_regprocedure('public.api_registrar_detalle_pedido(bigint,bigint,integer)')` | NULL | Función inexistente | La función existe |
+| T13 | Tras P5: propietario, `prosecdef`, `proconfig`, `aclexplode` de la API; atributos y miembros de `rol_propietario_ventas`; `has_schema_privilege` CREATE sobre `public` para los roles de la POC y PUBLIC | Propietario `rol_propietario_ventas`; `prosecdef = true`; `search_path` con `public` y `pg_temp` al final; sin PUBLIC; rol NOLOGIN sin miembros; CREATE `false` en todos los casos | Todo coincide | Cualquier diferencia |
+| T14 | Comparar F1 con F0 | Iguales salvo: `proacl` de las siete rutinas canónicas; las dos líneas nuevas de `api_registrar_detalle_pedido` (definición y ACL, creadas en P5); y el ACL del esquema `public`, que suma `USAGE` explícito para `rol_app_escritura` y `rol_propietario_ventas` (§3.3, P4), si la huella incluye `nspacl` | Solo esas diferencias | Cambia una definición, un propietario, un trigger o una tabla canónicos, o aparece otra diferencia (corregido, D-4: la versión anterior solo esperaba los `proacl`) |
+
+**Resultado global:** la POC es PASS solo si T01–T14 son PASS y la limpieza (P8) no deja residuos.
+Un éxito inesperado en una prueba negativa es FAIL de seguridad. Un 42501 en la ruta positiva es
+FAIL de matriz (falta un privilegio): se documenta, se corrige la matriz y se repite la POC completa.
+Los resultados se registran tal como se observan, con su SQLSTATE; no se reescriben para ajustarlos.
+
+### 13.6. Fuera del alcance de la POC
+
+`fn_autenticar` y `fn_resetear_password` (dependen de VP-07, D16 y de la configuración de logs),
+`rol_app_lectura`, `rol_soporte`, `rol_reportes` y `admin_datos` (dependen de las vistas de U3 y de
+D18), `reportes` y privilegios por defecto (SEC-11, SEC-12), conexiones reales con identidades
+efímeras, concurrencia, la batería TPI completa (D17) y la Parte B. Se verifican durante la
+implementación con los criterios SEC.
+
+### 13.7. Resultados observados (2026-11-02)
+
+Ejecución única en un contenedor PostgreSQL 17.11 sin red, con la base `foodstore_u5_poc`
+(D14), destruido al terminar. `schema.sql` y `tpi/sql/objetos_programables.sql` se instalaron
+sin modificaciones y sin seed. Herramienta: Claude Code. Evidencia sin editar en
+[`unidades/unidad-5/poc_permisos/evidencia/`](../poc_permisos/README.md): `corrida_final/` para la
+corrida aceptada e `intentos_arnes/` para los intentos con defectos del arnés. Cada resultado
+se emitió como `NOTICE RESULT|<caso>|PASS/FAIL|esperado=… observado=…|<mensaje>`.
+
+Los resultados valen para el entorno y la ruta probados: venta por la API con `SET ROLE`, sin
+conexiones reales, sin concurrencia y sin D9. No sustituyen SEC-01 a SEC-20 ni la batería TPI
+(D17).
+
+#### 13.7.1. Hipótesis
+
+| Hipótesis | Estado anterior | Resultado observado | Evidencia |
+|---|---|---|---|
+| H1 | Derivada de §5.0 | Comprobada | T01, T02 |
+| H2 | Derivada | Comprobada | T03 (10/10 con 42501) |
+| H3 | Derivada | Comprobada | T05 (SQLSTATE exactos) |
+| H4 | Documentación del motor | Comprobada para `usuario` y `pedido`; para `producto`, por la ablación de `UPDATE (stock)` | T10, T07.06, T07.09, T07.15 |
+| H5 | Derivada | Comprobada para los 23 privilegios de `rol_propietario_ventas`; no para USAGE ni para `rol_app_escritura` (§13.7.3) | T07 |
+| H6 | Derivada | Comprobada | T01, T06b, T07.02, T07.18, T07.19, T08, T09 |
+| H7 | Derivada | Comprobada | T06 (a) y (b), residuos tras cada grupo |
+| H8 | Derivada | Comprobada con la variante de columnas explícitas (D-2) y TEMP permitido | T11 |
+| H9 | Derivada | Comprobada | T12, T13 |
+| H10 | Derivada | Comprobada | T14 |
+
+#### 13.7.2. Resultado por caso
+
+| Caso | Resultado | Observado | Archivo de `corrida_final/` |
+|---|---|---|---|
+| P0 | OK | Guardas OK; inventario VP (§13.7.6) | `01_p0_inventario.txt` |
+| P1 | OK | Instalación con `-1` sin errores; VP-02, 03, 04, 11 y 12 | `02_p1_instalacion.txt` |
+| P2 | OK (tras A-1) | F0 de 105 líneas; fixtures: 1 categoría, 2 usuarios, 4 productos, 3 pedidos | `f0_huella.txt`, `03_p2_fixtures.txt` |
+| P3, P4 | OK | Cuatro roles sin atributos especiales; única membresía de la POC: `rol_app_escritura <- app_web`, sin ADMIN OPTION | `04_p3_p4_roles.txt` |
+| T01 | PASS | Línea O1/P1 `3 × 1250.50 = 3751.50`; P1 stock 7; O1 total 3751.50 | `07_pruebas.txt` |
+| T02 | PASS | Segunda línea O1/P2 `2 × 300.00 = 600.00`; P2 stock 0; total 4351.50; tras ROLLBACK, estado igual a los fixtures | `07_pruebas.txt` |
+| T03 | PASS | Las 10 sentencias devuelven 42501 | `07_pruebas.txt` |
+| T04 | PASS | INSERT `(usuario_id, forma_pago)` OK con `fecha = CURRENT_DATE`, PENDIENTE, total 0.00; con `fecha` y con `total`, 42501 | `07_pruebas.txt` |
+| T05 | PASS | 22023, 22023, 23503, 23514 × 5 y 23505 en la segunda llamada; sin efectos tras cada error | `07_pruebas.txt` |
+| T06 | PASS | (a) estado igual a T01. (b) 42501 en `UPDATE pedido … calcular_total_pedido` dentro de `fn_recalcular_total_insert()`, disparado por el INSERT de la línea; sin línea, P1 stock 10, total 0 | `07_pruebas.txt` |
+| T07 | PASS | 23/23 con 42501 (§13.7.3) | `08_t07.txt` |
+| T08 | PASS | 0 entradas EXECUTE de `rol_propietario_ventas` o PUBLIC sobre las cinco funciones trigger; `has_function_privilege` false × 5; T01 PASS | `07_pruebas.txt` |
+| T09 | PASS | `relacl` NULL en la secuencia de identidad de `detalle_pedido`; T01 PASS | `07_pruebas.txt` |
+| T10 | PASS | Sin error, 42501, 42501 | `07_pruebas.txt` |
+| T11 | PASS (variante) | La sentencia literal anterior (`LIKE`) se registró sin veredicto: 42501 `permission denied for table producto`. Variante: `public.producto` P1 = 9; `pg_temp.producto` = 999; sin residuo | `07_pruebas.txt` |
+| T12 | PASS | Antes y después de la transacción revertida, `to_regprocedure` = NULL | `05_t12.txt` |
+| P5 | OK | API creada en una transacción | `06_p5_api.txt`, `acl_tablas_f1.txt` |
+| T13 | PASS | Propietario `rol_propietario_ventas`; `prosecdef` true; `search_path=public, pg_temp`; ACL `rol_app_escritura:EXECUTE` y `rol_propietario_ventas:EXECUTE`, sin PUBLIC; rol NOLOGIN, NOINHERIT, sin atributos ni miembros; CREATE sobre `public` false para los cuatro roles y para PUBLIC; `tst_u5_sin_privilegios` sin EXECUTE | `07_pruebas.txt` |
+| T14 | PASS (con criterio corregido, D-4) | Sin cambios en definiciones (md5), propietarios, triggers, tipos, columnas, restricciones, índices ni secuencias. Difieren el `proacl` de las 7 rutinas, la API nueva (2 líneas) y el ACL de `public` | `t14_diff.txt` |
+| P8 | OK, con límite A-3 | Roles y API retirados; guarda sin roles de U5 OK; `P8.membresias` FAIL de arnés sin repetir | `09_p8_limpieza.txt` |
+
+En la corrida aceptada, P6 dio 66/66 PASS y T07 23/23 PASS. El único FAIL registrado en la
+corrida final es `P8.membresias` (A-3).
+
+#### 13.7.3. Contrastación de la matriz de `rol_propietario_ventas` (T07)
+
+Cada ablación revocó un solo privilegio en su propia transacción y ejecutó
+`api(O1, P1, 1)` como `app_web`. La columna «Primera sentencia que falla» sale del
+`CONTEXT` registrado.
+
+| # | Privilegio revocado | SQLSTATE | Primera sentencia que falla |
+|---|---|---|---|
+| 01 | EXECUTE `registrar_detalle_pedido` | 42501 | `CALL` en la API |
+| 02 | EXECUTE `calcular_total_pedido` | 42501 | `UPDATE pedido SET total = calcular_total_pedido(…)` en `fn_recalcular_total_insert()` |
+| 03 | `pedido` SELECT (id) | 42501 | `SELECT usuario_id FROM pedido … FOR UPDATE` |
+| 04 | `pedido` SELECT (usuario_id) | 42501 | ídem |
+| 05 | `pedido` SELECT (eliminado) | 42501 | ídem |
+| 06 | `pedido` UPDATE (total) | 42501 | ídem (bloqueo sin UPDATE) |
+| 07 | `usuario` SELECT (id) | 42501 | `SELECT eliminado FROM usuario … FOR SHARE` |
+| 08 | `usuario` SELECT (eliminado) | 42501 | ídem |
+| 09 | `usuario` UPDATE (celular) | 42501 | ídem (bloqueo sin UPDATE; D11) |
+| 10–14 | `producto` SELECT (id), (precio), (stock), (disponible), (eliminado) | 42501 | `SELECT precio, stock, disponible, eliminado FROM producto … FOR UPDATE` |
+| 15 | `producto` UPDATE (stock) | 42501 | ídem (bloqueo sin UPDATE) |
+| 16, 17 | `detalle_pedido` SELECT (pedido_id), (producto_id) | 42501 | `PERFORM 1 FROM detalle_pedido …` (detección de duplicado) |
+| 18, 19 | `detalle_pedido` SELECT (subtotal), (eliminado) | 42501 | Sentencia de `calcular_total_pedido` |
+| 20–23 | `detalle_pedido` INSERT (pedido_id), (producto_id), (cantidad), (precio_unitario) | 42501 | `INSERT INTO detalle_pedido …` |
+
+**Necesidad comprobada:** los 23 privilegios. Cada ablación tiene su `RESULT` y su `CONTEXT`
+en `08_t07.txt`.
+
+**Alcance:** una ablación prueba la necesidad en la primera sentencia que falla. No prueba qué
+exigirían las sentencias posteriores de la cadena. Por ejemplo, `UPDATE (stock)` falla en el
+bloqueo y no llega a probarse en el descuento de stock.
+
+**Sin evidencia de necesidad (no se consideran probados):**
+
+| Rol | Privilegio | Situación |
+|---|---|---|
+| `rol_propietario_ventas` | USAGE sobre `public` | Excluido de T07 porque PUBLIC conserva USAGE: retirarlo no tendría efecto observable. Se mantiene por explícito, no por evidencia |
+| `rol_app_escritura` | EXECUTE sobre la API | Suficiencia comprobada (T01). Sin ablación ni llamada negativa: T13 solo verifica en el catálogo que un rol sin ese GRANT (`tst_u5_sin_privilegios`) no tiene EXECUTE |
+| `rol_app_escritura` | INSERT (`usuario_id`, `forma_pago`) y SELECT (`id`) sobre `pedido` | Suficiencia comprobada (T04.1). Sin ablación individual |
+| `rol_app_escritura` | USAGE sobre `public` | Mismo caso que en `rol_propietario_ventas` |
+
+Se comprobó la denegación de lo que la matriz excluye (T03, T04.2, T04.3). Se comprobó también
+que no hacen falta privilegios para las funciones trigger, las secuencias ni las FK (T08, T09,
+T01, T04.1).
+
+#### 13.7.4. Correcciones del plan derivadas de la ejecución
+
+| ID | Caso | Versión anterior | Problema observado | Corrección |
+|---|---|---|---|---|
+| D-1 | T03 | «Los once casos devuelven 42501» | Se enumeraban diez sentencias | Diez sentencias; no se agregó ninguna |
+| D-2 | T11 | `CREATE TEMP TABLE producto (LIKE public.producto)` | `LIKE` exige SELECT sobre la tabla origen: 42501 por esa causa, no por TEMP | Tabla temporal con columnas explícitas; la sentencia literal quedó registrada como `OBSERVADO` |
+| D-3 | T12 | Listado junto con las pruebas de P6, después de P5 | Después de P5, `CREATE FUNCTION` fallaría por duplicado | Paso P4b, entre P4 y P5 |
+| D-4 | T14 | «Iguales salvo `proacl` de las siete rutinas» | La API nueva y el USAGE explícito de §3.3 también aparecen en la huella | Esas diferencias quedan como esperadas. El ACL del esquema no forma parte de VP-02/03/04; la huella de la POC lo relevó de más |
+
+#### 13.7.5. Incidencias del arnés
+
+No son fallos del producto. Los resultados originales se conservan en `evidencia/intentos_arnes/`.
+
+| ID | Paso | Incidencia | Tratamiento |
+|---|---|---|---|
+| A-1 | P2 | `huella.sql` concatenaba columnas `"char"` sin cast (`operator is not unique: text \|\| "char"`). Abortó antes de cargar fixtures; era de solo lectura | Se agregó `::text` en dos expresiones y se repitió P2 |
+| A-2 | P6 | Primer intento con 4 FAIL de aserción y valores observados correctos: booleanos impresos como `t`/`f` por `format('%s')`, `ORDER BY 1` constante dentro de `string_agg`, y membresías predefinidas de `pg_monitor` incluidas en la consulta | Se corrigieron solo esas 4 aserciones y se repitió P6, que no deja estado: **66/66 PASS** |
+| A-3 | P8 | `P8.membresias`: esperado 0, observado 3. Mismo defecto que A-2: son las 3 membresías predefinidas de `pg_monitor` registradas en VP-10 | **Sin repetir**: la instancia ya estaba destruida. La ausencia de roles y de la API está comprobada (`P8.roles`, `P8.api`, guarda posterior al DROP); la ausencia de membresías residuales queda sin aserción corregida |
+
+#### 13.7.6. Inventario VP en el entorno de la POC
+
+Solo vale para la instancia descartable. En la instancia de implementación hay que repetirlo.
+
+| ID | Observado |
+|---|---|
+| VP-00 | Servidor y `psql` 17.11 |
+| VP-01 | Cuatro bases; roles: `postgres` y predefinidos; ninguno de U5 |
+| VP-02 | Tablas, secuencias, rutinas, tipos y base: `postgres`; esquema `public`: `pg_database_owner` |
+| VP-03 | Las 7 rutinas: `proacl` NULL (PUBLIC con EXECUTE), `prosecdef` false, `proconfig` NULL |
+| VP-04 | 5 triggers, `tgenabled = O` |
+| VP-05 | PUBLIC: solo USAGE sobre `public` |
+| VP-06 | `datacl` NULL: PUBLIC con CONNECT y TEMPORARY |
+| VP-07 | Parcial: `pgcrypto` 1.3 disponible, no instalada; `gen_salt('bf')` no probado |
+| VP-08 | 0 entradas en `pg_default_acl` |
+| VP-09 | `log_statement = none`, `log_parameter_max_length = -1`, `log_parameter_max_length_on_error = 0`, `log_min_error_statement = error`, `log_min_duration_statement = -1`, `log_file_mode = 0600`, `logging_collector = off`, `password_encryption = scram-sha-256` (valores por defecto de la imagen; §7 exige ajustarlos) |
+| VP-10 | Solo las 3 membresías predefinidas de `pg_monitor`, sin ADMIN OPTION; `createrole_self_grant` vacío |
+| VP-11 | Vistas y materializada de U3 ausentes: no están en la instalación mínima |
+| VP-12 | Cinco secuencias de identidad, `relacl` NULL |
+
+#### 13.7.7. Pendiente después de la POC
+
+- Aprobar la columna de D11.
+- Repetir la aserción de membresías de P8 en una corrida futura autorizada (A-3).
+- Comprobar por ablación los privilegios de `rol_app_escritura`, si el equipo lo requiere.
+- Todo lo listado en §13.6, las verificaciones VP en la instancia de implementación y SEC-01 a
+  SEC-20.
+
+---
+
+## 14. Inventario de verificaciones previas en PostgreSQL
+
+Se ejecutan solo en una instancia autorizada, antes de la POC o de la implementación. Son consultas
+de lectura; su salida se conserva como evidencia. VP-00 a VP-12 se ejecutaron en la instancia
+descartable de la POC (P0 y tras P1; resultados en §13.7.6). VP-07 se ejecutó en forma
+parcial. Esos valores describen ese entorno: en la instancia de implementación, todas siguen
+pendientes.
+
+| ID | Qué se verifica | Fuente de catálogo | Uso |
+|---|---|---|---|
+| VP-00 | Herramientas: servidor 17.11; cliente psql 16 o superior (para `\bind`). En la estación de trabajo de esta revisión `psql` no está instalado | `SHOW server_version`; `psql --version` | Todas |
+| VP-01 | Inventario de bases y roles de la instancia; ausencia de colisiones con los nombres de U5 (los roles son globales del clúster) | `pg_database`, `pg_roles` | D14, SEC-20 |
+| VP-02 | Propietarios reales: cinco tablas, siete rutinas, tres tipos, esquema `public`, base y secuencias de identidad | `pg_class.relowner`, `pg_proc.proowner`, `pg_type.typowner`, `pg_namespace.nspowner`, `pg_database.datdba` | D2, SEC-15, REG-05 |
+| VP-03 | ACL y configuración de las siete rutinas: `proacl` (se espera NULL = PUBLIC con EXECUTE), `prosecdef = false`, `proconfig` NULL | `pg_proc`, `aclexplode` | D3, F0 |
+| VP-04 | Cinco triggers, función asociada y `tgenabled` | `pg_trigger`, `pg_get_triggerdef` | F0, SEC-15 |
+| VP-05 | ACL del esquema `public`: sin CREATE para PUBLIC; propietario | `pg_namespace.nspacl`, `aclexplode` | SEC-17, RR-05 |
+| VP-06 | ACL de la base: CONNECT y TEMP de PUBLIC | `pg_database.datacl` | D9 |
+| VP-07 | `pgcrypto`: disponibilidad, versión y esquema; formato y costo por defecto de `gen_salt('bf')` (debe producir `$2a$` y cumplir la expresión regular de §5.2); ACL de `crypt` y `gen_salt` | `pg_available_extensions`, `pg_extension`, pruebas con valores sintéticos | §5.2, D16 |
+| VP-08 | Privilegios por defecto existentes (se espera ninguno) | `pg_default_acl`, `\ddp` | SEC-11, SEC-12 |
+| VP-09 | Configuración de logs y contraseñas: `log_statement`, `log_parameter_max_length`, `log_parameter_max_length_on_error`, `log_min_error_statement`, `log_min_duration_statement`, `log_file_mode`, `logging_collector`, `password_encryption` | `pg_settings` | §7, SEC-16 |
+| VP-10 | Membresías existentes con `admin_option`; valor de `createrole_self_grant` | `pg_auth_members`, `pg_settings` | SEC-10 |
+| VP-11 | Presencia, propietario y opciones (`security_invoker`) de las vistas y la materializada de U3 | `pg_class`, `pg_class.reloptions` | §2.1, SEC-04 |
+| VP-12 | Secuencias de identidad de las cinco tablas y su ACL | `pg_depend`, `pg_get_serial_sequence`, `pg_class.relacl` | T09 |
