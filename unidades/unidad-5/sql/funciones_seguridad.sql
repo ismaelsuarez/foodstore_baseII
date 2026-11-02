@@ -1,0 +1,186 @@
+-- Unidad 5, Parte A — interfaces SECURITY DEFINER, design.md §5.1–§5.3.
+-- DEBE ejecutarse después de roles.sql, en la misma u5_base_objetivo autorizada.
+-- Escritura/revisión únicamente: no ejecutado. psql -X -v ON_ERROR_STOP=1.
+-- No usar -1: una transacción propia para las tres altas, cambios de OWNER y ACL.
+-- CREATE simple: una reinstalación falla, no conserva ACL/propietarios silenciosamente.
+-- REQ-A07/A10/A11/A12; SEC-03/05/13/15/16/17/18.
+\set ON_ERROR_STOP on
+\if :{?u5_base_objetivo}
+\else
+DO $$ BEGIN
+    RAISE EXCEPTION 'Debe indicar la variable psql u5_base_objetivo (-v u5_base_objetivo=nombre_autorizado)';
+END $$;
+\endif
+SELECT current_database() = :'u5_base_objetivo' AND :'u5_base_objetivo' <> '' AS u5_base_correcta \gset
+\if :u5_base_correcta
+\else
+DO $$ BEGIN
+    RAISE EXCEPTION 'La base actual no coincide con u5_base_objetivo; instalación detenida';
+END $$;
+\endif
+
+BEGIN;
+SET LOCAL search_path = pg_catalog;
+DO $$
+BEGIN
+    IF current_setting('server_version_num')::integer NOT BETWEEN 170000 AND 179999 THEN
+        RAISE EXCEPTION 'Se requiere PostgreSQL 17.x';
+    END IF;
+    IF NOT (SELECT rolsuper FROM pg_roles WHERE rolname = current_user) THEN
+        RAISE EXCEPTION 'La instalación requiere usuario efectivo superusuario';
+    END IF;
+    IF (SELECT count(*) FROM pg_roles WHERE rolname IN
+        ('rol_app_lectura', 'rol_app_escritura', 'rol_soporte', 'rol_reportes',
+         'rol_app_autenticacion', 'rol_propietario_ventas', 'rol_propietario_credenciales',
+         'app_web', 'admin_datos')) <> 9 THEN
+        RAISE EXCEPTION 'Faltan roles U5: aplicar roles.sql antes de funciones_seguridad.sql';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_roles r WHERE r.rolname IN
+        ('rol_propietario_ventas', 'rol_propietario_credenciales') AND
+        (r.rolcanlogin OR r.rolinherit OR r.rolsuper OR r.rolcreatedb OR r.rolcreaterole
+         OR r.rolreplication OR r.rolbypassrls
+         -- Se excluye el esquema temporal de esta sesión: PG17 (aclchk.c, pg_namespace_aclmask)
+         -- concede todo sobre él a quien tenga TEMP en la base, y PUBLIC lo conserva (D9 pendiente).
+         OR EXISTS (SELECT 1 FROM pg_namespace n WHERE n.oid <> pg_my_temp_schema()
+                    AND has_schema_privilege(r.oid, n.oid, 'CREATE'))
+         OR EXISTS (SELECT 1 FROM pg_auth_members a WHERE a.roleid = r.oid OR a.member = r.oid))) THEN
+        RAISE EXCEPTION 'Los propietarios U5 deben ser NOLOGIN/NOINHERIT, sin miembros, membresías, atributos especiales ni CREATE';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_namespace n,
+               LATERAL aclexplode(coalesce(n.nspacl, acldefault('n', n.nspowner))) a
+               WHERE n.nspname = 'public' AND a.grantee = 0 AND a.privilege_type = 'CREATE') THEN
+        RAISE EXCEPTION 'SEC-17: PUBLIC tiene CREATE sobre public; detener y revisar';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_extension e JOIN pg_namespace n ON n.oid = e.extnamespace
+                   WHERE e.extname = 'pgcrypto' AND n.nspname = 'public') THEN
+        RAISE EXCEPTION 'VP-07: se requiere pgcrypto ya instalada en public; no se instala automáticamente';
+    END IF;
+END $$;
+
+-- 1. Venta: literal de §5.1 / poc_permisos/sql/06_p5_api.sql.
+-- REQ-A02/A07/A10/A12; SEC-03/05/13/15/17. Ninguna lógica de negocio duplicada.
+CREATE FUNCTION public.api_registrar_detalle_pedido(
+    p_pedido_id   BIGINT,
+    p_producto_id BIGINT,
+    p_cantidad    INTEGER
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+    -- Referencia calificada; el procedimiento canónico hereda este search_path
+    CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad);
+END;
+$$;
+
+ALTER FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)
+    OWNER TO rol_propietario_ventas;
+REVOKE ALL ON FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)
+    TO rol_app_escritura;
+
+-- 2. Autenticación: contrato de §5.2, D16; REQ-A10/A11; SEC-16/17.
+-- Solo $2a$; regex exacta, no hashes/sales literales. Todas las ramas de búsqueda
+-- pagan crypt(): válida/incorrecta con v_hash; inexistente/inválida con gen_salt('bf').
+-- RR-06: equivalencia temporal de bcrypt NO acreditada; no hay mediciones.
+-- El costo por defecto de la rama ficticia no necesariamente iguala hashes de
+-- costo 04..31. Se conserva la lógica aprobada, sin garantía contra inferencias
+-- temporales. Validaciones nulas/vacías abortan antes de crypt().
+CREATE FUNCTION public.fn_autenticar(
+    p_mail       TEXT,
+    p_contrasena TEXT
+)
+RETURNS TABLE(usuario_id BIGINT, rol public.rol)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_hash TEXT;
+BEGIN
+    -- Validaciones defensivas: rechazar antes de consultar
+    IF p_mail IS NULL OR trim(p_mail) = '' THEN
+        RAISE EXCEPTION 'Credenciales inválidas' USING ERRCODE = '28P01';
+    END IF;
+    IF p_contrasena IS NULL OR trim(p_contrasena) = '' THEN
+        RAISE EXCEPTION 'Credenciales inválidas' USING ERRCODE = '28P01';
+    END IF;
+
+    SELECT u.contrasena INTO v_hash
+    FROM public.usuario u
+    WHERE u.mail = p_mail AND u.eliminado = FALSE;
+
+    -- Usuario inexistente/eliminado o hash inválido: cero filas sin revelar la causa.
+    IF NOT FOUND
+       OR v_hash IS NULL
+       OR v_hash !~ '^\$2a\$(0[4-9]|[12][0-9]|3[01])\$[./A-Za-z0-9]{53}$' THEN
+        PERFORM public.crypt(p_contrasena, public.gen_salt('bf'));
+        RETURN;
+    END IF;
+
+    RETURN QUERY
+    SELECT u.id, u.rol
+    FROM public.usuario u
+    WHERE u.mail = p_mail
+      AND u.eliminado = FALSE
+      AND u.contrasena = public.crypt(p_contrasena, v_hash);
+END;
+$$;
+
+ALTER FUNCTION public.fn_autenticar(TEXT, TEXT)
+    OWNER TO rol_propietario_credenciales;
+REVOKE ALL ON FUNCTION public.fn_autenticar(TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.fn_autenticar(TEXT, TEXT) TO rol_app_autenticacion;
+
+-- 3. Reset: contrato de §5.3, solo D8 aprobada; REQ-A10/A11; SEC-16/17/18.
+-- No implementar longitud mínima, historial, notificación ni ruta ADMIN pendientes.
+CREATE FUNCTION public.fn_resetear_password(
+    p_usuario_id BIGINT,
+    p_nueva      TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_rol_usuario public.usuario.rol%TYPE;
+BEGIN
+    -- D8: contraseña nueva no nula ni vacía
+    IF p_nueva IS NULL OR trim(p_nueva) = '' THEN
+        RAISE EXCEPTION 'La contraseña nueva no puede ser nula ni vacía'
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- FOR UPDATE serializa la validación del rol y la actualización
+    SELECT u.rol INTO v_rol_usuario
+    FROM public.usuario u
+    WHERE u.id = p_usuario_id AND u.eliminado = FALSE
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El usuario % no existe o está eliminado', p_usuario_id
+            USING ERRCODE = '23503';
+    END IF;
+
+    IF v_rol_usuario = 'ADMIN' THEN
+        RAISE EXCEPTION 'Soporte no puede resetear contraseñas de cuentas ADMIN'
+            USING ERRCODE = '42501';
+    END IF;
+
+    UPDATE public.usuario
+    SET contrasena = public.crypt(p_nueva, public.gen_salt('bf'))
+    WHERE id = p_usuario_id
+      AND eliminado = FALSE;
+END;
+$$;
+
+ALTER FUNCTION public.fn_resetear_password(BIGINT, TEXT)
+    OWNER TO rol_propietario_credenciales;
+REVOKE ALL ON FUNCTION public.fn_resetear_password(BIGINT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.fn_resetear_password(BIGINT, TEXT) TO rol_soporte;
+
+COMMIT;
+-- La transacción de cada invocación pertenece al llamante, no a estas funciones.
