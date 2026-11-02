@@ -1,0 +1,19 @@
+ rule_number | line_number | type  |   database    | user_name |  address  |                 netmask                 |  auth_method  | error 
+-------------+-------------+-------+---------------+-----------+-----------+-----------------------------------------+---------------+-------
+           1 |           1 | host  | {all}         | {all}     | 127.0.0.1 | 255.255.255.255                         | scram-sha-256 | 
+           2 |           2 | host  | {all}         | {all}     | ::1       | ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff | scram-sha-256 | 
+           3 |         119 | local | {all}         | {all}     |           |                                         | trust         | 
+           4 |         121 | host  | {all}         | {all}     | 127.0.0.1 | 255.255.255.255                         | scram-sha-256 | 
+           5 |         123 | host  | {all}         | {all}     | ::1       | ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff | scram-sha-256 | 
+           6 |         126 | local | {replication} | {all}     |           |                                         | trust         | 
+           7 |         127 | host  | {replication} | {all}     | 127.0.0.1 | 255.255.255.255                         | scram-sha-256 | 
+           8 |         128 | host  | {replication} | {all}     | ::1       | ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff | scram-sha-256 | 
+           9 |         130 | host  | {all}         | {all}     | all       |                                         | scram-sha-256 | 
+(9 rows)
+
+ password_encryption 
+---------------------
+ scram-sha-256
+(1 row)
+
+DO

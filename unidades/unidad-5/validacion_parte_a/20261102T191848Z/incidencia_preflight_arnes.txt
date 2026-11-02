@@ -1,0 +1,11 @@
+Incidencia del arnés NUEVO, antes de crear contenedores o ejecutar SQL.
+El primer archivo ejecutar_cierre.py se conservó sin modificar. La compilación en memoria (no ejecución) falló:
+
+unidades/unidad-5/validacion_parte_a/20261102T191848Z/ejecutar_cierre.py:291: SyntaxWarning: "\g" is an invalid escape sequence.
+unidades/unidad-5/validacion_parte_a/20261102T191848Z/ejecutar_cierre.py:332: SyntaxWarning: "\g" is an invalid escape sequence.
+File "unidades/unidad-5/validacion_parte_a/20261102T191848Z/ejecutar_cierre.py", line 395
+    template = """SET log_statement = 'none';
+SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 310-311: truncated \uXXXX escape
+
+Causa: el template de metacomandos psql contenía \unset dentro de un string Python no raw, interpretado como escape Unicode incompleto. Las dos advertencias \g eran del mismo tipo de representación del arnés. No es un fallo de producto ni de PostgreSQL.
+Tratamiento anterior a cualquier ejecución: nueva copia ejecutar_cierre_v2.py con strings raw/escape de backslash; se conserva el draft original y el diff. No se modifica ningún instalador/test SQL ni se repite SQL.

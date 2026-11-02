@@ -1,0 +1,39 @@
+--- 20261102T185421Z/ejecutar_validacion.py
++++ 20261102T190345Z/ejecutar_validacion.py
+@@ -205,21 +205,24 @@
+     created = True
+     require('01_container_isolation', ['docker', 'inspect', NAME, '--format',
+             'id={{.Id}} image={{.Image}} network={{.HostConfig.NetworkMode}} bindings={{json .HostConfig.PortBindings}} mounts={{json .Mounts}}'])
+-    ready_lines = []
+-    for _ in range(90):
+-        r = subprocess.run(['docker', 'exec', NAME, 'pg_isready', '-U', 'postgres', '-d', DB],
+-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+-        ready_lines.append(r.stdout + 'exit_code=' + str(r.returncode) + '\n')
+-        if r.returncode == 0:
+-            # Initdb's temporary server has a socket too: wait for final PID 1 postgres.
+-            pid = subprocess.run(['docker', 'exec', NAME, 'sh', '-c', 'test "$(readlink /proc/1/exe)" = /usr/lib/postgresql/17/bin/postgres'],
+-                                 capture_output=True)
+-            if pid.returncode == 0:
++    for probe in range(90):
++        running = require('01_probe_%02d_running' % probe,
++                          ['docker', 'inspect', '-f', '{{.State.Running}}', NAME]).strip()
++        if running != 'true':
++            raise RuntimeError('BLOCKED: contenedor no está running; ver diagnóstico del sondeo')
++        logs = require('01_probe_%02d_init_log' % probe, ['docker', 'logs', NAME])
++        if 'PostgreSQL init process complete' in logs:
++            ready = invoke('01_probe_%02d_pg_isready' % probe,
++                           ['docker', 'exec', NAME, 'pg_isready', '-U', 'postgres', '-d', DB],
++                           expected=(0, 1, 2))
++            if ready.returncode == 0:
++                require('01_ready_sql', psql() + ['-c',
++                        "SELECT version(), current_setting('server_version');"])
+                 break
+         time.sleep(1)
+     else:
+-        raise RuntimeError('BLOCKED: servidor no listo')
+-    save('01_ready.txt', ''.join(ready_lines))
++        raise RuntimeError('BLOCKED: arranque no confirmado; ver todos los diagnósticos 01_probe')
++    save('01_ready.txt', 'running=true; init process complete; pg_isready exit 0; SELECT version/server_version exit 0\n')
+     require('01_postgres_version', ['docker', 'exec', NAME, 'postgres', '--version'])
+     require('01_psql_version', ['docker', 'exec', NAME, 'psql', '--version'])
+     require('01_instance_settings', psql() + ['-c', "SELECT version(); SELECT name,setting,source FROM pg_settings WHERE name IN ('server_version','log_statement','log_parameter_max_length','log_parameter_max_length_on_error','log_file_mode','password_encryption','logging_collector','log_connections','log_disconnections','log_directory','log_filename','log_rotation_age','log_rotation_size'); SELECT datname FROM pg_database ORDER BY datname; SELECT type,database,user_name,address,auth_method,error FROM pg_hba_file_rules;"])

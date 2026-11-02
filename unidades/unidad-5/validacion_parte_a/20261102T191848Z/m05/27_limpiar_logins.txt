@@ -1,0 +1,50 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+DO
+BEGIN
+RESET
+DROP OWNED
+DROP ROLE
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:8: NOTICE:  RESULT|SEC19.R.SEC20.R.efimeros|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:15: NOTICE:  RESULT|P8.membresias.efimeras|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:21: NOTICE:  RESULT|P8.membresias.U5_filtradas|PASS|esperado=3 observado=3|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:26: NOTICE:  RESULT|P8.membresias.EXCEPT|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+COMMIT
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/52_limpiar_logins.sql:26: NOTICE:  RESULT|P8.membresias.post_commit|PASS|esperado=3 observado=3|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/52_limpiar_logins.sql:28: NOTICE:  RESULT|D12.post_commit.sin_roles|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+

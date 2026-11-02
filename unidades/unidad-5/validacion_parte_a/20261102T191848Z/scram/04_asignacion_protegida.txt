@@ -1,0 +1,19 @@
+SET
+SET
+ log_statement 
+---------------
+ none
+(1 row)
+
+ log_min_error_statement 
+-------------------------
+ panic
+(1 row)
+
+CREATE ROLE
+ALTER ROLE
+   rolname    | verifier_prefix 
+--------------+-----------------
+ tst_u5_scram | SCRAM-SHA-256$
+(1 row)
+

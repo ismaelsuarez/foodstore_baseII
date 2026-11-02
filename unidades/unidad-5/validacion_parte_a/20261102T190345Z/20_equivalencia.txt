@@ -1,0 +1,95 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE VIEW
+BEGIN
+psql:/repo/unidades/unidad-5/sql/pruebas/13_fixtures.sql:4: NOTICE:  RESULT|FIXTURE.sin_colisiones|PASS|esperado=true observado=true|aserción
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+INSERT 0 1
+INSERT 0 3
+INSERT 0 4
+INSERT 0 3
+DO
+CALL
+CALL
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql:23: NOTICE:  RESULT|SEC03.P.canonica.dos_lineas|PASS|esperado=2 observado=2|aserción
+ROLLBACK
+psql:/repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql:27: NOTICE:  RESULT|SEC03.P.canonica.rollback|PASS|esperado=true observado=true|aserción
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+BEGIN
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/13_fixtures.sql:4: NOTICE:  RESULT|FIXTURE.sin_colisiones|PASS|esperado=true observado=true|aserción
+INSERT 0 1
+INSERT 0 3
+INSERT 0 4
+INSERT 0 3
+DO
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql:32: NOTICE:  RESULT|REG02.api.primera|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql:34: NOTICE:  RESULT|REG02.api.segunda|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql:37: NOTICE:  RESULT|SEC03.P.api.dos_lineas|PASS|esperado=2 observado=2|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql:45: NOTICE:  RESULT|REG03.derivados_stock|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ROLLBACK
+psql:/repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql:49: NOTICE:  RESULT|SEC03.P.api.rollback|PASS|esperado=true observado=true|aserción
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+ sentido | value 
+---------+-------
+(0 rows)
+
+ verificar 
+-----------
+ 
+(1 row)
+

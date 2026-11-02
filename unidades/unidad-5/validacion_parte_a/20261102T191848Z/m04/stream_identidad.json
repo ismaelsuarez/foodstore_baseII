@@ -1,0 +1,8 @@
+{
+  "original_sha256": "ea4de4ae43ca0941d8be7584e535196c4e309b111981d7c90a80c76ccacbd0e4",
+  "original_lines": 186,
+  "withheld_line_1based": 185,
+  "sent_original_lines": 185,
+  "sent_original_sha256": "dccf374d8a2307268236121172beb59ef7906354a6e1d53120f010486b8392a2",
+  "mechanism": "stdin pipe; original lines verbatim except withheld COMMIT; no product file changed"
+}

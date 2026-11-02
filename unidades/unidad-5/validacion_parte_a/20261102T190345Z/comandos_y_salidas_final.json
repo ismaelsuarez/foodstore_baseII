@@ -1,0 +1,1460 @@
+[
+  {
+    "step": "00_root",
+    "command": [
+      "git",
+      "rev-parse",
+      "--show-toplevel"
+    ],
+    "start": "2026-11-02T19:04:06.742073+00:00",
+    "end": "2026-11-02T19:04:06.744438+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_branch",
+    "command": [
+      "git",
+      "branch",
+      "--show-current"
+    ],
+    "start": "2026-11-02T19:04:06.744470+00:00",
+    "end": "2026-11-02T19:04:06.746861+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_git_status_before",
+    "command": [
+      "git",
+      "status",
+      "--short"
+    ],
+    "start": "2026-11-02T19:04:06.746885+00:00",
+    "end": "2026-11-02T19:04:06.750905+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_docker_version",
+    "command": [
+      "docker",
+      "--version"
+    ],
+    "start": "2026-11-02T19:04:06.750942+00:00",
+    "end": "2026-11-02T19:04:06.778283+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_docker_ps_before",
+    "command": [
+      "docker",
+      "ps",
+      "-a",
+      "--no-trunc"
+    ],
+    "start": "2026-11-02T19:04:06.778340+00:00",
+    "end": "2026-11-02T19:04:06.846335+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_container_names",
+    "command": [
+      "docker",
+      "ps",
+      "-a",
+      "--format",
+      "{{.Names}}"
+    ],
+    "start": "2026-11-02T19:04:06.846373+00:00",
+    "end": "2026-11-02T19:04:06.901457+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_image_id",
+    "command": [
+      "docker",
+      "image",
+      "inspect",
+      "postgres:17",
+      "--format",
+      "{{.Id}}"
+    ],
+    "start": "2026-11-02T19:04:06.901503+00:00",
+    "end": "2026-11-02T19:04:06.954589+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_openssl_version",
+    "command": [
+      "openssl",
+      "version"
+    ],
+    "start": "2026-11-02T19:04:06.954643+00:00",
+    "end": "2026-11-02T19:04:06.958564+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_container_create",
+    "command": [
+      "docker",
+      "run",
+      "--pull=never",
+      "-d",
+      "--name",
+      "foodstore_u5_validacion_a",
+      "--network",
+      "none",
+      "-v",
+      "/home/devops/Documentos/utn/BasesDatosII/unidad_5/tpi/foodstore_baseII:/repo:ro",
+      "-e",
+      "POSTGRES_PASSWORD",
+      "-e",
+      "POSTGRES_DB=foodstore_tpi_oficial",
+      "-e",
+      "POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256 --auth-local=trust",
+      "postgres:17",
+      "-c",
+      "logging_collector=on",
+      "-c",
+      "log_directory=log",
+      "-c",
+      "log_filename=u5-server.log",
+      "-c",
+      "log_rotation_age=0",
+      "-c",
+      "log_rotation_size=0",
+      "-c",
+      "log_statement=mod",
+      "-c",
+      "log_parameter_max_length=0",
+      "-c",
+      "log_parameter_max_length_on_error=0",
+      "-c",
+      "log_file_mode=0600",
+      "-c",
+      "password_encryption=scram-sha-256",
+      "-c",
+      "log_connections=on",
+      "-c",
+      "log_disconnections=on"
+    ],
+    "start": "2026-11-02T19:04:06.980901+00:00",
+    "end": "2026-11-02T19:04:07.242201+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_container_isolation",
+    "command": [
+      "docker",
+      "inspect",
+      "foodstore_u5_validacion_a",
+      "--format",
+      "id={{.Id}} image={{.Image}} network={{.HostConfig.NetworkMode}} bindings={{json .HostConfig.PortBindings}} mounts={{json .Mounts}}"
+    ],
+    "start": "2026-11-02T19:04:07.242275+00:00",
+    "end": "2026-11-02T19:04:07.282986+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_probe_00_running",
+    "command": [
+      "docker",
+      "inspect",
+      "-f",
+      "{{.State.Running}}",
+      "foodstore_u5_validacion_a"
+    ],
+    "start": "2026-11-02T19:04:07.283089+00:00",
+    "end": "2026-11-02T19:04:07.312791+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_probe_00_init_log",
+    "command": [
+      "docker",
+      "logs",
+      "foodstore_u5_validacion_a"
+    ],
+    "start": "2026-11-02T19:04:07.312851+00:00",
+    "end": "2026-11-02T19:04:07.337354+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_probe_01_running",
+    "command": [
+      "docker",
+      "inspect",
+      "-f",
+      "{{.State.Running}}",
+      "foodstore_u5_validacion_a"
+    ],
+    "start": "2026-11-02T19:04:08.337521+00:00",
+    "end": "2026-11-02T19:04:08.368409+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_probe_01_init_log",
+    "command": [
+      "docker",
+      "logs",
+      "foodstore_u5_validacion_a"
+    ],
+    "start": "2026-11-02T19:04:08.368483+00:00",
+    "end": "2026-11-02T19:04:08.400332+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_probe_01_pg_isready",
+    "command": [
+      "docker",
+      "exec",
+      "foodstore_u5_validacion_a",
+      "pg_isready",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "start": "2026-11-02T19:04:08.400392+00:00",
+    "end": "2026-11-02T19:04:08.572093+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0,
+      1,
+      2
+    ]
+  },
+  {
+    "step": "01_ready_sql",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-c",
+      "SELECT version(), current_setting('server_version');"
+    ],
+    "start": "2026-11-02T19:04:08.572142+00:00",
+    "end": "2026-11-02T19:04:08.699056+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_postgres_version",
+    "command": [
+      "docker",
+      "exec",
+      "foodstore_u5_validacion_a",
+      "postgres",
+      "--version"
+    ],
+    "start": "2026-11-02T19:04:08.699384+00:00",
+    "end": "2026-11-02T19:04:08.781485+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_psql_version",
+    "command": [
+      "docker",
+      "exec",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "--version"
+    ],
+    "start": "2026-11-02T19:04:08.781542+00:00",
+    "end": "2026-11-02T19:04:08.904285+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_instance_settings",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-c",
+      "SELECT version(); SELECT name,setting,source FROM pg_settings WHERE name IN ('server_version','log_statement','log_parameter_max_length','log_parameter_max_length_on_error','log_file_mode','password_encryption','logging_collector','log_connections','log_disconnections','log_directory','log_filename','log_rotation_age','log_rotation_size'); SELECT datname FROM pg_database ORDER BY datname; SELECT type,database,user_name,address,auth_method,error FROM pg_hba_file_rules;"
+    ],
+    "start": "2026-11-02T19:04:08.904342+00:00",
+    "end": "2026-11-02T19:04:09.015475+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "02_schema",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-1",
+      "-f",
+      "/repo/schema.sql"
+    ],
+    "start": "2026-11-02T19:04:09.015543+00:00",
+    "end": "2026-11-02T19:04:09.136205+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "03_seed",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/datos_iniciales.sql"
+    ],
+    "start": "2026-11-02T19:04:09.136251+00:00",
+    "end": "2026-11-02T19:04:09.261743+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "04_objetos",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-1",
+      "-f",
+      "/repo/tpi/sql/objetos_programables.sql"
+    ],
+    "start": "2026-11-02T19:04:09.261807+00:00",
+    "end": "2026-11-02T19:04:09.409656+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "05_tpi_baseline",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/tpi/pruebas/pruebas_objetos_programables.sql"
+    ],
+    "start": "2026-11-02T19:04:09.409699+00:00",
+    "end": "2026-11-02T19:04:09.590067+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "06_having_baseline",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/tpi/sql/consultas_cobertura_tpi.sql"
+    ],
+    "start": "2026-11-02T19:04:09.590103+00:00",
+    "end": "2026-11-02T19:04:09.703745+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "07_u3_views",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/unidades/unidad-3/sql/views.sql"
+    ],
+    "start": "2026-11-02T19:04:09.703796+00:00",
+    "end": "2026-11-02T19:04:09.821174+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "08_u3_materializada",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/unidades/unidad-3/sql/materializadas.sql"
+    ],
+    "start": "2026-11-02T19:04:09.821224+00:00",
+    "end": "2026-11-02T19:04:09.923569+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "09_pgcrypto",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-c",
+      "CREATE EXTENSION pgcrypto WITH SCHEMA public;"
+    ],
+    "start": "2026-11-02T19:04:09.923605+00:00",
+    "end": "2026-11-02T19:04:10.037487+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "10_precondiciones",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/00_precondiciones.sql",
+    "start": "2026-11-02T19:04:10.038507+00:00",
+    "end": "2026-11-02T19:04:10.151279+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "11_f0",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/01_f0.sql",
+    "start": "2026-11-02T19:04:10.151328+00:00",
+    "end": "2026-11-02T19:04:10.206403+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "12_roles",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/roles.sql",
+    "start": "2026-11-02T19:04:10.206442+00:00",
+    "end": "2026-11-02T19:04:10.232105+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "13_funciones",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/funciones_seguridad.sql",
+    "start": "2026-11-02T19:04:10.232143+00:00",
+    "end": "2026-11-02T19:04:10.237699+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "14_f1",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/02_f1.sql",
+    "start": "2026-11-02T19:04:10.237738+00:00",
+    "end": "2026-11-02T19:04:10.272266+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "15_catalogo",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql",
+    "start": "2026-11-02T19:04:10.272300+00:00",
+    "end": "2026-11-02T19:04:10.291366+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "16_matriz",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/11_matriz.sql",
+    "start": "2026-11-02T19:04:10.291414+00:00",
+    "end": "2026-11-02T19:04:10.413358+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "17_matriz_efectiva",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql",
+    "start": "2026-11-02T19:04:10.413401+00:00",
+    "end": "2026-11-02T19:04:11.046971+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "18_reservar_ids",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/12_reservar_ids.sql",
+    "start": "2026-11-02T19:04:11.047020+00:00",
+    "end": "2026-11-02T19:04:11.049797+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "19_permisos",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/20_permisos.sql",
+    "start": "2026-11-02T19:04:11.049847+00:00",
+    "end": "2026-11-02T19:04:11.089454+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "20_equivalencia",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/30_equivalencia.sql",
+    "start": "2026-11-02T19:04:11.089496+00:00",
+    "end": "2026-11-02T19:04:11.108720+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "21_credenciales",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql",
+    "start": "2026-11-02T19:04:11.108752+00:00",
+    "end": "2026-11-02T19:04:11.274868+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "22_preparar_logins",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/49_preparar_logins.sql",
+    "start": "2026-11-02T19:04:11.274913+00:00",
+    "end": "2026-11-02T19:04:11.280053+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "23_login_reportes",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "tst_u5_reportes",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/unidades/unidad-5/sql/pruebas/50_login_reportes.sql"
+    ],
+    "start": "2026-11-02T19:04:11.280086+00:00",
+    "end": "2026-11-02T19:04:11.395035+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "24_login_soporte",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "tst_u5_soporte",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/unidades/unidad-5/sql/pruebas/51_login_soporte.sql"
+    ],
+    "start": "2026-11-02T19:04:11.395116+00:00",
+    "end": "2026-11-02T19:04:11.522517+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "25_nologin",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "rol_app_lectura",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-c",
+      "SELECT current_user;"
+    ],
+    "start": "2026-11-02T19:04:11.522567+00:00",
+    "end": "2026-11-02T19:04:11.618874+00:00",
+    "exit_code": 2,
+    "expected_exit_codes": [
+      2
+    ]
+  },
+  {
+    "step": "26_nologin_catalogo",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "SELECT rolname,rolcanlogin FROM pg_roles WHERE rolname='rol_app_lectura';",
+    "start": "2026-11-02T19:04:11.618914+00:00",
+    "end": "2026-11-02T19:04:11.619868+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "27_limpiar_logins",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/52_limpiar_logins.sql",
+    "start": "2026-11-02T19:04:11.619897+00:00",
+    "end": "2026-11-02T19:04:11.626883+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "28_cierre",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "\\i /repo/unidades/unidad-5/sql/pruebas/99_cierre.sql",
+    "start": "2026-11-02T19:04:11.626908+00:00",
+    "end": "2026-11-02T19:04:11.646439+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "29_huella_final",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "SELECT * FROM pg_temp.u5_huella ORDER BY clase,clave;",
+    "start": "2026-11-02T19:04:11.646478+00:00",
+    "end": "2026-11-02T19:04:11.651574+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "29_analitica",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial"
+    ],
+    "sql_input": "SELECT pg_get_viewdef('public.mv_facturacion_categoria_mes'::regclass); SELECT * FROM public.mv_facturacion_categoria_mes ORDER BY categoria_id,mes; SELECT c.nombre,count(DISTINCT p.usuario_id) AS usuarios_del_grupo FROM public.categoria c JOIN public.producto pr ON pr.categoria_id=c.id JOIN public.detalle_pedido d ON d.producto_id=pr.id JOIN public.pedido p ON p.id=d.pedido_id WHERE NOT d.eliminado AND NOT p.eliminado GROUP BY c.id,c.nombre ORDER BY c.id;",
+    "start": "2026-11-02T19:04:11.651609+00:00",
+    "end": "2026-11-02T19:04:11.653614+00:00",
+    "exit_code": 0,
+    "exit_semantics": "0 = archivo completado bajo ON_ERROR_STOP; proceso compartido, salida real en control_session_exit",
+    "completed": true
+  },
+  {
+    "step": "30_tpi_after",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/tpi/pruebas/pruebas_objetos_programables.sql"
+    ],
+    "start": "2026-11-02T19:04:11.657015+00:00",
+    "end": "2026-11-02T19:04:11.800815+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "31_having_after",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-f",
+      "/repo/tpi/sql/consultas_cobertura_tpi.sql"
+    ],
+    "start": "2026-11-02T19:04:11.800862+00:00",
+    "end": "2026-11-02T19:04:11.921601+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "32_final_inventory",
+    "command": [
+      "docker",
+      "exec",
+      "-i",
+      "foodstore_u5_validacion_a",
+      "psql",
+      "-X",
+      "-w",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-v",
+      "u5_base_objetivo=foodstore_tpi_oficial",
+      "-U",
+      "postgres",
+      "-d",
+      "foodstore_tpi_oficial",
+      "-c",
+      "SELECT rolname,rolcanlogin,rolsuper FROM pg_roles WHERE rolname LIKE 'tst\\_u5\\_%' OR rolname IN ('app_web','admin_datos'); SELECT pg_get_userbyid(roleid),pg_get_userbyid(member),admin_option,inherit_option,set_option FROM pg_auth_members ORDER BY 1,2; SELECT 'categoria' AS tabla,count(*) FROM public.categoria UNION ALL SELECT 'usuario',count(*) FROM public.usuario UNION ALL SELECT 'producto',count(*) FROM public.producto UNION ALL SELECT 'pedido',count(*) FROM public.pedido UNION ALL SELECT 'detalle_pedido',count(*) FROM public.detalle_pedido;"
+    ],
+    "start": "2026-11-02T19:04:11.921640+00:00",
+    "end": "2026-11-02T19:04:12.060190+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "40_log_permissions",
+    "command": [
+      "docker",
+      "exec",
+      "foodstore_u5_validacion_a",
+      "stat",
+      "-c",
+      "%a %U %G %n",
+      "/var/lib/postgresql/data/log/u5-server.log"
+    ],
+    "start": "2026-11-02T19:04:12.060269+00:00",
+    "end": "2026-11-02T19:04:12.140121+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "41_log_snapshot",
+    "command": [
+      "docker",
+      "exec",
+      "-u",
+      "postgres",
+      "foodstore_u5_validacion_a",
+      "cp",
+      "/var/lib/postgresql/data/log/u5-server.log",
+      "/var/lib/postgresql/data/log/u5-captured.log"
+    ],
+    "start": "2026-11-02T19:04:12.140154+00:00",
+    "end": "2026-11-02T19:04:12.203156+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "42_m02_container_scan",
+    "command": [
+      "docker",
+      "exec",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "-e",
+      "POSTGRES_PASSWORD",
+      "foodstore_u5_validacion_a",
+      "sh",
+      "-c",
+      "grep -F -q -e \"$U5_SYN_PWD\" -e \"$U5_SYN_NUEVA\" -e \"$POSTGRES_PASSWORD\" -e '$2a$' -e \"PASSWORD '\" -- /var/lib/postgresql/data/log/u5-captured.log\nrc=$?\nprintf 'grep_exit_code=%s\\n' \"$rc\"\nif [ \"$rc\" = 0 ]; then\n  grep -nF -e \"$U5_SYN_PWD\" -e \"$U5_SYN_NUEVA\" -e \"$POSTGRES_PASSWORD\" -e '$2a$' -e \"PASSWORD '\" -- /var/lib/postgresql/data/log/u5-captured.log | cut -d: -f1\nfi\nexit \"$rc\""
+    ],
+    "start": "2026-11-02T19:04:12.203192+00:00",
+    "end": "2026-11-02T19:04:12.269279+00:00",
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ]
+  },
+  {
+    "step": "43_docker_cp_log",
+    "command": [
+      "docker",
+      "cp",
+      "foodstore_u5_validacion_a:/var/lib/postgresql/data/log/u5-captured.log",
+      "/home/devops/Documentos/utn/BasesDatosII/unidad_5/tpi/foodstore_baseII/unidades/unidad-5/validacion_parte_a/20261102T190345Z/servidor.txt"
+    ],
+    "start": "2026-11-02T19:04:12.269329+00:00",
+    "end": "2026-11-02T19:04:12.292588+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "45_log_coverage",
+    "command": [
+      "docker",
+      "exec",
+      "foodstore_u5_validacion_a",
+      "sh",
+      "-c",
+      "wc -l /var/lib/postgresql/data/log/u5-captured.log; grep -cF 'statement:' /var/lib/postgresql/data/log/u5-captured.log; grep -cF 'connection authorized:' /var/lib/postgresql/data/log/u5-captured.log; grep -cF 'disconnection:' /var/lib/postgresql/data/log/u5-captured.log"
+    ],
+    "start": "2026-11-02T19:04:12.294260+00:00",
+    "end": "2026-11-02T19:04:12.360077+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "48_created_volumes",
+    "command": [
+      "docker",
+      "inspect",
+      "foodstore_u5_validacion_a",
+      "--format",
+      "{{range .Mounts}}{{if eq .Type \"volume\"}}{{.Name}}{{println}}{{end}}{{end}}"
+    ],
+    "start": "2026-11-02T19:04:12.467648+00:00",
+    "end": "2026-11-02T19:04:12.503678+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "49_destroy_only_created",
+    "command": [
+      "docker",
+      "rm",
+      "-f",
+      "-v",
+      "foodstore_u5_validacion_a"
+    ],
+    "start": "2026-11-02T19:04:12.503735+00:00",
+    "end": "2026-11-02T19:04:12.661856+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "50_docker_ps_after",
+    "command": [
+      "docker",
+      "ps",
+      "-a",
+      "--no-trunc"
+    ],
+    "start": "2026-11-02T19:04:12.661900+00:00",
+    "end": "2026-11-02T19:04:12.729305+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "51_container_names_after",
+    "command": [
+      "docker",
+      "ps",
+      "-a",
+      "--format",
+      "{{.Names}}"
+    ],
+    "start": "2026-11-02T19:04:12.729367+00:00",
+    "end": "2026-11-02T19:04:12.793750+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "52_volumes_after",
+    "command": [
+      "docker",
+      "volume",
+      "ls",
+      "--format",
+      "{{.Name}}"
+    ],
+    "start": "2026-11-02T19:04:12.793790+00:00",
+    "end": "2026-11-02T19:04:12.813687+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  }
+]

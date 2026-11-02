@@ -1,0 +1,4 @@
+1528 /var/lib/postgresql/data/log/u5-captured.log
+199
+20
+19

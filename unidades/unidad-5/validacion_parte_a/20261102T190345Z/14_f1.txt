@@ -1,0 +1,42 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+DO
+CREATE VIEW
+ sentido | clase | clave | valor 
+---------+-------+-------+-------
+(0 rows)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/02_f1.sql:27: NOTICE:  RESULT|SEC15.N.huella|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/02_f1.sql:33: NOTICE:  RESULT|REG05.VP02|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+                      clave                      | acl_f0 |                         acl_f1                          
+-------------------------------------------------+--------+---------------------------------------------------------
+ calcular_total_pedido(bigint)                   | NULL   | {postgres=X/postgres,rol_propietario_ventas=X/postgres}
+ fn_recalcular_total_delete()                    | NULL   | {postgres=X/postgres}
+ fn_recalcular_total_insert()                    | NULL   | {postgres=X/postgres}
+ fn_recalcular_total_update()                    | NULL   | {postgres=X/postgres}
+ fn_set_subtotal()                               | NULL   | {postgres=X/postgres}
+ fn_validar_detalle_vigente()                    | NULL   | {postgres=X/postgres}
+ registrar_detalle_pedido(bigint,bigint,integer) | NULL   | {postgres=X/postgres,rol_propietario_ventas=X/postgres}
+(7 rows)
+

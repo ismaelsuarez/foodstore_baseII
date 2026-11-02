@@ -1,0 +1,4 @@
+CONTAINER ID                                                       IMAGE         COMMAND                           CREATED       STATUS                   PORTS      NAMES
+cc42c26435ef3977321f09cc5709fa436131624b2b467a02d6296654e1cc0644   postgres:17   "docker-entrypoint.sh postgres"   3 days ago    Up 3 hours (healthy)     5432/tcp   tpi_ssd-db-1
+f662904e351120e0ac0aa130cf3737b68d24392a51c4b173f18476144d0ab4c1   postgres:16   "docker-entrypoint.sh postgres"   6 days ago    Exited (0) 5 days ago               taller-db-1
+bdba2c8de384199e72ffb1bcfc158fc3a55eb5018bd7fddb037fe2400b18576c   postgres:17   "docker-entrypoint.sh postgres"   2 weeks ago   Exited (0) 2 weeks ago              libreria-pg

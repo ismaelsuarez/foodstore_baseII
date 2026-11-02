@@ -1,0 +1,102 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+INSERT 0 9
+                                       List of roles
+          Role name           |                         Attributes                         
+------------------------------+------------------------------------------------------------
+ admin_datos                  | 
+ app_web                      | 
+ postgres                     | Superuser, Create role, Create DB, Replication, Bypass RLS
+ rol_app_autenticacion        | Cannot login
+ rol_app_escritura            | Cannot login
+ rol_app_lectura              | Cannot login
+ rol_propietario_credenciales | No inheritance, Cannot login
+ rol_propietario_ventas       | No inheritance, Cannot login
+ rol_reportes                 | Cannot login
+ rol_soporte                  | Cannot login
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:13: NOTICE:  RESULT|SEC01.P.grupos|PASS|esperado=7 observado=7|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:18: NOTICE:  RESULT|SEC02.P.SEC06.P.SEC20.P.atributos|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+CREATE TABLE
+INSERT 0 3
+CREATE VIEW
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:33: NOTICE:  RESULT|SEC07.P.N.SEC10.P.membresias|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+        roleid         | member  | admin_option | inherit_option | set_option 
+-----------------------+---------+--------------+----------------+------------
+ rol_app_autenticacion | app_web | f            | t              | f
+ rol_app_escritura     | app_web | f            | t              | f
+ rol_app_lectura       | app_web | f            | t              | f
+(3 rows)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:42: NOTICE:  RESULT|SEC07.N.propietarios.SEC10.P.admin_datos|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:50: NOTICE:  RESULT|SEC17.P.definer|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:53: NOTICE:  RESULT|SEC17.P.create_public|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:57: NOTICE:  RESULT|SEC17.P.create_public_PUBLIC|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:61: NOTICE:  RESULT|SEC17.P.propietarios_sin_create|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/10_catalogo.sql:70: NOTICE:  RESULT|SEC04.R.analitica_sin_columnas_personales|PASS|esperado=0 observado=0|aserción
+ analitico | columna | definicion 
+-----------+---------+------------
+(0 rows)
+
+        datname        | datacl 
+-----------------------+--------
+ foodstore_tpi_oficial | 
+(1 row)
+

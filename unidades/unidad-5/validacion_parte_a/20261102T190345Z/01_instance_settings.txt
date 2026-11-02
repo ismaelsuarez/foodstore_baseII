@@ -1,0 +1,41 @@
+                                                       version                                                        
+----------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+(1 row)
+
+               name                |             setting             |    source    
+-----------------------------------+---------------------------------+--------------
+ log_connections                   | on                              | command line
+ log_directory                     | log                             | command line
+ log_disconnections                | on                              | command line
+ log_file_mode                     | 0600                            | command line
+ log_filename                      | u5-server.log                   | command line
+ log_parameter_max_length          | 0                               | command line
+ log_parameter_max_length_on_error | 0                               | command line
+ log_rotation_age                  | 0                               | command line
+ log_rotation_size                 | 0                               | command line
+ log_statement                     | mod                             | command line
+ logging_collector                 | on                              | command line
+ password_encryption               | scram-sha-256                   | command line
+ server_version                    | 17.11 (Debian 17.11-1.pgdg13+2) | default
+(13 rows)
+
+        datname        
+-----------------------
+ foodstore_tpi_oficial
+ postgres
+ template0
+ template1
+(4 rows)
+
+ type  |   database    | user_name |  address  |  auth_method  | error 
+-------+---------------+-----------+-----------+---------------+-------
+ local | {all}         | {all}     |           | trust         | 
+ host  | {all}         | {all}     | 127.0.0.1 | scram-sha-256 | 
+ host  | {all}         | {all}     | ::1       | scram-sha-256 | 
+ local | {replication} | {all}     |           | trust         | 
+ host  | {replication} | {all}     | 127.0.0.1 | scram-sha-256 | 
+ host  | {replication} | {all}     | ::1       | scram-sha-256 | 
+ host  | {all}         | {all}     | all       | scram-sha-256 | 
+(7 rows)
+

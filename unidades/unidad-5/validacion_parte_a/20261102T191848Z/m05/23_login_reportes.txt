@@ -1,0 +1,12 @@
+DO
+         base          |             version             |    conexion     |    ejecutor     
+-----------------------+---------------------------------+-----------------+-----------------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | tst_u5_reportes | tst_u5_reportes
+(1 row)
+
+BEGIN
+psql:/repo/unidades/unidad-5/sql/pruebas/50_login_reportes.sql:29: NOTICE:  RESULT|SEC04.P.login_real|PASS|esperado=sin_error observado=sin_error|
+psql:/repo/unidades/unidad-5/sql/pruebas/50_login_reportes.sql:29: NOTICE:  RESULT|SEC04.N.login_usuario|PASS|esperado=42501 observado=42501|
+psql:/repo/unidades/unidad-5/sql/pruebas/50_login_reportes.sql:29: NOTICE:  RESULT|SEC04.N.login_pedido|PASS|esperado=42501 observado=42501|
+DO
+ROLLBACK

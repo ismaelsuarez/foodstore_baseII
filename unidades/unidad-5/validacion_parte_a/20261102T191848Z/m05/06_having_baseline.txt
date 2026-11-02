@@ -1,0 +1,13 @@
+ usuario_id | nombre | apellido |           mail           | cantidad_pedidos 
+------------+--------+----------+--------------------------+------------------
+          1 | Ana    | Gómez    | ana.gomez@foodstore.test |                2
+          2 | Luis   | Paz      | luis.paz@foodstore.test  |                2
+(2 rows)
+
+ id | nombre | apellido | gasto_total | ranking 
+----+--------+----------+-------------+---------
+  3 | Marta  | Ruiz     |     6200.00 |       1
+  1 | Ana    | Gómez    |     5950.00 |       2
+  2 | Luis   | Paz      |     2550.00 |       3
+(3 rows)
+

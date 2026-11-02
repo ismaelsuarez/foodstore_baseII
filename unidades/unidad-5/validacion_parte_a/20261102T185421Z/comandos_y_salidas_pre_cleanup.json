@@ -1,0 +1,278 @@
+[
+  {
+    "step": "00_root",
+    "command": [
+      "git",
+      "rev-parse",
+      "--show-toplevel"
+    ],
+    "start": "2026-11-02T18:57:51.821842+00:00",
+    "end": "2026-11-02T18:57:51.824632+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_branch",
+    "command": [
+      "git",
+      "branch",
+      "--show-current"
+    ],
+    "start": "2026-11-02T18:57:51.824669+00:00",
+    "end": "2026-11-02T18:57:51.826966+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_git_status_before",
+    "command": [
+      "git",
+      "status",
+      "--short"
+    ],
+    "start": "2026-11-02T18:57:51.827000+00:00",
+    "end": "2026-11-02T18:57:51.829973+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_docker_version",
+    "command": [
+      "docker",
+      "--version"
+    ],
+    "start": "2026-11-02T18:57:51.829999+00:00",
+    "end": "2026-11-02T18:57:51.855878+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_docker_ps_before",
+    "command": [
+      "docker",
+      "ps",
+      "-a",
+      "--no-trunc"
+    ],
+    "start": "2026-11-02T18:57:51.855964+00:00",
+    "end": "2026-11-02T18:57:51.933599+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_container_names",
+    "command": [
+      "docker",
+      "ps",
+      "-a",
+      "--format",
+      "{{.Names}}"
+    ],
+    "start": "2026-11-02T18:57:51.933640+00:00",
+    "end": "2026-11-02T18:57:51.980700+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_image_id",
+    "command": [
+      "docker",
+      "image",
+      "inspect",
+      "postgres:17",
+      "--format",
+      "{{.Id}}"
+    ],
+    "start": "2026-11-02T18:57:51.980742+00:00",
+    "end": "2026-11-02T18:57:52.032677+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "00_openssl_version",
+    "command": [
+      "openssl",
+      "version"
+    ],
+    "start": "2026-11-02T18:57:52.032711+00:00",
+    "end": "2026-11-02T18:57:52.041912+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_container_create",
+    "command": [
+      "docker",
+      "run",
+      "--pull=never",
+      "-d",
+      "--name",
+      "foodstore_u5_validacion_a",
+      "--network",
+      "none",
+      "-v",
+      "/home/devops/Documentos/utn/BasesDatosII/unidad_5/tpi/foodstore_baseII:/repo:ro",
+      "-e",
+      "POSTGRES_PASSWORD",
+      "-e",
+      "POSTGRES_DB=foodstore_tpi_oficial",
+      "-e",
+      "POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256 --auth-local=trust",
+      "postgres:17",
+      "-c",
+      "logging_collector=on",
+      "-c",
+      "log_directory=log",
+      "-c",
+      "log_filename=u5-server.log",
+      "-c",
+      "log_rotation_age=0",
+      "-c",
+      "log_rotation_size=0",
+      "-c",
+      "log_statement=mod",
+      "-c",
+      "log_parameter_max_length=0",
+      "-c",
+      "log_parameter_max_length_on_error=0",
+      "-c",
+      "log_file_mode=0600",
+      "-c",
+      "password_encryption=scram-sha-256",
+      "-c",
+      "log_connections=on",
+      "-c",
+      "log_disconnections=on"
+    ],
+    "start": "2026-11-02T18:57:52.063822+00:00",
+    "end": "2026-11-02T18:57:52.243605+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "01_container_isolation",
+    "command": [
+      "docker",
+      "inspect",
+      "foodstore_u5_validacion_a",
+      "--format",
+      "id={{.Id}} image={{.Image}} network={{.HostConfig.NetworkMode}} bindings={{json .HostConfig.PortBindings}} mounts={{json .Mounts}}"
+    ],
+    "start": "2026-11-02T18:57:52.243644+00:00",
+    "end": "2026-11-02T18:57:52.265353+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "40_log_permissions",
+    "command": [
+      "docker",
+      "exec",
+      "foodstore_u5_validacion_a",
+      "stat",
+      "-c",
+      "%a %U %G %n",
+      "/var/lib/postgresql/data/log/u5-server.log"
+    ],
+    "start": "2026-11-02T18:59:40.026418+00:00",
+    "end": "2026-11-02T18:59:40.091142+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "41_log_snapshot",
+    "command": [
+      "docker",
+      "exec",
+      "-u",
+      "postgres",
+      "foodstore_u5_validacion_a",
+      "cp",
+      "/var/lib/postgresql/data/log/u5-server.log",
+      "/var/lib/postgresql/data/log/u5-captured.log"
+    ],
+    "start": "2026-11-02T18:59:40.091190+00:00",
+    "end": "2026-11-02T18:59:40.154820+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "42_m02_container_scan",
+    "command": [
+      "docker",
+      "exec",
+      "-e",
+      "U5_SYN_PWD",
+      "-e",
+      "U5_SYN_NUEVA",
+      "-e",
+      "POSTGRES_PASSWORD",
+      "foodstore_u5_validacion_a",
+      "sh",
+      "-c",
+      "grep -F -q -e \"$U5_SYN_PWD\" -e \"$U5_SYN_NUEVA\" -e \"$POSTGRES_PASSWORD\" -e '$2a$' -e \"PASSWORD '\" -- /var/lib/postgresql/data/log/u5-captured.log\nrc=$?\nprintf 'grep_exit_code=%s\\n' \"$rc\"\nif [ \"$rc\" = 0 ]; then\n  grep -nF -e \"$U5_SYN_PWD\" -e \"$U5_SYN_NUEVA\" -e \"$POSTGRES_PASSWORD\" -e '$2a$' -e \"PASSWORD '\" -- /var/lib/postgresql/data/log/u5-captured.log | cut -d: -f1\nfi\nexit \"$rc\""
+    ],
+    "start": "2026-11-02T18:59:40.154866+00:00",
+    "end": "2026-11-02T18:59:40.219573+00:00",
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ]
+  },
+  {
+    "step": "43_docker_cp_log",
+    "command": [
+      "docker",
+      "cp",
+      "foodstore_u5_validacion_a:/var/lib/postgresql/data/log/u5-captured.log",
+      "/home/devops/Documentos/utn/BasesDatosII/unidad_5/tpi/foodstore_baseII/unidades/unidad-5/validacion_parte_a/20261102T185421Z/servidor.txt"
+    ],
+    "start": "2026-11-02T18:59:40.219635+00:00",
+    "end": "2026-11-02T18:59:40.240014+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  },
+  {
+    "step": "45_log_coverage",
+    "command": [
+      "docker",
+      "exec",
+      "foodstore_u5_validacion_a",
+      "sh",
+      "-c",
+      "wc -l /var/lib/postgresql/data/log/u5-captured.log; grep -cF 'statement:' /var/lib/postgresql/data/log/u5-captured.log; grep -cF 'connection authorized:' /var/lib/postgresql/data/log/u5-captured.log; grep -cF 'disconnection:' /var/lib/postgresql/data/log/u5-captured.log"
+    ],
+    "start": "2026-11-02T18:59:40.241632+00:00",
+    "end": "2026-11-02T18:59:40.304727+00:00",
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ]
+  }
+]

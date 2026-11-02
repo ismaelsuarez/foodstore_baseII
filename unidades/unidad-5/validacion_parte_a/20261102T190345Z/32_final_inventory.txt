@@ -1,0 +1,25 @@
+   rolname   | rolcanlogin | rolsuper 
+-------------+-------------+----------
+ app_web     | t           | f
+ admin_datos | t           | f
+(2 rows)
+
+    pg_get_userbyid    | pg_get_userbyid | admin_option | inherit_option | set_option 
+-----------------------+-----------------+--------------+----------------+------------
+ pg_read_all_settings  | pg_monitor      | f            | t              | t
+ pg_read_all_stats     | pg_monitor      | f            | t              | t
+ pg_stat_scan_tables   | pg_monitor      | f            | t              | t
+ rol_app_autenticacion | app_web         | f            | t              | f
+ rol_app_escritura     | app_web         | f            | t              | f
+ rol_app_lectura       | app_web         | f            | t              | f
+(6 rows)
+
+     tabla      | count 
+----------------+-------
+ categoria      |     2
+ usuario        |     3
+ producto       |     3
+ pedido         |     5
+ detalle_pedido |     7
+(5 rows)
+

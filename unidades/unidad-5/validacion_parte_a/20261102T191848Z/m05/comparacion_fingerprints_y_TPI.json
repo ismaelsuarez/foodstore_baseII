@@ -1,0 +1,61 @@
+{
+  "05_tpi_baseline.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded",
+    "notice_pass_actual": 30,
+    "notice_pass_anterior": 30
+  },
+  "30_tpi_after.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded",
+    "notice_pass_actual": 30,
+    "notice_pass_anterior": 30
+  },
+  "06_having_baseline.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "31_having_after.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "11_f0.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "14_f1.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "15_catalogo.txt": {
+    "byte_equal": false,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "16_matriz.txt": {
+    "byte_equal": false,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "17_matriz_efectiva.txt": {
+    "byte_equal": false,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "29_huella_final.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  },
+  "32_final_inventory.txt": {
+    "byte_equal": true,
+    "normalized_equal": true,
+    "normalization": "trailing spaces, blank lines, NOTICE transport ordering excluded; no semantic fingerprint field discarded"
+  }
+}

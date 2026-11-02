@@ -1,0 +1,10 @@
+ current_user | session_user |   current_database    | inet_client_addr | pg_backend_pid 
+--------------+--------------+-----------------------+------------------+----------------
+ tst_u5_scram | tst_u5_scram | foodstore_tpi_oficial | 127.0.0.1        |            264
+(1 row)
+
+ ssl 
+-----
+ f
+(1 row)
+

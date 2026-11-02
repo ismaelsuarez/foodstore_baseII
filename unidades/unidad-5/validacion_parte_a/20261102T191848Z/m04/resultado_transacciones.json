@@ -1,0 +1,9 @@
+{
+  "termination_pid": 161,
+  "termination_client_exit": 2,
+  "control_pid": 189,
+  "control_client_exit": 0,
+  "catalogo_antes_despues_igual": true,
+  "funciones_ausentes_ambas_ramas": true,
+  "termination_client_sent_rollback": false
+}

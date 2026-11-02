@@ -1,0 +1,8 @@
+DO
+           proname            |       pg_get_userbyid        | prosecdef |                                                       proacl                                                       
+------------------------------+------------------------------+-----------+--------------------------------------------------------------------------------------------------------------------
+ api_registrar_detalle_pedido | rol_propietario_ventas       | t         | {rol_propietario_ventas=X/rol_propietario_ventas,rol_app_escritura=X/rol_propietario_ventas}
+ fn_autenticar                | rol_propietario_credenciales | t         | {rol_propietario_credenciales=X/rol_propietario_credenciales,rol_app_autenticacion=X/rol_propietario_credenciales}
+ fn_resetear_password         | rol_propietario_credenciales | t         | {rol_propietario_credenciales=X/rol_propietario_credenciales,rol_soporte=X/rol_propietario_credenciales}
+(3 rows)
+

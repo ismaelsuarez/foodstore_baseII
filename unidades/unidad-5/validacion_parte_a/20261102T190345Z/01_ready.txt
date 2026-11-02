@@ -1,0 +1,1 @@
+running=true; init process complete; pg_isready exit 0; SELECT version/server_version exit 0

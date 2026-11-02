@@ -1,0 +1,201 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+DO
+SELECT 1
+CREATE TABLE
+INSERT 0 7
+INSERT 0 2
+ objeto_inesperado 
+-------------------
+(0 rows)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:42: NOTICE:  RESULT|MATRIZ.reportes.sin_objetos_inesperados|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+INSERT 0 34
+INSERT 0 7
+INSERT 0 1
+INSERT 0 3
+CREATE TABLE
+INSERT 0 10
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:79: NOTICE:  RESULT|SEC13.R.diez_rutinas|PASS|esperado=10 observado=10|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+INSERT 0 15
+CREATE VIEW
+CREATE VIEW
+ sentido | clase | rol | objeto | columna | privilegio | delegable 
+---------+-------+-----+--------+---------+------------+-----------
+(0 rows)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:120: NOTICE:  RESULT|MATRIZ.EXCEPT.bidireccional|PASS|esperado=0 observado=0|aserción
+ grantor  |     grantee     |     table_catalog     | table_schema |      table_name      | privilege_type | is_grantable | with_hierarchy 
+----------+-----------------+-----------------------+--------------+----------------------+----------------+--------------+----------------
+ postgres | admin_datos     | foodstore_tpi_oficial | public       | categoria            | SELECT         | NO           | YES
+ postgres | admin_datos     | foodstore_tpi_oficial | public       | detalle_pedido       | SELECT         | NO           | YES
+ postgres | admin_datos     | foodstore_tpi_oficial | public       | pedido               | SELECT         | NO           | YES
+ postgres | admin_datos     | foodstore_tpi_oficial | public       | producto             | SELECT         | NO           | YES
+ postgres | rol_app_lectura | foodstore_tpi_oficial | public       | v_productos_vigentes | SELECT         | NO           | YES
+ postgres | rol_soporte     | foodstore_tpi_oficial | public       | v_pedidos_resumen    | SELECT         | NO           | YES
+ postgres | rol_soporte     | foodstore_tpi_oficial | public       | v_usuarios_publico   | SELECT         | NO           | YES
+(7 rows)
+
+ grantor  |           grantee            |     table_catalog     | table_schema |      table_name      |   column_name    | privilege_type | is_grantable 
+----------+------------------------------+-----------------------+--------------+----------------------+------------------+----------------+--------------
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | categoria            | created_at       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | categoria            | descripcion      | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | categoria            | eliminado        | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | categoria            | id               | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | categoria            | nombre           | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | cantidad         | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | created_at       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | eliminado        | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | id               | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | pedido_id        | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | precio_unitario  | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | producto_id      | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | detalle_pedido       | subtotal         | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | created_at       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | eliminado        | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | estado           | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | fecha            | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | forma_pago       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | id               | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | total            | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | pedido               | usuario_id       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | categoria_id     | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | created_at       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | descripcion      | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | disponible       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | eliminado        | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | id               | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | imagen           | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | nombre           | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | precio           | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | producto             | stock            | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | usuario              | created_at       | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | usuario              | eliminado        | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | usuario              | id               | SELECT         | NO
+ postgres | admin_datos                  | foodstore_tpi_oficial | public       | usuario              | rol              | SELECT         | NO
+ postgres | rol_app_escritura            | foodstore_tpi_oficial | public       | pedido               | forma_pago       | INSERT         | NO
+ postgres | rol_app_escritura            | foodstore_tpi_oficial | public       | pedido               | id               | SELECT         | NO
+ postgres | rol_app_escritura            | foodstore_tpi_oficial | public       | pedido               | usuario_id       | INSERT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | categoria_id     | SELECT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | categoria_nombre | SELECT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | descripcion      | SELECT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | disponible       | SELECT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | precio           | SELECT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | producto_id      | SELECT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | producto_nombre  | SELECT         | NO
+ postgres | rol_app_lectura              | foodstore_tpi_oficial | public       | v_productos_vigentes | stock            | SELECT         | NO
+ postgres | rol_propietario_credenciales | foodstore_tpi_oficial | public       | usuario              | contrasena       | SELECT         | NO
+ postgres | rol_propietario_credenciales | foodstore_tpi_oficial | public       | usuario              | contrasena       | UPDATE         | NO
+ postgres | rol_propietario_credenciales | foodstore_tpi_oficial | public       | usuario              | eliminado        | SELECT         | NO
+ postgres | rol_propietario_credenciales | foodstore_tpi_oficial | public       | usuario              | id               | SELECT         | NO
+ postgres | rol_propietario_credenciales | foodstore_tpi_oficial | public       | usuario              | mail             | SELECT         | NO
+ postgres | rol_propietario_credenciales | foodstore_tpi_oficial | public       | usuario              | rol              | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | cantidad         | INSERT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | eliminado        | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | pedido_id        | INSERT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | pedido_id        | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | precio_unitario  | INSERT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | producto_id      | INSERT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | producto_id      | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | detalle_pedido       | subtotal         | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | pedido               | eliminado        | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | pedido               | id               | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | pedido               | total            | UPDATE         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | pedido               | usuario_id       | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | producto             | disponible       | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | producto             | eliminado        | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | producto             | id               | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | producto             | precio           | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | producto             | stock            | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | producto             | stock            | UPDATE         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | usuario              | celular          | UPDATE         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | usuario              | eliminado        | SELECT         | NO
+ postgres | rol_propietario_ventas       | foodstore_tpi_oficial | public       | usuario              | id               | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_pedidos_resumen    | estado           | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_pedidos_resumen    | fecha            | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_pedidos_resumen    | forma_pago       | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_pedidos_resumen    | pedido_id        | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_pedidos_resumen    | total            | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_pedidos_resumen    | usuario          | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_pedidos_resumen    | usuario_id       | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_usuarios_publico   | apellido         | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_usuarios_publico   | id               | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_usuarios_publico   | mail             | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_usuarios_publico   | nombre           | SELECT         | NO
+ postgres | rol_soporte                  | foodstore_tpi_oficial | public       | v_usuarios_publico   | rol              | SELECT         | NO
+(85 rows)
+
+           grantor            |           grantee            |   specific_catalog    | specific_schema |           specific_name            |    routine_catalog    | routine_schema |         routine_name         | privilege_type | is_grantable 
+------------------------------+------------------------------+-----------------------+-----------------+------------------------------------+-----------------------+----------------+------------------------------+----------------+--------------
+ rol_propietario_credenciales | rol_app_autenticacion        | foodstore_tpi_oficial | public          | fn_autenticar_16616                | foodstore_tpi_oficial | public         | fn_autenticar                | EXECUTE        | NO
+ rol_propietario_ventas       | rol_app_escritura            | foodstore_tpi_oficial | public          | api_registrar_detalle_pedido_16615 | foodstore_tpi_oficial | public         | api_registrar_detalle_pedido | EXECUTE        | NO
+ rol_propietario_credenciales | rol_propietario_credenciales | foodstore_tpi_oficial | public          | fn_autenticar_16616                | foodstore_tpi_oficial | public         | fn_autenticar                | EXECUTE        | YES
+ rol_propietario_credenciales | rol_propietario_credenciales | foodstore_tpi_oficial | public          | fn_resetear_password_16617         | foodstore_tpi_oficial | public         | fn_resetear_password         | EXECUTE        | YES
+ rol_propietario_ventas       | rol_propietario_ventas       | foodstore_tpi_oficial | public          | api_registrar_detalle_pedido_16615 | foodstore_tpi_oficial | public         | api_registrar_detalle_pedido | EXECUTE        | YES
+ postgres                     | rol_propietario_ventas       | foodstore_tpi_oficial | public          | calcular_total_pedido_16494        | foodstore_tpi_oficial | public         | calcular_total_pedido        | EXECUTE        | NO
+ postgres                     | rol_propietario_ventas       | foodstore_tpi_oficial | public          | registrar_detalle_pedido_16505     | foodstore_tpi_oficial | public         | registrar_detalle_pedido     | EXECUTE        | NO
+ rol_propietario_credenciales | rol_soporte                  | foodstore_tpi_oficial | public          | fn_resetear_password_16617         | foodstore_tpi_oficial | public         | fn_resetear_password         | EXECUTE        | NO
+(8 rows)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:130: NOTICE:  RESULT|MATRIZ.efectiva.columnas|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:133: NOTICE:  RESULT|REQ05.usage_efectivo|PASS|esperado=0 observado=0|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:137: NOTICE:  RESULT|SEC09.P.sin_delete_truncate|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ rol_creador | esquema  | tipo |             acl              
+-------------+----------+------+------------------------------
+ admin_datos | (global) | f    | {admin_datos=X/admin_datos}
+ admin_datos | reportes | r    | {rol_reportes=r/admin_datos}
+(2 rows)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:143: NOTICE:  RESULT|SEC11.R.SEC12.R.dos_entradas|PASS|esperado=2 observado=2|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/11_matriz.sql:155: NOTICE:  RESULT|SEC11.R.SEC12.R.EXCEPT|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+

@@ -1,0 +1,15 @@
+ log_statement 
+---------------
+ mod
+(1 row)
+
+ log_min_error_statement 
+-------------------------
+ error
+(1 row)
+
+ password_encryption 
+---------------------
+ scram-sha-256
+(1 row)
+

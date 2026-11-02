@@ -1,0 +1,7 @@
+DROP ROLE
+ roles_scram_restantes 
+-----------------------
+                     0
+(1 row)
+
+DO

@@ -1,0 +1,2 @@
+2026-11-02 19:27:21.411 UTC [264] [unknown] tst_u5_scram@foodstore_tpi_oficial LOG:  00000: connection authenticated: identity="tst_u5_scram" method=scram-sha-256 (/var/lib/postgresql/data/pg_hba.conf:1)
+2026-11-02 19:27:21.564 UTC [271] [unknown] tst_u5_scram@foodstore_tpi_oficial FATAL:  28P01: password authentication failed for user "tst_u5_scram"

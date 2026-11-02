@@ -1,0 +1,8 @@
+{
+  "M04_catalogo": "PASS",
+  "M04": "PASS: terminación real y ROLLBACK de control distintos; catálogo/ACL/owners intactos",
+  "M05": "PASS: 207 RESULT, mismos casos/veredictos/detalles y multiplicidades",
+  "SEC04": "aceptación provisional — pendiente de aceptación formal del equipo",
+  "SCRAM_cliente": "PASS",
+  "SCRAM": "PASS: require_auth=scram-sha-256, válida y 28P01 incorrecta; cero fugas exactas"
+}

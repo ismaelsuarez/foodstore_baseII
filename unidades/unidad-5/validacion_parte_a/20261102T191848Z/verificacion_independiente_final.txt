@@ -1,0 +1,25 @@
+20261102T185421Z: manifiestos antes/después/actual iguales=True
+20261102T190345Z: manifiestos antes/después/actual iguales=True
+Fuentes SQL preservadas=True
+m04: container_absent=True; e360c44e58914e64b30b08e3a7d65103619fdaf338e794cb9f1fb6413f65369f: absent=True
+m05: container_absent=True; cafdb64f3f7fd985c4a5ce630433c726c93139de1370270874324e4b8041bea0: absent=True
+M04: ningún statement ROLLBACK en log del PID terminado; FATAL 57P01 observado
+RESULT independiente: {"PASS": 207}
+05_tpi_baseline.txt: 30 NOTICE PASS; inventario 12 filas
+30_tpi_after.txt: 30 NOTICE PASS; inventario 12 filas
+git grep -nE -I de rastreados: exit=1 (1=sin coincidencias); lectura final, no ejecución SQL
+git diff --check: exit=0
+
+git status --short: exit=0
+ M unidades/unidad-5/specs/design.md
+ M unidades/unidad-5/specs/requirements.md
+?? odd/
+?? unidades/unidad-5/sql/
+?? unidades/unidad-5/validacion_parte_a/
+
+docker ps -a --no-trunc: exit=0
+CONTAINER ID                                                       IMAGE         COMMAND                           CREATED       STATUS                   PORTS      NAMES
+cc42c26435ef3977321f09cc5709fa436131624b2b467a02d6296654e1cc0644   postgres:17   "docker-entrypoint.sh postgres"   3 days ago    Up 3 hours (healthy)     5432/tcp   tpi_ssd-db-1
+f662904e351120e0ac0aa130cf3737b68d24392a51c4b173f18476144d0ab4c1   postgres:16   "docker-entrypoint.sh postgres"   6 days ago    Exited (0) 5 days ago               taller-db-1
+bdba2c8de384199e72ffb1bcfc158fc3a55eb5018bd7fddb037fe2400b18576c   postgres:17   "docker-entrypoint.sh postgres"   2 weeks ago   Exited (0) 2 weeks ago              libreria-pg
+

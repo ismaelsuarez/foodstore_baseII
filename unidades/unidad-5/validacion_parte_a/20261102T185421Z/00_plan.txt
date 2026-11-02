@@ -1,0 +1,8 @@
+PASS rama/nombre/imagen/herramientas/fuentes/scan.
+Destino exclusivo: foodstore_tpi_oficial; u5_base_objetivo explícita en todas las llamadas U5.
+Autenticación: socket local trust, host SCRAM; conexiones reales por socket en 50/51/M06.
+Red none; cero puertos; repo solo lectura; sin pull.
+Servidor: mod, ambos límites de parámetros 0, archivo 0600, SCRAM; collector on; conexiones y desconexiones on.
+M02: copia restringida dentro del contenedor, grep exacto antes de docker cp; solo copia limpia al repositorio; segundo grep sobre copia host.
+Credenciales solo en memoria/entorno; sin impresión ni variables -v de contraseña.
+M04 interrupción y M05 segunda instalación no se improvisan: requieren otra corrida limpia.

@@ -1,0 +1,1 @@
+600 postgres postgres /var/lib/postgresql/data/log/u5-server.log

@@ -1,0 +1,28 @@
+                                             pg_get_viewdef                                             
+--------------------------------------------------------------------------------------------------------
+  SELECT c.id AS categoria_id,                                                                         +
+     c.nombre AS categoria_nombre,                                                                     +
+     (date_trunc('month'::text, (ped.fecha)::timestamp with time zone))::date AS mes,                  +
+     count(DISTINCT ped.id) AS cantidad_pedidos,                                                       +
+     sum(dp.cantidad) AS unidades_vendidas,                                                            +
+     sum(dp.subtotal) AS facturacion_total                                                             +
+    FROM (((categoria c                                                                                +
+      JOIN producto pr ON ((pr.categoria_id = c.id)))                                                  +
+      JOIN detalle_pedido dp ON ((dp.producto_id = pr.id)))                                            +
+      JOIN pedido ped ON ((ped.id = dp.pedido_id)))                                                    +
+   WHERE ((dp.eliminado = false) AND (ped.eliminado = false))                                          +
+   GROUP BY c.id, c.nombre, ((date_trunc('month'::text, (ped.fecha)::timestamp with time zone))::date);
+(1 row)
+
+ categoria_id | categoria_nombre |    mes     | cantidad_pedidos | unidades_vendidas | facturacion_total 
+--------------+------------------+------------+------------------+-------------------+-------------------
+            1 | Pizzas           | 2026-03-01 |                5 |                 9 |          10700.00
+            2 | Bebidas          | 2026-03-01 |                2 |                 5 |           4000.00
+(2 rows)
+
+ nombre  | usuarios_del_grupo 
+---------+--------------------
+ Pizzas  |                  3
+ Bebidas |                  2
+(2 rows)
+

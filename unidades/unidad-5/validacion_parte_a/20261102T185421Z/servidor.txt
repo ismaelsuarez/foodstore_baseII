@@ -1,0 +1,382 @@
+2026-11-02 18:57:52.977 UTC [53] LOG:  starting PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-02 18:57:52.979 UTC [53] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-02 18:57:52.986 UTC [57] LOG:  database system was shut down at 2026-11-02 18:57:52 UTC
+2026-11-02 18:57:52.993 UTC [53] LOG:  database system is ready to accept connections
+2026-11-02 18:57:53.098 UTC [63] LOG:  connection received: host=[local]
+2026-11-02 18:57:53.098 UTC [63] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:53.098 UTC [63] LOG:  connection authorized: user=postgres database=postgres application_name=psql
+2026-11-02 18:57:53.106 UTC [63] LOG:  disconnection: session time: 0:00:00.008 user=postgres database=postgres host=[local]
+2026-11-02 18:57:53.164 UTC [65] LOG:  connection received: host=[local]
+2026-11-02 18:57:53.164 UTC [65] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:53.164 UTC [65] LOG:  connection authorized: user=postgres database=postgres application_name=psql
+2026-11-02 18:57:53.165 UTC [65] LOG:  statement: CREATE DATABASE "foodstore_tpi_oficial" ;
+2026-11-02 18:57:53.223 UTC [65] LOG:  disconnection: session time: 0:00:00.059 user=postgres database=postgres host=[local]
+2026-11-02 18:57:53.226 UTC [53] LOG:  received fast shutdown request
+2026-11-02 18:57:53.227 UTC [53] LOG:  aborting any active transactions
+2026-11-02 18:57:53.230 UTC [53] LOG:  background worker "logical replication launcher" (PID 60) exited with exit code 1
+2026-11-02 18:57:53.231 UTC [55] LOG:  shutting down
+2026-11-02 18:57:53.232 UTC [55] LOG:  checkpoint starting: shutdown immediate
+2026-11-02 18:57:53.282 UTC [55] LOG:  checkpoint complete: wrote 925 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.018 s, sync=0.025 s, total=0.052 s; sync files=301, longest=0.003 s, average=0.001 s; distance=4256 kB, estimate=4256 kB; lsn=0/19179B8, redo lsn=0/19179B8
+2026-11-02 18:57:53.288 UTC [53] LOG:  database system is shut down
+2026-11-02 18:57:53.363 UTC [1] LOG:  starting PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-02 18:57:53.363 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-11-02 18:57:53.363 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-11-02 18:57:53.367 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-02 18:57:53.372 UTC [71] LOG:  database system was shut down at 2026-11-02 18:57:53 UTC
+2026-11-02 18:57:53.379 UTC [1] LOG:  database system is ready to accept connections
+2026-11-02 18:57:53.519 UTC [82] LOG:  connection received: host=[local]
+2026-11-02 18:57:53.520 UTC [82] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:53.520 UTC [82] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:57:53.523 UTC [82] LOG:  disconnection: session time: 0:00:00.004 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:57:54.704 UTC [96] LOG:  connection received: host=[local]
+2026-11-02 18:57:54.704 UTC [96] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:54.704 UTC [96] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:57:54.705 UTC [96] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:57:55.903 UTC [110] LOG:  connection received: host=[local]
+2026-11-02 18:57:55.904 UTC [110] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:55.904 UTC [110] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:57:55.905 UTC [110] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:57:57.123 UTC [124] LOG:  connection received: host=[local]
+2026-11-02 18:57:57.124 UTC [124] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:57.124 UTC [124] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:57:57.125 UTC [124] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:57:58.275 UTC [138] LOG:  connection received: host=[local]
+2026-11-02 18:57:58.275 UTC [138] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:58.276 UTC [138] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:57:58.276 UTC [138] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:57:59.440 UTC [152] LOG:  connection received: host=[local]
+2026-11-02 18:57:59.440 UTC [152] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:57:59.440 UTC [152] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:57:59.441 UTC [152] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:00.640 UTC [166] LOG:  connection received: host=[local]
+2026-11-02 18:58:00.640 UTC [166] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:00.640 UTC [166] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:00.641 UTC [166] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:01.838 UTC [180] LOG:  connection received: host=[local]
+2026-11-02 18:58:01.839 UTC [180] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:01.839 UTC [180] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:01.840 UTC [180] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:03.009 UTC [195] LOG:  connection received: host=[local]
+2026-11-02 18:58:03.009 UTC [195] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:03.010 UTC [195] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:03.010 UTC [195] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:04.217 UTC [209] LOG:  connection received: host=[local]
+2026-11-02 18:58:04.217 UTC [209] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:04.217 UTC [209] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:04.218 UTC [209] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:05.386 UTC [223] LOG:  connection received: host=[local]
+2026-11-02 18:58:05.387 UTC [223] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:05.387 UTC [223] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:05.388 UTC [223] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:06.596 UTC [237] LOG:  connection received: host=[local]
+2026-11-02 18:58:06.596 UTC [237] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:06.597 UTC [237] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:06.597 UTC [237] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:07.803 UTC [251] LOG:  connection received: host=[local]
+2026-11-02 18:58:07.804 UTC [251] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:07.804 UTC [251] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:07.805 UTC [251] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:08.987 UTC [265] LOG:  connection received: host=[local]
+2026-11-02 18:58:08.987 UTC [265] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:08.987 UTC [265] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:08.988 UTC [265] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:10.173 UTC [279] LOG:  connection received: host=[local]
+2026-11-02 18:58:10.174 UTC [279] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:10.174 UTC [279] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:10.175 UTC [279] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:11.349 UTC [293] LOG:  connection received: host=[local]
+2026-11-02 18:58:11.350 UTC [293] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:11.350 UTC [293] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:11.351 UTC [293] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:12.544 UTC [307] LOG:  connection received: host=[local]
+2026-11-02 18:58:12.545 UTC [307] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:12.545 UTC [307] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:12.546 UTC [307] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:13.793 UTC [321] LOG:  connection received: host=[local]
+2026-11-02 18:58:13.794 UTC [321] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:13.794 UTC [321] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:13.795 UTC [321] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:15.008 UTC [335] LOG:  connection received: host=[local]
+2026-11-02 18:58:15.009 UTC [335] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:15.009 UTC [335] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:15.010 UTC [335] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:16.241 UTC [349] LOG:  connection received: host=[local]
+2026-11-02 18:58:16.242 UTC [349] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:16.242 UTC [349] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:16.242 UTC [349] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:17.428 UTC [363] LOG:  connection received: host=[local]
+2026-11-02 18:58:17.429 UTC [363] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:17.429 UTC [363] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:17.430 UTC [363] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:18.609 UTC [377] LOG:  connection received: host=[local]
+2026-11-02 18:58:18.609 UTC [377] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:18.609 UTC [377] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:18.610 UTC [377] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:19.821 UTC [391] LOG:  connection received: host=[local]
+2026-11-02 18:58:19.821 UTC [391] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:19.821 UTC [391] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:19.822 UTC [391] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:21.031 UTC [405] LOG:  connection received: host=[local]
+2026-11-02 18:58:21.032 UTC [405] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:21.032 UTC [405] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:21.033 UTC [405] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:22.239 UTC [419] LOG:  connection received: host=[local]
+2026-11-02 18:58:22.239 UTC [419] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:22.239 UTC [419] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:22.240 UTC [419] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:23.448 UTC [434] LOG:  connection received: host=[local]
+2026-11-02 18:58:23.449 UTC [434] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:23.449 UTC [434] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:23.450 UTC [434] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:24.673 UTC [448] LOG:  connection received: host=[local]
+2026-11-02 18:58:24.673 UTC [448] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:24.673 UTC [448] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:24.674 UTC [448] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:25.858 UTC [462] LOG:  connection received: host=[local]
+2026-11-02 18:58:25.859 UTC [462] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:25.859 UTC [462] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:25.860 UTC [462] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:27.039 UTC [476] LOG:  connection received: host=[local]
+2026-11-02 18:58:27.040 UTC [476] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:27.040 UTC [476] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:27.041 UTC [476] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:28.243 UTC [490] LOG:  connection received: host=[local]
+2026-11-02 18:58:28.244 UTC [490] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:28.244 UTC [490] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:28.245 UTC [490] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:29.446 UTC [504] LOG:  connection received: host=[local]
+2026-11-02 18:58:29.446 UTC [504] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:29.446 UTC [504] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:29.447 UTC [504] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:30.650 UTC [518] LOG:  connection received: host=[local]
+2026-11-02 18:58:30.651 UTC [518] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:30.651 UTC [518] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:30.652 UTC [518] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:31.855 UTC [532] LOG:  connection received: host=[local]
+2026-11-02 18:58:31.856 UTC [532] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:31.856 UTC [532] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:31.856 UTC [532] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:33.038 UTC [546] LOG:  connection received: host=[local]
+2026-11-02 18:58:33.038 UTC [546] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:33.038 UTC [546] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:33.039 UTC [546] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:34.213 UTC [560] LOG:  connection received: host=[local]
+2026-11-02 18:58:34.214 UTC [560] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:34.214 UTC [560] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:34.215 UTC [560] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:35.389 UTC [575] LOG:  connection received: host=[local]
+2026-11-02 18:58:35.390 UTC [575] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:35.390 UTC [575] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:35.390 UTC [575] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:36.594 UTC [589] LOG:  connection received: host=[local]
+2026-11-02 18:58:36.595 UTC [589] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:36.595 UTC [589] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:36.597 UTC [589] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:37.828 UTC [603] LOG:  connection received: host=[local]
+2026-11-02 18:58:37.829 UTC [603] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:37.829 UTC [603] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:37.830 UTC [603] LOG:  disconnection: session time: 0:00:00.003 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:39.049 UTC [617] LOG:  connection received: host=[local]
+2026-11-02 18:58:39.050 UTC [617] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:39.050 UTC [617] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:39.050 UTC [617] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:40.247 UTC [631] LOG:  connection received: host=[local]
+2026-11-02 18:58:40.247 UTC [631] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:40.247 UTC [631] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:40.248 UTC [631] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:41.467 UTC [645] LOG:  connection received: host=[local]
+2026-11-02 18:58:41.468 UTC [645] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:41.468 UTC [645] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:41.469 UTC [645] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:42.682 UTC [659] LOG:  connection received: host=[local]
+2026-11-02 18:58:42.683 UTC [659] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:42.683 UTC [659] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:42.683 UTC [659] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:43.856 UTC [674] LOG:  connection received: host=[local]
+2026-11-02 18:58:43.857 UTC [674] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:43.857 UTC [674] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:43.859 UTC [674] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:45.050 UTC [688] LOG:  connection received: host=[local]
+2026-11-02 18:58:45.050 UTC [688] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:45.050 UTC [688] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:45.051 UTC [688] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:46.262 UTC [702] LOG:  connection received: host=[local]
+2026-11-02 18:58:46.263 UTC [702] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:46.263 UTC [702] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:46.264 UTC [702] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:47.450 UTC [716] LOG:  connection received: host=[local]
+2026-11-02 18:58:47.451 UTC [716] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:47.451 UTC [716] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:47.452 UTC [716] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:48.701 UTC [730] LOG:  connection received: host=[local]
+2026-11-02 18:58:48.702 UTC [730] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:48.702 UTC [730] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:48.704 UTC [730] LOG:  disconnection: session time: 0:00:00.004 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:49.927 UTC [744] LOG:  connection received: host=[local]
+2026-11-02 18:58:49.928 UTC [744] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:49.928 UTC [744] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:49.928 UTC [744] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:51.136 UTC [758] LOG:  connection received: host=[local]
+2026-11-02 18:58:51.137 UTC [758] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:51.137 UTC [758] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:51.138 UTC [758] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:52.353 UTC [772] LOG:  connection received: host=[local]
+2026-11-02 18:58:52.354 UTC [772] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:52.354 UTC [772] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:52.355 UTC [772] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:53.598 UTC [786] LOG:  connection received: host=[local]
+2026-11-02 18:58:53.599 UTC [786] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:53.599 UTC [786] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:53.600 UTC [786] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:54.767 UTC [800] LOG:  connection received: host=[local]
+2026-11-02 18:58:54.767 UTC [800] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:54.767 UTC [800] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:54.768 UTC [800] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:55.954 UTC [814] LOG:  connection received: host=[local]
+2026-11-02 18:58:55.954 UTC [814] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:55.954 UTC [814] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:55.955 UTC [814] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:57.154 UTC [828] LOG:  connection received: host=[local]
+2026-11-02 18:58:57.154 UTC [828] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:57.154 UTC [828] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:57.155 UTC [828] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:58.323 UTC [842] LOG:  connection received: host=[local]
+2026-11-02 18:58:58.324 UTC [842] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:58.324 UTC [842] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:58.325 UTC [842] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:58:59.522 UTC [856] LOG:  connection received: host=[local]
+2026-11-02 18:58:59.522 UTC [856] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:58:59.522 UTC [856] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:58:59.524 UTC [856] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:00.725 UTC [870] LOG:  connection received: host=[local]
+2026-11-02 18:59:00.726 UTC [870] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:00.726 UTC [870] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:00.727 UTC [870] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:01.911 UTC [884] LOG:  connection received: host=[local]
+2026-11-02 18:59:01.911 UTC [884] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:01.911 UTC [884] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:01.912 UTC [884] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:03.098 UTC [898] LOG:  connection received: host=[local]
+2026-11-02 18:59:03.099 UTC [898] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:03.099 UTC [898] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:03.100 UTC [898] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:04.312 UTC [913] LOG:  connection received: host=[local]
+2026-11-02 18:59:04.312 UTC [913] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:04.312 UTC [913] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:04.313 UTC [913] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:05.504 UTC [927] LOG:  connection received: host=[local]
+2026-11-02 18:59:05.505 UTC [927] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:05.505 UTC [927] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:05.506 UTC [927] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:06.709 UTC [941] LOG:  connection received: host=[local]
+2026-11-02 18:59:06.710 UTC [941] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:06.710 UTC [941] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:06.711 UTC [941] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:07.888 UTC [955] LOG:  connection received: host=[local]
+2026-11-02 18:59:07.889 UTC [955] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:07.889 UTC [955] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:07.889 UTC [955] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:09.095 UTC [969] LOG:  connection received: host=[local]
+2026-11-02 18:59:09.095 UTC [969] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:09.095 UTC [969] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:09.096 UTC [969] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:10.308 UTC [983] LOG:  connection received: host=[local]
+2026-11-02 18:59:10.308 UTC [983] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:10.308 UTC [983] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:10.309 UTC [983] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:11.500 UTC [997] LOG:  connection received: host=[local]
+2026-11-02 18:59:11.501 UTC [997] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:11.501 UTC [997] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:11.501 UTC [997] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:12.670 UTC [1011] LOG:  connection received: host=[local]
+2026-11-02 18:59:12.671 UTC [1011] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:12.671 UTC [1011] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:12.672 UTC [1011] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:13.873 UTC [1025] LOG:  connection received: host=[local]
+2026-11-02 18:59:13.874 UTC [1025] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:13.874 UTC [1025] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:13.874 UTC [1025] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:15.044 UTC [1039] LOG:  connection received: host=[local]
+2026-11-02 18:59:15.044 UTC [1039] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:15.044 UTC [1039] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:15.045 UTC [1039] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:16.247 UTC [1053] LOG:  connection received: host=[local]
+2026-11-02 18:59:16.248 UTC [1053] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:16.248 UTC [1053] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:16.248 UTC [1053] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:17.446 UTC [1067] LOG:  connection received: host=[local]
+2026-11-02 18:59:17.447 UTC [1067] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:17.447 UTC [1067] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:17.448 UTC [1067] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:18.632 UTC [1081] LOG:  connection received: host=[local]
+2026-11-02 18:59:18.632 UTC [1081] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:18.632 UTC [1081] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:18.633 UTC [1081] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:19.818 UTC [1095] LOG:  connection received: host=[local]
+2026-11-02 18:59:19.819 UTC [1095] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:19.819 UTC [1095] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:19.820 UTC [1095] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:20.996 UTC [1109] LOG:  connection received: host=[local]
+2026-11-02 18:59:20.996 UTC [1109] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:20.996 UTC [1109] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:20.997 UTC [1109] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:22.201 UTC [1124] LOG:  connection received: host=[local]
+2026-11-02 18:59:22.202 UTC [1124] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:22.202 UTC [1124] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:22.203 UTC [1124] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:23.372 UTC [1138] LOG:  connection received: host=[local]
+2026-11-02 18:59:23.373 UTC [1138] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:23.373 UTC [1138] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:23.374 UTC [1138] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:24.551 UTC [1153] LOG:  connection received: host=[local]
+2026-11-02 18:59:24.552 UTC [1153] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:24.552 UTC [1153] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:24.553 UTC [1153] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:25.757 UTC [1167] LOG:  connection received: host=[local]
+2026-11-02 18:59:25.758 UTC [1167] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:25.758 UTC [1167] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:25.759 UTC [1167] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:26.997 UTC [1181] LOG:  connection received: host=[local]
+2026-11-02 18:59:26.998 UTC [1181] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:26.998 UTC [1181] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:26.999 UTC [1181] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:28.197 UTC [1195] LOG:  connection received: host=[local]
+2026-11-02 18:59:28.198 UTC [1195] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:28.198 UTC [1195] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:28.199 UTC [1195] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:29.411 UTC [1208] LOG:  connection received: host=[local]
+2026-11-02 18:59:29.412 UTC [1208] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:29.412 UTC [1208] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:29.413 UTC [1208] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:30.627 UTC [1222] LOG:  connection received: host=[local]
+2026-11-02 18:59:30.628 UTC [1222] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:30.628 UTC [1222] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:30.630 UTC [1222] LOG:  disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:31.817 UTC [1236] LOG:  connection received: host=[local]
+2026-11-02 18:59:31.817 UTC [1236] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:31.817 UTC [1236] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:31.818 UTC [1236] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:32.987 UTC [1250] LOG:  connection received: host=[local]
+2026-11-02 18:59:32.988 UTC [1250] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:32.988 UTC [1250] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:32.988 UTC [1250] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:34.198 UTC [1264] LOG:  connection received: host=[local]
+2026-11-02 18:59:34.199 UTC [1264] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:34.199 UTC [1264] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:34.200 UTC [1264] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:35.374 UTC [1278] LOG:  connection received: host=[local]
+2026-11-02 18:59:35.374 UTC [1278] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:35.374 UTC [1278] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:35.375 UTC [1278] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:36.577 UTC [1292] LOG:  connection received: host=[local]
+2026-11-02 18:59:36.577 UTC [1292] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:36.577 UTC [1292] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:36.578 UTC [1292] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:37.775 UTC [1306] LOG:  connection received: host=[local]
+2026-11-02 18:59:37.776 UTC [1306] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:37.776 UTC [1306] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:37.777 UTC [1306] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 18:59:38.961 UTC [1320] LOG:  connection received: host=[local]
+2026-11-02 18:59:38.962 UTC [1320] LOG:  connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 18:59:38.962 UTC [1320] LOG:  connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 18:59:38.963 UTC [1320] LOG:  disconnection: session time: 0:00:00.001 user=postgres database=foodstore_tpi_oficial host=[local]

@@ -1,0 +1,70 @@
+Intento anterior íntegro: True
+Inventario Docker antes/después idéntico: True
+Fuentes SQL antes/después idénticas: True
+TPI salida anterior/posterior idéntica: True
+HAVING salida anterior/posterior idéntica: True
+05_tpi_baseline.txt: NOTICE PASS=30; grupos/variantes según contrato ejecutado=29/37; inventario=12 filas; limpieza indicada en raw
+30_tpi_after.txt: NOTICE PASS=30; grupos/variantes según contrato ejecutado=29/37; inventario=12 filas; limpieza indicada en raw
+RESULT conteo independiente: {"PASS": 207}
+Pasos SQL de sesión: 0 significa completado bajo ON_ERROR_STOP, no proceso separado; control_session_exit=0.
+00_root: exit=0
+00_branch: exit=0
+00_git_status_before: exit=0
+00_docker_version: exit=0
+00_docker_ps_before: exit=0
+00_container_names: exit=0
+00_image_id: exit=0
+00_openssl_version: exit=0
+01_container_create: exit=0
+01_container_isolation: exit=0
+01_probe_00_running: exit=0
+01_probe_00_init_log: exit=0
+01_probe_01_running: exit=0
+01_probe_01_init_log: exit=0
+01_probe_01_pg_isready: exit=0
+01_ready_sql: exit=0
+01_postgres_version: exit=0
+01_psql_version: exit=0
+01_instance_settings: exit=0
+02_schema: exit=0
+03_seed: exit=0
+04_objetos: exit=0
+05_tpi_baseline: exit=0
+06_having_baseline: exit=0
+07_u3_views: exit=0
+08_u3_materializada: exit=0
+09_pgcrypto: exit=0
+10_precondiciones: exit=0
+11_f0: exit=0
+12_roles: exit=0
+13_funciones: exit=0
+14_f1: exit=0
+15_catalogo: exit=0
+16_matriz: exit=0
+17_matriz_efectiva: exit=0
+18_reservar_ids: exit=0
+19_permisos: exit=0
+20_equivalencia: exit=0
+21_credenciales: exit=0
+22_preparar_logins: exit=0
+23_login_reportes: exit=0
+24_login_soporte: exit=0
+25_nologin: exit=2
+26_nologin_catalogo: exit=0
+27_limpiar_logins: exit=0
+28_cierre: exit=0
+29_huella_final: exit=0
+29_analitica: exit=0
+30_tpi_after: exit=0
+31_having_after: exit=0
+32_final_inventory: exit=0
+40_log_permissions: exit=0
+41_log_snapshot: exit=0
+42_m02_container_scan: exit=1
+43_docker_cp_log: exit=0
+45_log_coverage: exit=0
+48_created_volumes: exit=0
+49_destroy_only_created: exit=0
+50_docker_ps_after: exit=0
+51_container_names_after: exit=0
+52_volumes_after: exit=0

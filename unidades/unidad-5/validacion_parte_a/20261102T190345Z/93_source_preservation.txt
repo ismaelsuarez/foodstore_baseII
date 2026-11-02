@@ -1,0 +1,1 @@
+PASS: todas las fuentes SQL idénticas byte a byte

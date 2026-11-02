@@ -1,0 +1,157 @@
+    clase    |                       clave                       |                                                                                                                 valor                                                                                                                 
+-------------+---------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ base        | foodstore_tpi_oficial                             | postgres
+ columna     | categoria.created_at                              | 5|timestamp with time zone|true|||now()
+ columna     | categoria.descripcion                             | 3|character varying(255)|false|||
+ columna     | categoria.eliminado                               | 4|boolean|true|||false
+ columna     | categoria.id                                      | 1|bigint|true|a||
+ columna     | categoria.nombre                                  | 2|character varying(100)|true|||
+ columna     | detalle_pedido.cantidad                           | 2|integer|true|||
+ columna     | detalle_pedido.created_at                         | 8|timestamp with time zone|true|||now()
+ columna     | detalle_pedido.eliminado                          | 7|boolean|true|||false
+ columna     | detalle_pedido.id                                 | 1|bigint|true|a||
+ columna     | detalle_pedido.pedido_id                          | 5|bigint|true|||
+ columna     | detalle_pedido.precio_unitario                    | 3|numeric(12,2)|true|||
+ columna     | detalle_pedido.producto_id                        | 6|bigint|true|||
+ columna     | detalle_pedido.subtotal                           | 4|numeric(12,2)|true|||
+ columna     | pedido.created_at                                 | 8|timestamp with time zone|true|||now()
+ columna     | pedido.eliminado                                  | 7|boolean|true|||false
+ columna     | pedido.estado                                     | 3|estado_pedido|true|||'PENDIENTE'::estado_pedido
+ columna     | pedido.fecha                                      | 2|date|true|||CURRENT_DATE
+ columna     | pedido.forma_pago                                 | 5|forma_pago|true|||
+ columna     | pedido.id                                         | 1|bigint|true|a||
+ columna     | pedido.total                                      | 4|numeric(12,2)|true|||0
+ columna     | pedido.usuario_id                                 | 6|bigint|true|||
+ columna     | producto.categoria_id                             | 8|bigint|true|||
+ columna     | producto.created_at                               | 10|timestamp with time zone|true|||now()
+ columna     | producto.descripcion                              | 4|character varying(255)|false|||
+ columna     | producto.disponible                               | 7|boolean|true|||true
+ columna     | producto.eliminado                                | 9|boolean|true|||false
+ columna     | producto.id                                       | 1|bigint|true|a||
+ columna     | producto.imagen                                   | 6|character varying(255)|false|||
+ columna     | producto.nombre                                   | 2|character varying(120)|true|||
+ columna     | producto.precio                                   | 3|numeric(12,2)|true|||
+ columna     | producto.stock                                    | 5|integer|true|||0
+ columna     | usuario.apellido                                  | 3|character varying(80)|true|||
+ columna     | usuario.celular                                   | 5|character varying(30)|false|||
+ columna     | usuario.contrasena                                | 6|character varying(255)|true|||
+ columna     | usuario.created_at                                | 9|timestamp with time zone|true|||now()
+ columna     | usuario.eliminado                                 | 8|boolean|true|||false
+ columna     | usuario.id                                        | 1|bigint|true|a||
+ columna     | usuario.mail                                      | 4|character varying(120)|true|||
+ columna     | usuario.nombre                                    | 2|character varying(80)|true|||
+ columna     | usuario.rol                                       | 7|rol|true|||'USUARIO'::rol
+ esquema     | public                                            | pg_database_owner
+ indice      | categoria_nombre_key                              | CREATE UNIQUE INDEX categoria_nombre_key ON public.categoria USING btree (nombre)
+ indice      | categoria_pkey                                    | CREATE UNIQUE INDEX categoria_pkey ON public.categoria USING btree (id)
+ indice      | detalle_pedido_pkey                               | CREATE UNIQUE INDEX detalle_pedido_pkey ON public.detalle_pedido USING btree (id)
+ indice      | idx_pedido_usuario                                | CREATE INDEX idx_pedido_usuario ON public.pedido USING btree (usuario_id)
+ indice      | idx_producto_categoria                            | CREATE INDEX idx_producto_categoria ON public.producto USING btree (categoria_id)
+ indice      | idx_producto_nombre_vig                           | CREATE INDEX idx_producto_nombre_vig ON public.producto USING btree (nombre) WHERE (eliminado = false)
+ indice      | pedido_pkey                                       | CREATE UNIQUE INDEX pedido_pkey ON public.pedido USING btree (id)
+ indice      | producto_pkey                                     | CREATE UNIQUE INDEX producto_pkey ON public.producto USING btree (id)
+ indice      | uq_detalle_pedido_pedido_producto                 | CREATE UNIQUE INDEX uq_detalle_pedido_pedido_producto ON public.detalle_pedido USING btree (pedido_id, producto_id)
+ indice      | usuario_mail_key                                  | CREATE UNIQUE INDEX usuario_mail_key ON public.usuario USING btree (mail)
+ indice      | usuario_pkey                                      | CREATE UNIQUE INDEX usuario_pkey ON public.usuario USING btree (id)
+ restriccion | categoria.categoria_nombre_key                    | UNIQUE (nombre)|true
+ restriccion | categoria.categoria_pkey                          | PRIMARY KEY (id)|true
+ restriccion | detalle_pedido.chk_detalle_pedido_cantidad        | CHECK ((cantidad > 0))|true
+ restriccion | detalle_pedido.chk_detalle_pedido_precio_unitario | CHECK ((precio_unitario >= (0)::numeric))|true
+ restriccion | detalle_pedido.chk_detalle_pedido_subtotal        | CHECK ((subtotal >= (0)::numeric))|true
+ restriccion | detalle_pedido.detalle_pedido_pkey                | PRIMARY KEY (id)|true
+ restriccion | detalle_pedido.fk_detalle_pedido_pedido           | FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE RESTRICT|true
+ restriccion | detalle_pedido.fk_detalle_pedido_producto         | FOREIGN KEY (producto_id) REFERENCES producto(id) ON DELETE RESTRICT|true
+ restriccion | detalle_pedido.uq_detalle_pedido_pedido_producto  | UNIQUE (pedido_id, producto_id)|true
+ restriccion | pedido.chk_pedido_total                           | CHECK ((total >= (0)::numeric))|true
+ restriccion | pedido.fk_pedido_usuario                          | FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE RESTRICT|true
+ restriccion | pedido.pedido_pkey                                | PRIMARY KEY (id)|true
+ restriccion | producto.chk_producto_precio                      | CHECK ((precio >= (0)::numeric))|true
+ restriccion | producto.chk_producto_stock                       | CHECK ((stock >= 0))|true
+ restriccion | producto.fk_producto_categoria                    | FOREIGN KEY (categoria_id) REFERENCES categoria(id) ON DELETE RESTRICT|true
+ restriccion | producto.producto_pkey                            | PRIMARY KEY (id)|true
+ restriccion | usuario.usuario_mail_key                          | UNIQUE (mail)|true
+ restriccion | usuario.usuario_pkey                              | PRIMARY KEY (id)|true
+ rutina      | calcular_total_pedido(bigint)                     | postgres|false|NULL|f502e051ef35a751fbbd772d1cf8b18f
+ rutina      | fn_recalcular_total_delete()                      | postgres|false|NULL|29a16f5a59f3c428306e358fa26805b5
+ rutina      | fn_recalcular_total_insert()                      | postgres|false|NULL|ec1e4b9df6fb05f5707f107abd778189
+ rutina      | fn_recalcular_total_update()                      | postgres|false|NULL|1390624a76f818292300d1ec6094492e
+ rutina      | fn_set_subtotal()                                 | postgres|false|NULL|e979d027fdaff01f6742b781ae7b8e38
+ rutina      | fn_validar_detalle_vigente()                      | postgres|false|NULL|a825b1201cbc2a35c7488101e0030aa9
+ rutina      | registrar_detalle_pedido(bigint,bigint,integer)   | postgres|false|NULL|cb7de68dfec389f021818cf9d8a60616
+ rutina_acl  | calcular_total_pedido(bigint)                     | {postgres=X/postgres,rol_propietario_ventas=X/postgres}
+ rutina_acl  | fn_recalcular_total_delete()                      | {postgres=X/postgres}
+ rutina_acl  | fn_recalcular_total_insert()                      | {postgres=X/postgres}
+ rutina_acl  | fn_recalcular_total_update()                      | {postgres=X/postgres}
+ rutina_acl  | fn_set_subtotal()                                 | {postgres=X/postgres}
+ rutina_acl  | fn_validar_detalle_vigente()                      | {postgres=X/postgres}
+ rutina_acl  | registrar_detalle_pedido(bigint,bigint,integer)   | {postgres=X/postgres,rol_propietario_ventas=X/postgres}
+ secuencia   | categoria_id_seq                                  | postgres|NULL
+ secuencia   | detalle_pedido_id_seq                             | postgres|NULL
+ secuencia   | pedido_id_seq                                     | postgres|NULL
+ secuencia   | producto_id_seq                                   | postgres|NULL
+ secuencia   | usuario_id_seq                                    | postgres|NULL
+ tabla       | categoria                                         | r|postgres
+ tabla       | detalle_pedido                                    | r|postgres
+ tabla       | pedido                                            | r|postgres
+ tabla       | producto                                          | r|postgres
+ tabla       | usuario                                           | r|postgres
+ tipo        | estado_pedido                                     | postgres|PENDIENTE,CONFIRMADO,TERMINADO,CANCELADO
+ tipo        | forma_pago                                        | postgres|EFECTIVO,TARJETA,TRANSFERENCIA
+ tipo        | rol                                               | postgres|ADMIN,USUARIO
+ trigger     | detalle_pedido.trg_detalle_vigente                | fn_validar_detalle_vigente()|O|CREATE TRIGGER trg_detalle_vigente BEFORE INSERT OR UPDATE OF pedido_id, producto_id ON public.detalle_pedido FOR EACH ROW EXECUTE FUNCTION fn_validar_detalle_vigente()
+ trigger     | detalle_pedido.trg_subtotal                       | fn_set_subtotal()|O|CREATE TRIGGER trg_subtotal BEFORE INSERT OR UPDATE OF cantidad, precio_unitario, producto_id, subtotal ON public.detalle_pedido FOR EACH ROW EXECUTE FUNCTION fn_set_subtotal()
+ trigger     | detalle_pedido.trg_total_detalle_delete           | fn_recalcular_total_delete()|O|CREATE TRIGGER trg_total_detalle_delete AFTER DELETE ON public.detalle_pedido REFERENCING OLD TABLE AS anteriores FOR EACH STATEMENT EXECUTE FUNCTION fn_recalcular_total_delete()
+ trigger     | detalle_pedido.trg_total_detalle_insert           | fn_recalcular_total_insert()|O|CREATE TRIGGER trg_total_detalle_insert AFTER INSERT ON public.detalle_pedido REFERENCING NEW TABLE AS nuevos FOR EACH STATEMENT EXECUTE FUNCTION fn_recalcular_total_insert()
+ trigger     | detalle_pedido.trg_total_detalle_update           | fn_recalcular_total_update()|O|CREATE TRIGGER trg_total_detalle_update AFTER UPDATE ON public.detalle_pedido REFERENCING OLD TABLE AS anteriores NEW TABLE AS nuevos FOR EACH STATEMENT EXECUTE FUNCTION fn_recalcular_total_update()
+ vista_u3    | public.mv_facturacion_categoria_mes               | m|postgres| SELECT c.id AS categoria_id,                                                                                                                                                                                             +
+             |                                                   |     c.nombre AS categoria_nombre,                                                                                                                                                                                                    +
+             |                                                   |     (date_trunc('month'::text, (ped.fecha)::timestamp with time zone))::date AS mes,                                                                                                                                                 +
+             |                                                   |     count(DISTINCT ped.id) AS cantidad_pedidos,                                                                                                                                                                                      +
+             |                                                   |     sum(dp.cantidad) AS unidades_vendidas,                                                                                                                                                                                           +
+             |                                                   |     sum(dp.subtotal) AS facturacion_total                                                                                                                                                                                            +
+             |                                                   |    FROM (((categoria c                                                                                                                                                                                                               +
+             |                                                   |      JOIN producto pr ON ((pr.categoria_id = c.id)))                                                                                                                                                                                 +
+             |                                                   |      JOIN detalle_pedido dp ON ((dp.producto_id = pr.id)))                                                                                                                                                                           +
+             |                                                   |      JOIN pedido ped ON ((ped.id = dp.pedido_id)))                                                                                                                                                                                   +
+             |                                                   |   WHERE ((dp.eliminado = false) AND (ped.eliminado = false))                                                                                                                                                                         +
+             |                                                   |   GROUP BY c.id, c.nombre, ((date_trunc('month'::text, (ped.fecha)::timestamp with time zone))::date);|NULL
+ vista_u3    | public.v_pedido_detalle                           | v|postgres| SELECT dp.id AS detalle_id,                                                                                                                                                                                              +
+             |                                                   |     dp.pedido_id,                                                                                                                                                                                                                    +
+             |                                                   |     dp.producto_id,                                                                                                                                                                                                                  +
+             |                                                   |     p.nombre AS producto_nombre,                                                                                                                                                                                                     +
+             |                                                   |     dp.cantidad,                                                                                                                                                                                                                     +
+             |                                                   |     dp.precio_unitario,                                                                                                                                                                                                              +
+             |                                                   |     dp.subtotal                                                                                                                                                                                                                      +
+             |                                                   |    FROM (detalle_pedido dp                                                                                                                                                                                                           +
+             |                                                   |      JOIN producto p ON ((p.id = dp.producto_id)))                                                                                                                                                                                   +
+             |                                                   |   WHERE (dp.eliminado = false);|NULL
+ vista_u3    | public.v_pedidos_resumen                          | v|postgres| SELECT ped.id AS pedido_id,                                                                                                                                                                                              +
+             |                                                   |     u.id AS usuario_id,                                                                                                                                                                                                              +
+             |                                                   |     (((u.nombre)::text || ' '::text) || (u.apellido)::text) AS usuario,                                                                                                                                                              +
+             |                                                   |     ped.fecha,                                                                                                                                                                                                                       +
+             |                                                   |     ped.estado,                                                                                                                                                                                                                      +
+             |                                                   |     ped.forma_pago,                                                                                                                                                                                                                  +
+             |                                                   |     ped.total                                                                                                                                                                                                                        +
+             |                                                   |    FROM (pedido ped                                                                                                                                                                                                                  +
+             |                                                   |      JOIN usuario u ON ((u.id = ped.usuario_id)))                                                                                                                                                                                    +
+             |                                                   |   WHERE (ped.eliminado = false);|NULL
+ vista_u3    | public.v_productos_vigentes                       | v|postgres| SELECT p.id AS producto_id,                                                                                                                                                                                              +
+             |                                                   |     p.nombre AS producto_nombre,                                                                                                                                                                                                     +
+             |                                                   |     p.descripcion,                                                                                                                                                                                                                   +
+             |                                                   |     p.precio,                                                                                                                                                                                                                        +
+             |                                                   |     p.stock,                                                                                                                                                                                                                         +
+             |                                                   |     p.disponible,                                                                                                                                                                                                                    +
+             |                                                   |     c.id AS categoria_id,                                                                                                                                                                                                            +
+             |                                                   |     c.nombre AS categoria_nombre                                                                                                                                                                                                     +
+             |                                                   |    FROM (producto p                                                                                                                                                                                                                  +
+             |                                                   |      JOIN categoria c ON ((c.id = p.categoria_id)))                                                                                                                                                                                  +
+             |                                                   |   WHERE ((p.eliminado = false) AND (c.eliminado = false));|NULL
+ vista_u3    | public.v_usuarios_publico                         | v|postgres| SELECT id,                                                                                                                                                                                                               +
+             |                                                   |     nombre,                                                                                                                                                                                                                          +
+             |                                                   |     apellido,                                                                                                                                                                                                                        +
+             |                                                   |     mail,                                                                                                                                                                                                                            +
+             |                                                   |     rol                                                                                                                                                                                                                              +
+             |                                                   |    FROM usuario                                                                                                                                                                                                                      +
+             |                                                   |   WHERE (eliminado = false);|NULL
+(108 rows)
+

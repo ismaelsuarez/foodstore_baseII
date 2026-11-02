@@ -1,0 +1,31 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+BEGIN
+DO
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+GRANT ROLE
+GRANT ROLE
+psql:/repo/unidades/unidad-5/sql/pruebas/14_identidades.sql:25: NOTICE:  RESULT|D12.membresias.opciones|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/14_identidades.sql:29: NOTICE:  RESULT|SEC19.P.aislamiento|PASS|esperado=true observado=true|aserción
+ALTER ROLE
+ALTER ROLE
+SELECT 3
+COMMIT

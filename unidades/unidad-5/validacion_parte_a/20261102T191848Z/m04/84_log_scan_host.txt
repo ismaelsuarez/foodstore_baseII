@@ -1,0 +1,1 @@
+grep -F exacto passwords/verificador/bcrypt/PASSWORD literal: exit=1

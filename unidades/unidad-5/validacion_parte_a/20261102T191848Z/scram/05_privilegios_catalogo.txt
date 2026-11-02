@@ -1,0 +1,35 @@
+   rolname    | rolcanlogin | rolsuper | rolcreatedb | rolcreaterole | rolreplication | rolbypassrls 
+--------------+-------------+----------+-------------+---------------+----------------+--------------
+ tst_u5_scram | t           | f        | f           | f             | f              | f
+(1 row)
+
+ membresias 
+------------
+          0
+(1 row)
+
+ connect_public | temp_public | usage_public | crypt_public | salt_public 
+----------------+-------------+--------------+--------------+-------------
+ t              | t           | t            | t            | t
+(1 row)
+
+ datacl 
+--------
+ 
+(1 row)
+
+                                                                                                                                                                                     nspacl                                                                                                                                                                                     
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,rol_app_lectura=U/pg_database_owner,rol_app_escritura=U/pg_database_owner,rol_soporte=U/pg_database_owner,rol_app_autenticacion=U/pg_database_owner,rol_propietario_ventas=U/pg_database_owner,rol_propietario_credenciales=U/pg_database_owner,admin_datos=U/pg_database_owner,rol_reportes=U/pg_database_owner}
+(1 row)
+
+ grants_relacion_directos 
+--------------------------
+                        0
+(1 row)
+
+ grants_base_directos 
+----------------------
+                    0
+(1 row)
+

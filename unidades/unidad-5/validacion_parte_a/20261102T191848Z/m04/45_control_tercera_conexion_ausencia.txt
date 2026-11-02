@@ -1,0 +1,16 @@
+ api | auth | reset 
+-----+------+-------
+     |      | 
+(1 row)
+
+ funciones_u5 
+--------------
+            0
+(1 row)
+
+ entradas_acl_u5 
+-----------------
+               0
+(1 row)
+
+DO

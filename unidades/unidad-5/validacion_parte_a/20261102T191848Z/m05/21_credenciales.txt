@@ -1,0 +1,294 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+DO
+               name                |    setting    
+-----------------------------------+---------------
+ log_file_mode                     | 0600
+ log_min_duration_statement        | -1
+ log_parameter_max_length          | 0
+ log_parameter_max_length_on_error | 0
+ log_statement                     | mod
+ password_encryption               | scram-sha-256
+(6 rows)
+
+CREATE FUNCTION
+CREATE FUNCTION
+BEGIN
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/13_fixtures.sql:4: NOTICE:  RESULT|FIXTURE.sin_colisiones|PASS|esperado=true observado=true|aserción
+INSERT 0 1
+INSERT 0 3
+INSERT 0 4
+INSERT 0 3
+DO
+DO
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+GRANT ROLE
+GRANT ROLE
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/14_identidades.sql:25: NOTICE:  RESULT|D12.membresias.opciones|PASS|esperado=0 observado=0|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/14_identidades.sql:29: NOTICE:  RESULT|SEC19.P.aislamiento|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+UPDATE 1
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:60: NOTICE:  RESULT|AUTH.P.valida.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:60: NOTICE:  RESULT|AUTH.P.valida.filas|PASS|esperado=1 observado=1|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:60: NOTICE:  RESULT|AUTH.P.valida.identidad|PASS|esperado=true observado=true|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:63: NOTICE:  RESULT|AUTH.N.incorrecta.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:63: NOTICE:  RESULT|AUTH.N.incorrecta.filas|PASS|esperado=0 observado=0|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:66: NOTICE:  RESULT|AUTH.N.ausente.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:66: NOTICE:  RESULT|AUTH.N.ausente.filas|PASS|esperado=0 observado=0|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:69: NOTICE:  RESULT|AUTH.N.baja.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:69: NOTICE:  RESULT|AUTH.N.baja.filas|PASS|esperado=0 observado=0|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:72: NOTICE:  RESULT|AUTH.N.mail_null.estado|PASS|esperado=28P01 observado=28P01|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:75: NOTICE:  RESULT|AUTH.N.mail_vacio.estado|PASS|esperado=28P01 observado=28P01|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:76: NOTICE:  RESULT|AUTH.N.valor_null.estado|PASS|esperado=28P01 observado=28P01|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:77: NOTICE:  RESULT|AUTH.N.valor_vacio.estado|PASS|esperado=28P01 observado=28P01|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:78: NOTICE:  RESULT|AUTH.N.valor_blanco.estado|PASS|esperado=28P01 observado=28P01|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+RESET
+UPDATE 1
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:85: NOTICE:  RESULT|AUTH.N.prefijo_2b.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:85: NOTICE:  RESULT|AUTH.N.prefijo_2b.filas|PASS|esperado=0 observado=0|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+RESET
+UPDATE 1
+SET
+ probar_auth 
+-------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:91: NOTICE:  RESULT|AUTH.N.prefijo_2y.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:91: NOTICE:  RESULT|AUTH.N.prefijo_2y.filas|PASS|esperado=0 observado=0|aserción
+UPDATE 1
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:97: NOTICE:  RESULT|AUTH.N.seed.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:97: NOTICE:  RESULT|AUTH.N.seed.filas|PASS|esperado=0 observado=0|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+RESET
+UPDATE 1
+SET
+ probar_auth 
+-------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:103: NOTICE:  RESULT|AUTH.N.marcador.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:103: NOTICE:  RESULT|AUTH.N.marcador.filas|PASS|esperado=0 observado=0|aserción
+UPDATE 1
+SET
+ probar_auth 
+-------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:111: NOTICE:  RESULT|AUTH.N.longitud_hash.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:111: NOTICE:  RESULT|AUTH.N.longitud_hash.filas|PASS|esperado=0 observado=0|aserción
+RESET
+UPDATE 1
+SET
+ probar_reset 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:119: NOTICE:  RESULT|SEC18.N.admin|PASS|esperado=42501 observado=42501|aserción
+ probar_reset 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:122: NOTICE:  RESULT|SEC18.N.eliminado|PASS|esperado=23503 observado=23503|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:125: NOTICE:  RESULT|SEC18.N.ausente|PASS|esperado=23503 observado=23503|aserción
+ probar_reset 
+--------------
+ 
+(1 row)
+
+ probar_reset 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:126: NOTICE:  RESULT|SEC18.N.null|PASS|esperado=22023 observado=22023|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:127: NOTICE:  RESULT|SEC18.N.vacia|PASS|esperado=22023 observado=22023|aserción
+ probar_reset 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:128: NOTICE:  RESULT|SEC18.N.blanco|PASS|esperado=22023 observado=22023|aserción
+ probar_reset 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:130: NOTICE:  RESULT|SEC18.N.update_directo|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:132: NOTICE:  RESULT|SEC18.N.total|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ probar_reset 
+--------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:135: NOTICE:  RESULT|SEC18.P.reset|PASS|esperado=sin_error observado=sin_error|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:140: NOTICE:  RESULT|SEC18.P.formato_bcrypt|PASS|esperado=true observado=true|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:143: NOTICE:  RESULT|SEC18.N.admin_sin_cambios|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:147: NOTICE:  RESULT|SEC18.P.autentica_nueva.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:147: NOTICE:  RESULT|SEC18.P.autentica_nueva.filas|PASS|esperado=1 observado=1|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:147: NOTICE:  RESULT|SEC18.P.autentica_nueva.identidad|PASS|esperado=true observado=true|aserción
+ probar_auth 
+-------------
+ 
+(1 row)
+
+ probar_auth 
+-------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:150: NOTICE:  RESULT|SEC18.P.rechaza_anterior.estado|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:150: NOTICE:  RESULT|SEC18.P.rechaza_anterior.filas|PASS|esperado=0 observado=0|aserción
+RESET
+DROP OWNED
+DROP ROLE
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:8: NOTICE:  RESULT|SEC19.R.SEC20.R.efimeros|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:15: NOTICE:  RESULT|P8.membresias.efimeras|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:21: NOTICE:  RESULT|P8.membresias.U5_filtradas|PASS|esperado=3 observado=3|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:26: NOTICE:  RESULT|P8.membresias.EXCEPT|PASS|esperado=0 observado=0|aserción
+ROLLBACK
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:160: NOTICE:  RESULT|CREDENCIALES.R.sin_fixtures|PASS|esperado=true observado=true|aserción
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/40_credenciales.sql:162: NOTICE:  RESULT|CREDENCIALES.R.sin_roles|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+

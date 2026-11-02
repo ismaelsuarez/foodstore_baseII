@@ -1,0 +1,555 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+DO
+BEGIN
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/13_fixtures.sql:4: NOTICE:  RESULT|FIXTURE.sin_colisiones|PASS|esperado=true observado=true|aserción
+INSERT 0 1
+INSERT 0 3
+INSERT 0 4
+INSERT 0 3
+DO
+DO
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+GRANT ROLE
+GRANT ROLE
+psql:/repo/unidades/unidad-5/sql/pruebas/14_identidades.sql:25: NOTICE:  RESULT|D12.membresias.opciones|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/14_identidades.sql:29: NOTICE:  RESULT|SEC19.P.aislamiento|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:10: NOTICE:  RESULT|LECTURA.P.catalogo|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:12: NOTICE:  RESULT|SEC08.P.SEC14.P.insert_returning|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:13: NOTICE:  RESULT|SEC08.N.pedido_completo|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:14: NOTICE:  RESULT|SEC08.N.total|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:17: NOTICE:  RESULT|SEC08.N.estado|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:19: NOTICE:  RESULT|SEC14.N.fecha|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:21: NOTICE:  RESULT|SEC14.N.total|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:23: NOTICE:  RESULT|SEC14.N.estado|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:25: NOTICE:  RESULT|SEC14.N.eliminado|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:28: NOTICE:  RESULT|SEC05.N.insert_detalle|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:30: NOTICE:  RESULT|SEC05.N.update_detalle|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:31: NOTICE:  RESULT|SEC05.N.delete_detalle|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:32: NOTICE:  RESULT|SEC05.N.select_detalle|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:34: NOTICE:  RESULT|SEC03.N.SEC13.N.call|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:36: NOTICE:  RESULT|SEC13.N.total|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:37: NOTICE:  RESULT|MINIMO.N.stock|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:38: NOTICE:  RESULT|MINIMO.N.total|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:39: NOTICE:  RESULT|MINIMO.N.usuario|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:40: NOTICE:  RESULT|SEC17.N.contrasena|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:41: NOTICE:  RESULT|SEC09.N.delete|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:42: NOTICE:  RESULT|SEC09.N.truncate|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:45: NOTICE:  RESULT|SEC03.N.cantidad0|PASS|esperado=22023 observado=22023|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:47: NOTICE:  RESULT|SEC03.N.cantidad_null|PASS|esperado=22023 observado=22023|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:49: NOTICE:  RESULT|SEC03.N.pedido_ausente|PASS|esperado=23503 observado=23503|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:51: NOTICE:  RESULT|SEC03.N.producto_ausente|PASS|esperado=23503 observado=23503|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:53: NOTICE:  RESULT|SEC03.N.pedido_baja|PASS|esperado=23514 observado=23514|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:55: NOTICE:  RESULT|SEC03.N.usuario_baja|PASS|esperado=23514 observado=23514|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:57: NOTICE:  RESULT|SEC03.N.no_disponible|PASS|esperado=23514 observado=23514|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:59: NOTICE:  RESULT|SEC03.N.producto_baja|PASS|esperado=23514 observado=23514|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:61: NOTICE:  RESULT|SEC03.N.stock|PASS|esperado=23514 observado=23514|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:67: NOTICE:  RESULT|SEC03.N.sin_efectos|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:70: NOTICE:  RESULT|SEC08.P.defaults|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:73: NOTICE:  RESULT|SEC05.P.SEC13.P.api|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:75: NOTICE:  RESULT|SEC03.N.duplicado|PASS|esperado=23505 observado=23505|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:82: NOTICE:  RESULT|SEC05.P.estado|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:90: NOTICE:  RESULT|SEC17.N.temp_explicita|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:92: NOTICE:  RESULT|SEC17.N.temp_fila|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:94: NOTICE:  RESULT|SEC17.N.api_no_suplanta|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:97: NOTICE:  RESULT|SEC17.N.public_stock|PASS|esperado=1 observado=1|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:99: NOTICE:  RESULT|SEC17.N.temp_intacta|PASS|esperado=999 observado=999|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:107: NOTICE:  RESULT|SEC06.P.lectura|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:108: NOTICE:  RESULT|SEC06.P.create_reportes|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:109: NOTICE:  RESULT|SEC06.N.create_role|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:111: NOTICE:  RESULT|SEC06.N.insert|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:112: NOTICE:  RESULT|SEC06.N.contrasena|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:113: NOTICE:  RESULT|SEC06.N.public|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:114: NOTICE:  RESULT|SEC11.P.adp_tabla|PASS|esperado=sin_error observado=sin_error|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:116: NOTICE:  RESULT|SEC12.P.adp_funcion|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:119: NOTICE:  RESULT|SEC11.P.select_automatico|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:124: NOTICE:  RESULT|SEC12.P.sin_execute|PASS|esperado=true observado=true|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:127: NOTICE:  RESULT|SEC12.N.control_precondicion|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+CREATE TABLE
+CREATE FUNCTION
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:134: NOTICE:  RESULT|SEC11.N.public_sin_automaticos|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:136: NOTICE:  RESULT|SEC12.N.control_execute|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:139: NOTICE:  RESULT|SEC04.P.grupo|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+RESET
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:143: NOTICE:  RESULT|SEC04.P.efimero|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:144: NOTICE:  RESULT|SEC04.N.usuario|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:145: NOTICE:  RESULT|SEC04.N.pedido|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:146: NOTICE:  RESULT|SEC04.N.escritura|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:149: NOTICE:  RESULT|REG04.soporte_usuarios|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:150: NOTICE:  RESULT|REG04.soporte_pedidos|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:151: NOTICE:  RESULT|SEC10.N.efimero|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:152: NOTICE:  RESULT|SOPORTE.N.usuario|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:155: NOTICE:  RESULT|SEC10.N.grupo|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:158: NOTICE:  RESULT|SEC10.N.app_admin|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:159: NOTICE:  RESULT|SEC10.N.app_escritura|PASS|esperado=42501 observado=42501|aserción
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:162: NOTICE:  RESULT|SEC10.N.admin|PASS|esperado=42501 observado=42501|aserción
+RESET
+SET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.api|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.call|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.total|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.subtotal|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.vigente|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.insert|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.update|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.delete|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.auth|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.reset|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.categoria|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.usuario|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.producto|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.pedido|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.detalle|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.catalogo|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.usuarios_publicos|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.resumen|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.pedido_detalle|PASS|esperado=42501 observado=42501|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:192: NOTICE:  RESULT|SEC19.N.materializada|PASS|esperado=42501 observado=42501|aserción
+DO
+RESET
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:196: NOTICE:  RESULT|REG04.super_catalogo|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:197: NOTICE:  RESULT|REG04.super_usuarios|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:198: NOTICE:  RESULT|REG04.super_resumen|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:199: NOTICE:  RESULT|REG04.super_detalle|PASS|esperado=sin_error observado=sin_error|aserción
+ esperar_ok 
+------------
+ 
+(1 row)
+
+RESET
+DROP OWNED
+DROP ROLE
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:8: NOTICE:  RESULT|SEC19.R.SEC20.R.efimeros|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:15: NOTICE:  RESULT|P8.membresias.efimeras|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:21: NOTICE:  RESULT|P8.membresias.U5_filtradas|PASS|esperado=3 observado=3|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/15_limpieza.sql:26: NOTICE:  RESULT|P8.membresias.EXCEPT|PASS|esperado=0 observado=0|aserción
+ROLLBACK
+ sin_fixtures 
+--------------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:202: NOTICE:  RESULT|PERMISOS.R.sin_fixtures|PASS|esperado=true observado=true|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:204: NOTICE:  RESULT|PERMISOS.R.sin_roles|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/20_permisos.sql:209: NOTICE:  RESULT|PERMISOS.R.sin_objetos|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+

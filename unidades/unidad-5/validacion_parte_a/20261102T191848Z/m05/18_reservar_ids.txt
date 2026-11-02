@@ -1,0 +1,10 @@
+psql:/repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql:46: NOTICE:  RESULT|CREDENCIALES.pgcrypto_acl|PASS|esperado=true observado=true|aserción
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+DO

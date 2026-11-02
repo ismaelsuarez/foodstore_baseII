@@ -1,0 +1,1924 @@
+2026-11-02 19:27:16.225 UTC [48]  @ LOG:  00000: starting PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-02 19:27:16.225 UTC [48]  @ LOCATION:  PostmasterMain, postmaster.c:1083
+2026-11-02 19:27:16.227 UTC [48]  @ LOG:  00000: listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-02 19:27:16.227 UTC [48]  @ LOCATION:  ListenServerPort, pqcomm.c:657
+2026-11-02 19:27:16.235 UTC [52]  @ LOG:  00000: database system was shut down at 2026-11-02 19:27:16 UTC
+2026-11-02 19:27:16.235 UTC [52]  @ LOCATION:  StartupXLOG, xlog.c:5426
+2026-11-02 19:27:16.241 UTC [48]  @ LOG:  00000: database system is ready to accept connections
+2026-11-02 19:27:16.241 UTC [48]  @ LOCATION:  process_pm_child_exit, postmaster.c:2471
+2026-11-02 19:27:16.350 UTC [58] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:16.350 UTC [58] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:16.351 UTC [58] [unknown] postgres@postgres LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:16.351 UTC [58] [unknown] postgres@postgres LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:16.351 UTC [58] [unknown] postgres@postgres LOG:  00000: connection authorized: user=postgres database=postgres application_name=psql
+2026-11-02 19:27:16.351 UTC [58] [unknown] postgres@postgres LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:16.357 UTC [58] psql postgres@postgres LOG:  00000: disconnection: session time: 0:00:00.007 user=postgres database=postgres host=[local]
+2026-11-02 19:27:16.357 UTC [58] psql postgres@postgres LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:16.397 UTC [60] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:16.397 UTC [60] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:16.398 UTC [60] [unknown] postgres@postgres LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:16.398 UTC [60] [unknown] postgres@postgres LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:16.398 UTC [60] [unknown] postgres@postgres LOG:  00000: connection authorized: user=postgres database=postgres application_name=psql
+2026-11-02 19:27:16.398 UTC [60] [unknown] postgres@postgres LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:16.399 UTC [60] psql postgres@postgres LOG:  00000: statement: CREATE DATABASE "foodstore_tpi_oficial" ;
+2026-11-02 19:27:16.399 UTC [60] psql postgres@postgres LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:16.456 UTC [60] psql postgres@postgres LOG:  00000: disconnection: session time: 0:00:00.059 user=postgres database=postgres host=[local]
+2026-11-02 19:27:16.456 UTC [60] psql postgres@postgres LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:16.459 UTC [48]  @ LOG:  00000: received fast shutdown request
+2026-11-02 19:27:16.459 UTC [48]  @ LOCATION:  process_pm_shutdown_request, postmaster.c:2277
+2026-11-02 19:27:16.460 UTC [48]  @ LOG:  00000: aborting any active transactions
+2026-11-02 19:27:16.460 UTC [48]  @ LOCATION:  process_pm_shutdown_request, postmaster.c:2295
+2026-11-02 19:27:16.463 UTC [48]  @ LOG:  00000: background worker "logical replication launcher" (PID 55) exited with exit code 1
+2026-11-02 19:27:16.463 UTC [48]  @ LOCATION:  LogChildExit, postmaster.c:3065
+2026-11-02 19:27:16.463 UTC [50]  @ LOG:  00000: shutting down
+2026-11-02 19:27:16.463 UTC [50]  @ LOCATION:  ShutdownXLOG, xlog.c:6592
+2026-11-02 19:27:16.464 UTC [50]  @ LOG:  00000: checkpoint starting: shutdown immediate
+2026-11-02 19:27:16.464 UTC [50]  @ LOCATION:  LogCheckpointStart, xlog.c:6642
+2026-11-02 19:27:16.518 UTC [50]  @ LOG:  00000: checkpoint complete: wrote 925 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.025 s, sync=0.024 s, total=0.056 s; sync files=301, longest=0.002 s, average=0.001 s; distance=4256 kB, estimate=4256 kB; lsn=0/19179B8, redo lsn=0/19179B8
+2026-11-02 19:27:16.518 UTC [50]  @ LOCATION:  LogCheckpointEnd, xlog.c:6731
+2026-11-02 19:27:16.530 UTC [48]  @ LOG:  00000: database system is shut down
+2026-11-02 19:27:16.530 UTC [48]  @ LOCATION:  UnlinkLockFiles, miscinit.c:1192
+2026-11-02 19:27:16.597 UTC [1]  @ LOG:  00000: starting PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-02 19:27:16.597 UTC [1]  @ LOCATION:  PostmasterMain, postmaster.c:1083
+2026-11-02 19:27:16.598 UTC [1]  @ LOG:  00000: listening on IPv4 address "0.0.0.0", port 5432
+2026-11-02 19:27:16.598 UTC [1]  @ LOCATION:  ListenServerPort, pqcomm.c:661
+2026-11-02 19:27:16.598 UTC [1]  @ LOG:  00000: listening on IPv6 address "::", port 5432
+2026-11-02 19:27:16.598 UTC [1]  @ LOCATION:  ListenServerPort, pqcomm.c:661
+2026-11-02 19:27:16.602 UTC [1]  @ LOG:  00000: listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-02 19:27:16.602 UTC [1]  @ LOCATION:  ListenServerPort, pqcomm.c:657
+2026-11-02 19:27:16.609 UTC [66]  @ LOG:  00000: database system was shut down at 2026-11-02 19:27:16 UTC
+2026-11-02 19:27:16.609 UTC [66]  @ LOCATION:  StartupXLOG, xlog.c:5426
+2026-11-02 19:27:16.618 UTC [1]  @ LOG:  00000: database system is ready to accept connections
+2026-11-02 19:27:16.618 UTC [1]  @ LOCATION:  process_pm_child_exit, postmaster.c:2471
+2026-11-02 19:27:16.705 UTC [76] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:16.705 UTC [76] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:16.706 UTC [76] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:16.706 UTC [76] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:16.706 UTC [76] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=pg_isready
+2026-11-02 19:27:16.706 UTC [76] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:16.709 UTC [76] pg_isready postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.003 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:16.709 UTC [76] pg_isready postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:16.826 UTC [83] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:16.826 UTC [83] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:16.827 UTC [83] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:16.827 UTC [83] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:16.827 UTC [83] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:16.827 UTC [83] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:16.829 UTC [83] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.003 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:16.829 UTC [83] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:16.934 UTC [90] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:16.934 UTC [90] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:16.935 UTC [90] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:16.935 UTC [90] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:16.935 UTC [90] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:16.935 UTC [90] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:16.939 UTC [90] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.005 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:16.939 UTC [90] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.043 UTC [97] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.043 UTC [97] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.044 UTC [97] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.044 UTC [97] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.044 UTC [97] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.044 UTC [97] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.044 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TYPE forma_pago AS ENUM (
+	    'EFECTIVO',
+	    'TARJETA',
+	    'TRANSFERENCIA'
+	);
+2026-11-02 19:27:17.044 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.045 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TYPE rol AS ENUM (
+	    'ADMIN',
+	    'USUARIO'
+	);
+2026-11-02 19:27:17.045 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.045 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TYPE estado_pedido AS ENUM (
+	    'PENDIENTE',
+	    'CONFIRMADO',
+	    'TERMINADO',
+	    'CANCELADO'
+	);
+2026-11-02 19:27:17.045 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.046 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TABLE categoria (
+	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	    nombre VARCHAR(100) NOT NULL UNIQUE,
+	    descripcion VARCHAR(255),
+	    eliminado BOOLEAN NOT NULL DEFAULT FALSE,
+	    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+	);
+2026-11-02 19:27:17.046 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.049 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TABLE usuario (
+	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	    nombre VARCHAR(80) NOT NULL,
+	    apellido VARCHAR(80) NOT NULL,
+	    mail VARCHAR(120) NOT NULL UNIQUE,
+	    celular VARCHAR(30),
+	    contrasena VARCHAR(255) NOT NULL,
+	    rol rol NOT NULL DEFAULT 'USUARIO',
+	    eliminado BOOLEAN NOT NULL DEFAULT FALSE,
+	    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+	);
+2026-11-02 19:27:17.049 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.051 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TABLE producto (
+	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	    nombre VARCHAR(120) NOT NULL,
+	    precio NUMERIC(12,2) NOT NULL,
+	    descripcion VARCHAR(255),
+	    stock INTEGER NOT NULL DEFAULT 0,
+	    imagen VARCHAR(255),
+	    disponible BOOLEAN NOT NULL DEFAULT TRUE,
+	    categoria_id BIGINT NOT NULL,
+	    eliminado BOOLEAN NOT NULL DEFAULT FALSE,
+	    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	    CONSTRAINT fk_producto_categoria
+	        FOREIGN KEY (categoria_id)
+	        REFERENCES categoria(id)
+	        ON DELETE RESTRICT,
+	    CONSTRAINT chk_producto_precio
+	        CHECK (precio >= 0),
+	    CONSTRAINT chk_producto_stock
+	        CHECK (stock >= 0)
+	);
+2026-11-02 19:27:17.051 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.054 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TABLE pedido (
+	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	    fecha DATE NOT NULL DEFAULT CURRENT_DATE,
+	    estado estado_pedido NOT NULL DEFAULT 'PENDIENTE',
+	    total NUMERIC(12,2) NOT NULL DEFAULT 0,
+	    forma_pago forma_pago NOT NULL,
+	    usuario_id BIGINT NOT NULL,
+	    eliminado BOOLEAN NOT NULL DEFAULT FALSE,
+	    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	    CONSTRAINT fk_pedido_usuario
+	        FOREIGN KEY (usuario_id)
+	        REFERENCES usuario(id)
+	        ON DELETE RESTRICT,
+	    CONSTRAINT chk_pedido_total
+	        CHECK (total >= 0)
+	);
+2026-11-02 19:27:17.054 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.056 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TABLE detalle_pedido (
+	    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	    cantidad INTEGER NOT NULL,
+	    precio_unitario NUMERIC(12,2) NOT NULL,
+	    subtotal NUMERIC(12,2) NOT NULL,
+	    pedido_id BIGINT NOT NULL,
+	    producto_id BIGINT NOT NULL,
+	    eliminado BOOLEAN NOT NULL DEFAULT FALSE,
+	    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	    CONSTRAINT fk_detalle_pedido_pedido
+	        FOREIGN KEY (pedido_id)
+	        REFERENCES pedido(id)
+	        ON DELETE RESTRICT,
+	    CONSTRAINT fk_detalle_pedido_producto
+	        FOREIGN KEY (producto_id)
+	        REFERENCES producto(id)
+	        ON DELETE RESTRICT,
+	    CONSTRAINT uq_detalle_pedido_pedido_producto
+	        UNIQUE (pedido_id, producto_id),
+	    CONSTRAINT chk_detalle_pedido_cantidad
+	        CHECK (cantidad > 0),
+	    CONSTRAINT chk_detalle_pedido_precio_unitario
+	        CHECK (precio_unitario >= 0),
+	    CONSTRAINT chk_detalle_pedido_subtotal
+	        CHECK (subtotal >= 0)
+	);
+2026-11-02 19:27:17.056 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.058 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE INDEX idx_producto_categoria
+	    ON producto(categoria_id);
+2026-11-02 19:27:17.058 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.058 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE INDEX idx_pedido_usuario
+	    ON pedido(usuario_id);
+2026-11-02 19:27:17.058 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.059 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE INDEX idx_producto_nombre_vig
+	    ON producto(nombre)
+	    WHERE eliminado = FALSE;
+2026-11-02 19:27:17.059 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.060 UTC [97] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.017 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:17.060 UTC [97] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.168 UTC [104] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.168 UTC [104] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.169 UTC [104] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.169 UTC [104] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.169 UTC [104] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.169 UTC [104] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.173 UTC [104] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO categoria (nombre)
+	VALUES
+	    ('Pizzas'),
+	    ('Bebidas');
+2026-11-02 19:27:17.173 UTC [104] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.173 UTC [104] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO usuario (nombre, apellido, mail, celular, contrasena)
+	VALUES
+	    ('Ana', 'Gómez', 'ana.gomez@foodstore.test', '2610000001', 'SEED_NO_AUTH'),
+	    ('Luis', 'Paz', 'luis.paz@foodstore.test', '2610000002', 'SEED_NO_AUTH'),
+	    ('Marta', 'Ruiz', 'marta.ruiz@foodstore.test', '2610000003', 'SEED_NO_AUTH');
+2026-11-02 19:27:17.173 UTC [104] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.174 UTC [104] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO producto (categoria_id, nombre, descripcion, precio, stock)
+	VALUES
+	    (
+	        (SELECT id FROM categoria WHERE nombre = 'Pizzas'),
+	        'Muzzarella', 'Pizza de muzzarella', 1050.00, 50
+	    ),
+	    (
+	        (SELECT id FROM categoria WHERE nombre = 'Pizzas'),
+	        'Napolitana', 'Pizza napolitana', 1500.00, 40
+	    ),
+	    (
+	        (SELECT id FROM categoria WHERE nombre = 'Bebidas'),
+	        'Coca 1.5L', 'Bebida gaseosa de 1.5 litros', 800.00, 100
+	    );
+2026-11-02 19:27:17.174 UTC [104] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.175 UTC [104] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: WITH pedido_ana_1 AS (
+	    INSERT INTO pedido (usuario_id, fecha, estado, forma_pago)
+	    VALUES (
+	        (SELECT id FROM usuario WHERE mail = 'ana.gomez@foodstore.test'),
+	        DATE '2026-03-01', 'TERMINADO', 'EFECTIVO'
+	    )
+	    RETURNING id
+	), pedido_luis_1 AS (
+	    INSERT INTO pedido (usuario_id, fecha, estado, forma_pago)
+	    VALUES (
+	        (SELECT id FROM usuario WHERE mail = 'luis.paz@foodstore.test'),
+	        DATE '2026-03-01', 'TERMINADO', 'TARJETA'
+	    )
+	    RETURNING id
+	), pedido_ana_2 AS (
+	    INSERT INTO pedido (usuario_id, fecha, estado, forma_pago)
+	    VALUES (
+	        (SELECT id FROM usuario WHERE mail = 'ana.gomez@foodstore.test'),
+	        DATE '2026-03-05', 'TERMINADO', 'TRANSFERENCIA'
+	    )
+	    RETURNING id
+	), pedido_marta_1 AS (
+	    INSERT INTO pedido (usuario_id, fecha, estado, forma_pago)
+	    VALUES (
+	        (SELECT id FROM usuario WHERE mail = 'marta.ruiz@foodstore.test'),
+	        DATE '2026-03-06', 'TERMINADO', 'EFECTIVO'
+	    )
+	    RETURNING id
+	), pedido_luis_2 AS (
+	    INSERT INTO pedido (usuario_id, fecha, estado, forma_pago)
+	    VALUES (
+	        (SELECT id FROM usuario WHERE mail = 'luis.paz@foodstore.test'),
+	        DATE '2026-03-07', 'TERMINADO', 'TARJETA'
+	    )
+	    RETURNING id
+	), detalles (pedido_id, producto_nombre, cantidad, precio_unitario) AS (
+	    VALUES
+	        ((SELECT id FROM pedido_ana_1), 'Muzzarella', 2, 1000.00),
+	        ((SELECT id FROM pedido_ana_1), 'Coca 1.5L', 1, 800.00),
+	        ((SELECT id FROM pedido_luis_1), 'Napolitana', 1, 1500.00),
+	        ((SELECT id FROM pedido_ana_2), 'Muzzarella', 3, 1050.00),
+	        ((SELECT id FROM pedido_marta_1), 'Coca 1.5L', 4, 800.00),
+	        ((SELECT id FROM pedido_marta_1), 'Napolitana', 2, 1500.00),
+	        ((SELECT id FROM pedido_luis_2), 'Muzzarella', 1, 1050.00)
+	)
+	-- Los nombres de producto son inequívocos solo en este dataset controlado;
+	-- no son una clave de negocio. La subconsulta falla si hay más de una fila.
+	-- El subtotal usa el precio histórico, incluido 1000.00 para Muzzarella,
+	-- nunca su precio actual de catálogo (1050.00).
+	INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario, subtotal)
+	SELECT
+	    d.pedido_id,
+	    (SELECT p.id FROM producto p WHERE p.nombre = d.producto_nombre),
+	    d.cantidad,
+	    d.precio_unitario,
+	    d.cantidad * d.precio_unitario
+	FROM detalles d;
+2026-11-02 19:27:17.175 UTC [104] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.178 UTC [104] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: UPDATE pedido p
+	SET total = (
+	    SELECT COALESCE(SUM(dp.subtotal), 0)
+	    FROM detalle_pedido dp
+	    WHERE dp.pedido_id = p.id
+	      AND dp.eliminado = FALSE
+	);
+2026-11-02 19:27:17.178 UTC [104] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.180 UTC [104] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.012 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:17.180 UTC [104] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.314 UTC [111] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.314 UTC [111] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.315 UTC [111] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.315 UTC [111] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.315 UTC [111] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.315 UTC [111] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.316 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION calcular_total_pedido(p_pedido_id BIGINT)
+	RETURNS NUMERIC(12,2)
+	LANGUAGE SQL
+	STABLE
+	AS $$
+	    SELECT COALESCE(SUM(subtotal), 0)
+	    FROM detalle_pedido
+	    WHERE pedido_id = p_pedido_id
+	      AND eliminado = FALSE;
+	$$;
+2026-11-02 19:27:17.316 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.318 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION fn_set_subtotal()
+	RETURNS TRIGGER
+	LANGUAGE plpgsql
+	AS $$
+	DECLARE
+	    v_buscar_precio BOOLEAN;
+	    v_precio producto.precio%TYPE;
+	BEGIN
+	    v_buscar_precio := NEW.precio_unitario IS NULL;
+	    IF TG_OP = 'UPDATE' THEN
+	        IF NEW.producto_id IS DISTINCT FROM OLD.producto_id
+	           AND NEW.precio_unitario IS NOT DISTINCT FROM OLD.precio_unitario THEN
+	            v_buscar_precio := TRUE;
+	        END IF;
+	    END IF;
+	
+	    IF v_buscar_precio THEN
+	        SELECT precio INTO v_precio
+	        FROM producto
+	        WHERE id = NEW.producto_id
+	        FOR SHARE;
+	        IF FOUND THEN
+	            NEW.precio_unitario := v_precio;
+	        END IF;
+	        -- Sin producto no se inventa un precio ni se reemplaza la FK.
+	        -- Con precio explícito válido, la referencia será rechazada por la FK.
+	        -- Si además falta precio, NOT NULL puede fallar antes: son dos defectos.
+	    END IF;
+	
+	    -- Un precio explícito distinto se conserva, también al reasignar producto.
+	    -- Un valor igual a OLD no permite distinguir si el llamante lo escribió.
+	    -- Cualquier subtotal ingresado directamente se sustituye por el derivado.
+	    NEW.subtotal := NEW.cantidad * NEW.precio_unitario;
+	    RETURN NEW;
+	END;
+	$$;
+2026-11-02 19:27:17.318 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.319 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TRIGGER trg_subtotal
+	BEFORE INSERT OR UPDATE OF cantidad, precio_unitario, producto_id, subtotal
+	ON detalle_pedido
+	FOR EACH ROW
+	EXECUTE FUNCTION fn_set_subtotal();
+2026-11-02 19:27:17.319 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.320 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION fn_validar_detalle_vigente()
+	RETURNS TRIGGER
+	LANGUAGE plpgsql
+	AS $$
+	DECLARE
+	    v_usuario_id pedido.usuario_id%TYPE;
+	    v_pedido_eliminado pedido.eliminado%TYPE;
+	    v_usuario_eliminado usuario.eliminado%TYPE;
+	    v_producto_eliminado producto.eliminado%TYPE;
+	    v_disponible producto.disponible%TYPE;
+	BEGIN
+	    IF TG_OP = 'UPDATE' THEN
+	        IF NEW.pedido_id IS NOT DISTINCT FROM OLD.pedido_id
+	           AND NEW.producto_id IS NOT DISTINCT FROM OLD.producto_id THEN
+	            RETURN NEW;
+	        END IF;
+	    END IF;
+	
+	    SELECT usuario_id, eliminado
+	    INTO v_usuario_id, v_pedido_eliminado
+	    FROM pedido
+	    WHERE id = NEW.pedido_id
+	    FOR SHARE;
+	    IF NOT FOUND THEN
+	        RETURN NEW;
+	    END IF;
+	    IF v_pedido_eliminado THEN
+	        RAISE EXCEPTION 'El pedido % está eliminado y no admite nuevas líneas o reasignaciones',
+	            NEW.pedido_id USING ERRCODE = '23514';
+	    END IF;
+	
+	    SELECT eliminado INTO v_usuario_eliminado
+	    FROM usuario
+	    WHERE id = v_usuario_id
+	    FOR SHARE;
+	    IF NOT FOUND THEN
+	        -- La integridad del pedido corresponde a fk_pedido_usuario.
+	        RETURN NEW;
+	    END IF;
+	    IF v_usuario_eliminado THEN
+	        RAISE EXCEPTION 'El usuario % del pedido está eliminado',
+	            v_usuario_id USING ERRCODE = '23514';
+	    END IF;
+	
+	    SELECT eliminado, disponible
+	    INTO v_producto_eliminado, v_disponible
+	    FROM producto
+	    WHERE id = NEW.producto_id
+	    FOR SHARE;
+	    IF NOT FOUND THEN
+	        -- fk_detalle_pedido_producto conserva la autoridad estructural.
+	        RETURN NEW;
+	    END IF;
+	    IF v_producto_eliminado THEN
+	        RAISE EXCEPTION 'El producto % está eliminado',
+	            NEW.producto_id USING ERRCODE = '23514';
+	    END IF;
+	    IF NOT v_disponible THEN
+	        RAISE EXCEPTION 'El producto % no está disponible',
+	            NEW.producto_id USING ERRCODE = '23514';
+	    END IF;
+	    RETURN NEW;
+	END;
+	$$;
+2026-11-02 19:27:17.320 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TRIGGER trg_detalle_vigente
+	BEFORE INSERT OR UPDATE OF pedido_id, producto_id
+	ON detalle_pedido
+	FOR EACH ROW
+	EXECUTE FUNCTION fn_validar_detalle_vigente();
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION fn_recalcular_total_insert()
+	RETURNS TRIGGER
+	LANGUAGE plpgsql
+	AS $$
+	DECLARE
+	    v_pedido_id pedido.id%TYPE;
+	BEGIN
+	    FOR v_pedido_id IN
+	        SELECT DISTINCT pedido_id FROM nuevos ORDER BY pedido_id
+	    LOOP
+	        UPDATE pedido p
+	        SET total = calcular_total_pedido(p.id)
+	        WHERE p.id = v_pedido_id;
+	    END LOOP;
+	    RETURN NULL;
+	END;
+	$$;
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION fn_recalcular_total_update()
+	RETURNS TRIGGER
+	LANGUAGE plpgsql
+	AS $$
+	DECLARE
+	    v_pedido_id pedido.id%TYPE;
+	BEGIN
+	    FOR v_pedido_id IN
+	        SELECT pedido_id FROM anteriores
+	        UNION
+	        SELECT pedido_id FROM nuevos
+	        ORDER BY pedido_id
+	    LOOP
+	        UPDATE pedido p
+	        SET total = calcular_total_pedido(p.id)
+	        WHERE p.id = v_pedido_id;
+	    END LOOP;
+	    RETURN NULL;
+	END;
+	$$;
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION fn_recalcular_total_delete()
+	RETURNS TRIGGER
+	LANGUAGE plpgsql
+	AS $$
+	DECLARE
+	    v_pedido_id pedido.id%TYPE;
+	BEGIN
+	    FOR v_pedido_id IN
+	        SELECT DISTINCT pedido_id FROM anteriores ORDER BY pedido_id
+	    LOOP
+	        UPDATE pedido p
+	        SET total = calcular_total_pedido(p.id)
+	        WHERE p.id = v_pedido_id;
+	    END LOOP;
+	    RETURN NULL;
+	END;
+	$$;
+2026-11-02 19:27:17.321 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TRIGGER trg_total_detalle_insert
+	AFTER INSERT ON detalle_pedido
+	REFERENCING NEW TABLE AS nuevos
+	FOR EACH STATEMENT
+	EXECUTE FUNCTION fn_recalcular_total_insert();
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TRIGGER trg_total_detalle_update
+	AFTER UPDATE ON detalle_pedido
+	REFERENCING OLD TABLE AS anteriores NEW TABLE AS nuevos
+	FOR EACH STATEMENT
+	EXECUTE FUNCTION fn_recalcular_total_update();
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TRIGGER trg_total_detalle_delete
+	AFTER DELETE ON detalle_pedido
+	REFERENCING OLD TABLE AS anteriores
+	FOR EACH STATEMENT
+	EXECUTE FUNCTION fn_recalcular_total_delete();
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE PROCEDURE registrar_detalle_pedido(
+	    p_pedido_id BIGINT,
+	    p_producto_id BIGINT,
+	    p_cantidad INTEGER
+	)
+	LANGUAGE plpgsql
+	AS $$
+	DECLARE
+	    v_usuario_id pedido.usuario_id%TYPE;
+	    v_usuario_eliminado usuario.eliminado%TYPE;
+	    v_precio producto.precio%TYPE;
+	    v_stock producto.stock%TYPE;
+	    v_disponible producto.disponible%TYPE;
+	    v_producto_eliminado producto.eliminado%TYPE;
+	BEGIN
+	    IF p_pedido_id IS NULL OR p_producto_id IS NULL OR p_cantidad IS NULL THEN
+	        RAISE EXCEPTION 'pedido_id, producto_id y cantidad son obligatorios'
+	            USING ERRCODE = '22023';
+	    END IF;
+	    IF p_cantidad <= 0 THEN
+	        RAISE EXCEPTION 'La cantidad debe ser mayor que cero: %', p_cantidad
+	            USING ERRCODE = '22023';
+	    END IF;
+	
+	    SELECT usuario_id INTO v_usuario_id
+	    FROM pedido
+	    WHERE id = p_pedido_id AND eliminado = FALSE
+	    FOR UPDATE;
+	    IF NOT FOUND THEN
+	        PERFORM 1 FROM pedido WHERE id = p_pedido_id;
+	        IF FOUND THEN
+	            RAISE EXCEPTION 'El pedido % está eliminado', p_pedido_id
+	                USING ERRCODE = '23514';
+	        ELSE
+	            RAISE EXCEPTION 'El pedido % no existe', p_pedido_id
+	                USING ERRCODE = '23503';
+	        END IF;
+	    END IF;
+	
+	    SELECT eliminado INTO v_usuario_eliminado
+	    FROM usuario
+	    WHERE id = v_usuario_id
+	    FOR SHARE;
+	    IF NOT FOUND THEN
+	        RAISE EXCEPTION 'El usuario % del pedido no existe', v_usuario_id
+	            USING ERRCODE = '23503';
+	    END IF;
+	    IF v_usuario_eliminado THEN
+	        RAISE EXCEPTION 'El usuario % del pedido está eliminado', v_usuario_id
+	            USING ERRCODE = '23514';
+	    END IF;
+	
+	    SELECT precio, stock, disponible, eliminado
+	    INTO v_precio, v_stock, v_disponible, v_producto_eliminado
+	    FROM producto
+	    WHERE id = p_producto_id
+	    FOR UPDATE;
+	    IF NOT FOUND THEN
+	        RAISE EXCEPTION 'El producto % no existe', p_producto_id
+	            USING ERRCODE = '23503';
+	    END IF;
+	    IF v_producto_eliminado THEN
+	        RAISE EXCEPTION 'El producto % está eliminado', p_producto_id
+	            USING ERRCODE = '23514';
+	    END IF;
+	    IF NOT v_disponible THEN
+	        RAISE EXCEPTION 'El producto % no está disponible', p_producto_id
+	            USING ERRCODE = '23514';
+	    END IF;
+	    IF v_stock < p_cantidad THEN
+	        RAISE EXCEPTION 'Stock insuficiente para producto %: disponible %, solicitado %',
+	            p_producto_id, v_stock, p_cantidad USING ERRCODE = '23514';
+	    END IF;
+	
+	    PERFORM 1 FROM detalle_pedido
+	    WHERE pedido_id = p_pedido_id AND producto_id = p_producto_id;
+	    IF FOUND THEN
+	        RAISE EXCEPTION 'El producto % ya existe en el pedido %',
+	            p_producto_id, p_pedido_id USING ERRCODE = '23505';
+	    END IF;
+	
+	    -- Incluye duplicados eliminados; uq_detalle_pedido_pedido_producto es la
+	    -- garantía definitiva. El precio leído bajo bloqueo queda como histórico.
+	    -- Los triggers administran subtotal y total, sin otra definición en el CALL.
+	    INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
+	    VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio);
+	
+	    UPDATE producto
+	    SET stock = stock - p_cantidad
+	    WHERE id = p_producto_id;
+	END;
+	$$;
+2026-11-02 19:27:17.322 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.324 UTC [111] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.009 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:17.324 UTC [111] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.438 UTC [118] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.438 UTC [118] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.439 UTC [118] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.439 UTC [118] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.439 UTC [118] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.439 UTC [118] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.498 UTC [118] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.059 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:17.498 UTC [118] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.609 UTC [125] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.609 UTC [125] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.610 UTC [125] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.610 UTC [125] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.610 UTC [125] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.610 UTC [125] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.613 UTC [125] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.004 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:17.613 UTC [125] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.726 UTC [132] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.726 UTC [132] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.727 UTC [132] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.727 UTC [132] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.727 UTC [132] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.727 UTC [132] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.728 UTC [132] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE VIEW v_productos_vigentes AS
+	SELECT
+	    p.id AS producto_id,
+	    p.nombre AS producto_nombre,
+	    p.descripcion,
+	    p.precio,
+	    p.stock,
+	    p.disponible,
+	    c.id AS categoria_id,
+	    c.nombre AS categoria_nombre
+	FROM producto p
+	JOIN categoria c
+	    ON c.id = p.categoria_id
+	WHERE p.eliminado = FALSE
+	  AND c.eliminado = FALSE;
+2026-11-02 19:27:17.728 UTC [132] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.731 UTC [132] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE VIEW v_pedidos_resumen AS
+	SELECT
+	    ped.id AS pedido_id,
+	    u.id AS usuario_id,
+	    u.nombre || ' ' || u.apellido AS usuario,
+	    ped.fecha,
+	    ped.estado,
+	    ped.forma_pago,
+	    ped.total
+	FROM pedido ped
+	JOIN usuario u
+	    ON u.id = ped.usuario_id
+	WHERE ped.eliminado = FALSE;
+2026-11-02 19:27:17.731 UTC [132] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.733 UTC [132] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE VIEW v_pedido_detalle AS
+	SELECT
+	    dp.id AS detalle_id,
+	    dp.pedido_id,
+	    dp.producto_id,
+	    p.nombre AS producto_nombre,
+	    dp.cantidad,
+	    dp.precio_unitario,
+	    dp.subtotal
+	FROM detalle_pedido dp
+	JOIN producto p
+	    ON p.id = dp.producto_id
+	WHERE dp.eliminado = FALSE;
+2026-11-02 19:27:17.733 UTC [132] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.735 UTC [132] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE VIEW v_usuarios_publico AS
+	SELECT
+	    id,
+	    nombre,
+	    apellido,
+	    mail,
+	    rol
+	FROM usuario
+	WHERE eliminado = FALSE;
+2026-11-02 19:27:17.735 UTC [132] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.737 UTC [132] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.010 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:17.737 UTC [132] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.838 UTC [139] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.838 UTC [139] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.838 UTC [139] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.838 UTC [139] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.838 UTC [139] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.838 UTC [139] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.839 UTC [139] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE MATERIALIZED VIEW mv_facturacion_categoria_mes AS
+	SELECT
+	    c.id AS categoria_id,
+	    c.nombre AS categoria_nombre,
+	    date_trunc('month', ped.fecha)::date AS mes,
+	    COUNT(DISTINCT ped.id) AS cantidad_pedidos,
+	    SUM(dp.cantidad) AS unidades_vendidas,
+	    SUM(dp.subtotal) AS facturacion_total
+	FROM categoria c
+	JOIN producto pr
+	    ON pr.categoria_id = c.id
+	JOIN detalle_pedido dp
+	    ON dp.producto_id = pr.id
+	JOIN pedido ped
+	    ON ped.id = dp.pedido_id
+	WHERE dp.eliminado = FALSE
+	  AND ped.eliminado = FALSE
+	GROUP BY
+	    c.id,
+	    c.nombre,
+	    date_trunc('month', ped.fecha)::date
+	WITH DATA;
+2026-11-02 19:27:17.839 UTC [139] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.846 UTC [139] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE UNIQUE INDEX idx_mv_facturacion_categoria_mes_unique
+	    ON mv_facturacion_categoria_mes (categoria_id, mes);
+2026-11-02 19:27:17.846 UTC [139] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:17.848 UTC [139] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.010 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:17.848 UTC [139] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:17.989 UTC [146] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:17.989 UTC [146] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:17.990 UTC [146] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:17.990 UTC [146] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:17.990 UTC [146] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:17.990 UTC [146] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:17.991 UTC [146] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE EXTENSION pgcrypto WITH SCHEMA public;
+2026-11-02 19:27:17.991 UTC [146] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.000 UTC [146] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.011 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:18.000 UTC [146] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:18.125 UTC [153] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:18.125 UTC [153] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:18.126 UTC [153] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:18.126 UTC [153] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:18.126 UTC [153] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=u5_control
+2026-11-02 19:27:18.126 UTC [153] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:18.163 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.verificar(p_caso text, p_consulta text, p_esperado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_obs text;
+	BEGIN
+	    EXECUTE p_consulta INTO v_obs;
+	    IF v_obs IS DISTINCT FROM p_esperado THEN
+	        RAISE NOTICE 'RESULT|%|FAIL|esperado=% observado=%|aserción',
+	            p_caso, p_esperado, coalesce(v_obs, 'NULL');
+	        RAISE EXCEPTION 'Aserción fallida: %; detener y preservar diagnóstico', p_caso;
+	    END IF;
+	    RAISE NOTICE 'RESULT|%|%|esperado=% observado=%|aserción',
+	        p_caso, 'PASS', p_esperado, v_obs;
+	END $f$;
+2026-11-02 19:27:18.163 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.165 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_error(p_caso text, p_sentencia text, p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text;
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	        -- También revierte un éxito inesperado: no contamina los siguientes casos.
+	        RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'control interno del arnés';
+	    EXCEPTION WHEN SQLSTATE 'ZX001' THEN v_estado := 'sin_error';
+	              WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), p_estado);
+	END $f$;
+2026-11-02 19:27:18.165 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.166 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_ok(p_caso text, p_sentencia text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	    EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), 'sin_error');
+	END $f$;
+2026-11-02 19:27:18.166 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.167 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.id(p_ref text)
+	RETURNS bigint LANGUAGE sql STABLE AS $f$
+	    SELECT current_setting('u5.' || p_ref)::bigint
+	$f$;
+2026-11-02 19:27:18.167 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.168 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.sin_fixtures(p_caso text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	BEGIN
+	    PERFORM pg_temp.verificar(p_caso, $q$
+	        SELECT (NOT EXISTS (SELECT FROM public.categoria WHERE nombre = '__U5_VERIFICACION__')
+	            AND NOT EXISTS (SELECT FROM public.usuario WHERE mail LIKE 'u5.verificacion.%@ejemplo.test')
+	            AND NOT EXISTS (SELECT FROM public.producto
+	                WHERE left(nombre,length('__U5_VERIFICACION_'))='__U5_VERIFICACION_')
+	            AND NOT EXISTS (SELECT FROM public.pedido
+	                WHERE id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	                   OR usuario_id IN (pg_temp.id('u1'),pg_temp.id('u2'),pg_temp.id('ua')))
+	            AND NOT EXISTS (SELECT FROM public.detalle_pedido
+	                WHERE pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))))::text
+	    $q$, 'true');
+	END $f$;
+2026-11-02 19:27:18.168 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.171 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE TEMP VIEW u5_huella AS
+	WITH tablas AS (
+	    SELECT c.* FROM pg_class c WHERE c.relnamespace = 'public'::regnamespace
+	      AND c.relname IN ('categoria','usuario','producto','pedido','detalle_pedido')
+	), rutinas AS (
+	    SELECT p.* FROM pg_proc p WHERE p.oid IN (
+	        to_regprocedure('public.registrar_detalle_pedido(bigint,bigint,integer)'),
+	        to_regprocedure('public.calcular_total_pedido(bigint)'),
+	        to_regprocedure('public.fn_set_subtotal()'),
+	        to_regprocedure('public.fn_validar_detalle_vigente()'),
+	        to_regprocedure('public.fn_recalcular_total_insert()'),
+	        to_regprocedure('public.fn_recalcular_total_update()'),
+	        to_regprocedure('public.fn_recalcular_total_delete()'))
+	)
+	SELECT 'rutina'::text AS clase, p.oid::regprocedure::text AS clave,
+	       concat_ws('|', pg_get_userbyid(p.proowner), p.prosecdef::text,
+	           coalesce(array_to_string(p.proconfig, ';'), 'NULL'),
+	           md5(pg_get_functiondef(p.oid))) AS valor FROM rutinas p
+	UNION ALL
+	SELECT 'rutina_acl', p.oid::regprocedure::text, coalesce(p.proacl::text, 'NULL') FROM rutinas p
+	UNION ALL
+	SELECT 'base',datname::text,pg_get_userbyid(datdba)::text
+	FROM pg_database WHERE datname=current_database()
+	UNION ALL
+	SELECT 'esquema','public',pg_get_userbyid(nspowner)::text FROM pg_namespace WHERE nspname='public'
+	UNION ALL
+	SELECT 'tabla', c.relname::text, concat_ws('|', c.relkind::text, pg_get_userbyid(c.relowner))
+	FROM tablas c
+	UNION ALL
+	SELECT 'columna', c.relname || '.' || a.attname,
+	       concat_ws('|', a.attnum::text, format_type(a.atttypid,a.atttypmod), a.attnotnull::text,
+	           a.attidentity::text, a.attgenerated::text, coalesce(pg_get_expr(d.adbin,d.adrelid),''))
+	FROM tablas c JOIN pg_attribute a ON a.attrelid = c.oid
+	LEFT JOIN pg_attrdef d ON d.adrelid = a.attrelid AND d.adnum = a.attnum
+	WHERE a.attnum > 0 AND NOT a.attisdropped
+	UNION ALL
+	SELECT 'restriccion', k.conrelid::regclass || '.' || k.conname,
+	       pg_get_constraintdef(k.oid) || '|' || k.convalidated::text
+	FROM pg_constraint k WHERE k.conrelid IN (SELECT oid FROM tablas)
+	UNION ALL
+	SELECT 'indice', i.indexrelid::regclass::text, pg_get_indexdef(i.indexrelid)
+	FROM pg_index i WHERE i.indrelid IN (SELECT oid FROM tablas)
+	UNION ALL
+	SELECT 'trigger', t.tgrelid::regclass || '.' || t.tgname,
+	       concat_ws('|', t.tgfoid::regprocedure::text, t.tgenabled::text, pg_get_triggerdef(t.oid))
+	FROM pg_trigger t WHERE NOT t.tgisinternal AND t.tgrelid IN (SELECT oid FROM tablas)
+	UNION ALL
+	SELECT 'secuencia', s.oid::regclass::text,
+	       concat_ws('|', pg_get_userbyid(s.relowner), coalesce(s.relacl::text,'NULL'))
+	FROM pg_class s WHERE s.oid IN (
+	    SELECT pg_get_serial_sequence('public.' || relname, 'id')::regclass FROM tablas)
+	UNION ALL
+	SELECT 'tipo', t.typname::text, pg_get_userbyid(t.typowner) || '|' ||
+	       (SELECT string_agg(e.enumlabel, ',' ORDER BY e.enumsortorder)
+	        FROM pg_enum e WHERE e.enumtypid = t.oid)
+	FROM pg_type t WHERE t.typnamespace = 'public'::regnamespace
+	AND t.typname IN ('rol','forma_pago','estado_pedido')
+	UNION ALL
+	SELECT 'vista_u3', n.nspname || '.' || c.relname,
+	       concat_ws('|', c.relkind::text, pg_get_userbyid(c.relowner), pg_get_viewdef(c.oid),
+	                     coalesce(c.reloptions::text,'NULL'))
+	FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+	WHERE n.nspname IN ('public','reportes') AND c.relkind IN ('v','m')
+	AND c.relname IN ('v_productos_vigentes','v_usuarios_publico','v_pedidos_resumen',
+	                 'v_pedido_detalle','mv_facturacion_categoria_mes');
+2026-11-02 19:27:18.171 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.177 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_f0 AS SELECT * FROM pg_temp.u5_huella;
+2026-11-02 19:27:18.177 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.192 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_vp01_roles AS SELECT rolname::text AS rol FROM pg_roles;
+2026-11-02 19:27:18.192 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.194 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_vp02 AS
+	SELECT p.oid::regprocedure::text AS firma, p.proowner, pg_get_userbyid(p.proowner) AS propietario
+	FROM pg_proc p JOIN pg_temp.u5_f0 f ON f.clase = 'rutina' AND f.clave = p.oid::regprocedure::text;
+2026-11-02 19:27:18.194 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE rol_app_lectura NOLOGIN INHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE rol_app_escritura NOLOGIN INHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE rol_soporte NOLOGIN INHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE rol_reportes NOLOGIN INHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE rol_app_autenticacion NOLOGIN INHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE rol_propietario_ventas NOLOGIN NOINHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE rol_propietario_credenciales NOLOGIN NOINHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE app_web LOGIN INHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.244 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE admin_datos LOGIN INHERIT
+	    NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_app_lectura TO app_web WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_app_escritura TO app_web WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_app_autenticacion TO app_web WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE SCHEMA IF NOT EXISTS reportes;
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT USAGE ON SCHEMA reportes TO rol_reportes;
+2026-11-02 19:27:18.245 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT USAGE, CREATE ON SCHEMA reportes TO admin_datos;
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT USAGE ON SCHEMA public TO rol_app_lectura, rol_app_escritura, rol_soporte,
+	    rol_app_autenticacion, rol_propietario_ventas, rol_propietario_credenciales, admin_datos;
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT ON public.v_productos_vigentes TO rol_app_lectura;
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT INSERT (usuario_id, forma_pago) ON public.pedido TO rol_app_escritura;
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT (id) ON public.pedido TO rol_app_escritura;
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT ON public.v_usuarios_publico, public.v_pedidos_resumen TO rol_soporte;
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT (id, usuario_id, eliminado) ON public.pedido TO rol_propietario_ventas;
+2026-11-02 19:27:18.246 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT UPDATE (total) ON public.pedido TO rol_propietario_ventas;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT (id, eliminado) ON public.usuario TO rol_propietario_ventas;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT UPDATE (celular) ON public.usuario TO rol_propietario_ventas;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT (id, precio, stock, disponible, eliminado) ON public.producto TO rol_propietario_ventas;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT UPDATE (stock) ON public.producto TO rol_propietario_ventas;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT (pedido_id, producto_id, subtotal, eliminado) ON public.detalle_pedido
+	    TO rol_propietario_ventas;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT INSERT (pedido_id, producto_id, cantidad, precio_unitario) ON public.detalle_pedido
+	    TO rol_propietario_ventas;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT (id, mail, contrasena, rol, eliminado) ON public.usuario
+	    TO rol_propietario_credenciales;
+2026-11-02 19:27:18.247 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT UPDATE (contrasena) ON public.usuario TO rol_propietario_credenciales;
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT ON public.categoria, public.producto, public.pedido, public.detalle_pedido
+	    TO admin_datos;
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT SELECT (id, rol, eliminado, created_at) ON public.usuario TO admin_datos;
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE EXECUTE ON PROCEDURE public.registrar_detalle_pedido(BIGINT, BIGINT, INTEGER) FROM PUBLIC;
+2026-11-02 19:27:18.248 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE EXECUTE ON FUNCTION public.calcular_total_pedido(BIGINT) FROM PUBLIC;
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT EXECUTE ON PROCEDURE public.registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)
+	    TO rol_propietario_ventas;
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT EXECUTE ON FUNCTION public.calcular_total_pedido(BIGINT) TO rol_propietario_ventas;
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE EXECUTE ON FUNCTION public.fn_set_subtotal() FROM PUBLIC;
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE EXECUTE ON FUNCTION public.fn_validar_detalle_vigente() FROM PUBLIC;
+2026-11-02 19:27:18.249 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE EXECUTE ON FUNCTION public.fn_recalcular_total_insert() FROM PUBLIC;
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE EXECUTE ON FUNCTION public.fn_recalcular_total_update() FROM PUBLIC;
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE EXECUTE ON FUNCTION public.fn_recalcular_total_delete() FROM PUBLIC;
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: ALTER DEFAULT PRIVILEGES FOR ROLE admin_datos IN SCHEMA reportes
+	    GRANT SELECT ON TABLES TO rol_reportes;
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: ALTER DEFAULT PRIVILEGES FOR ROLE admin_datos
+	    REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
+2026-11-02 19:27:18.250 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.254 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION public.api_registrar_detalle_pedido(
+	    p_pedido_id   BIGINT,
+	    p_producto_id BIGINT,
+	    p_cantidad    INTEGER
+	)
+	RETURNS VOID
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	SET search_path = public, pg_temp
+	AS $$
+	BEGIN
+	    -- Referencia calificada; el procedimiento canónico hereda este search_path
+	    CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad);
+	END;
+	$$;
+2026-11-02 19:27:18.254 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: ALTER FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)
+	    OWNER TO rol_propietario_ventas;
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE ALL ON FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER) FROM PUBLIC;
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT EXECUTE ON FUNCTION public.api_registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)
+	    TO rol_app_escritura;
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION public.fn_autenticar(
+	    p_mail       TEXT,
+	    p_contrasena TEXT
+	)
+	RETURNS TABLE(usuario_id BIGINT, rol public.rol)
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	SET search_path = public, pg_temp
+	AS $$
+	DECLARE
+	    v_hash TEXT;
+	BEGIN
+	    -- Validaciones defensivas: rechazar antes de consultar
+	    IF p_mail IS NULL OR trim(p_mail) = '' THEN
+	        RAISE EXCEPTION 'Credenciales inválidas' USING ERRCODE = '28P01';
+	    END IF;
+	    IF p_contrasena IS NULL OR trim(p_contrasena) = '' THEN
+	        RAISE EXCEPTION 'Credenciales inválidas' USING ERRCODE = '28P01';
+	    END IF;
+	
+	    SELECT u.contrasena INTO v_hash
+	    FROM public.usuario u
+	    WHERE u.mail = p_mail AND u.eliminado = FALSE;
+	
+	    -- Usuario inexistente/eliminado o hash inválido: cero filas sin revelar la causa.
+	    IF NOT FOUND
+	       OR v_hash IS NULL
+	       OR v_hash !~ '^\$2a\$(0[4-9]|[12][0-9]|3[01])\$[./A-Za-z0-9]{53}$' THEN
+	        PERFORM public.crypt(p_contrasena, public.gen_salt('bf'));
+	        RETURN;
+	    END IF;
+	
+	    RETURN QUERY
+	    SELECT u.id, u.rol
+	    FROM public.usuario u
+	    WHERE u.mail = p_mail
+	      AND u.eliminado = FALSE
+	      AND u.contrasena = public.crypt(p_contrasena, v_hash);
+	END;
+	$$;
+2026-11-02 19:27:18.255 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: ALTER FUNCTION public.fn_autenticar(TEXT, TEXT)
+	    OWNER TO rol_propietario_credenciales;
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE ALL ON FUNCTION public.fn_autenticar(TEXT, TEXT) FROM PUBLIC;
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT EXECUTE ON FUNCTION public.fn_autenticar(TEXT, TEXT) TO rol_app_autenticacion;
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION public.fn_resetear_password(
+	    p_usuario_id BIGINT,
+	    p_nueva      TEXT
+	)
+	RETURNS VOID
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	SET search_path = public, pg_temp
+	AS $$
+	DECLARE
+	    v_rol_usuario public.usuario.rol%TYPE;
+	BEGIN
+	    -- D8: contraseña nueva no nula ni vacía
+	    IF p_nueva IS NULL OR trim(p_nueva) = '' THEN
+	        RAISE EXCEPTION 'La contraseña nueva no puede ser nula ni vacía'
+	            USING ERRCODE = '22023';
+	    END IF;
+	
+	    -- FOR UPDATE serializa la validación del rol y la actualización
+	    SELECT u.rol INTO v_rol_usuario
+	    FROM public.usuario u
+	    WHERE u.id = p_usuario_id AND u.eliminado = FALSE
+	    FOR UPDATE;
+	
+	    IF NOT FOUND THEN
+	        RAISE EXCEPTION 'El usuario % no existe o está eliminado', p_usuario_id
+	            USING ERRCODE = '23503';
+	    END IF;
+	
+	    IF v_rol_usuario = 'ADMIN' THEN
+	        RAISE EXCEPTION 'Soporte no puede resetear contraseñas de cuentas ADMIN'
+	            USING ERRCODE = '42501';
+	    END IF;
+	
+	    UPDATE public.usuario
+	    SET contrasena = public.crypt(p_nueva, public.gen_salt('bf'))
+	    WHERE id = p_usuario_id
+	      AND eliminado = FALSE;
+	END;
+	$$;
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: ALTER FUNCTION public.fn_resetear_password(BIGINT, TEXT)
+	    OWNER TO rol_propietario_credenciales;
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: REVOKE ALL ON FUNCTION public.fn_resetear_password(BIGINT, TEXT) FROM PUBLIC;
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT EXECUTE ON FUNCTION public.fn_resetear_password(BIGINT, TEXT) TO rol_soporte;
+2026-11-02 19:27:18.256 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.259 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.verificar(p_caso text, p_consulta text, p_esperado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_obs text;
+	BEGIN
+	    EXECUTE p_consulta INTO v_obs;
+	    IF v_obs IS DISTINCT FROM p_esperado THEN
+	        RAISE NOTICE 'RESULT|%|FAIL|esperado=% observado=%|aserción',
+	            p_caso, p_esperado, coalesce(v_obs, 'NULL');
+	        RAISE EXCEPTION 'Aserción fallida: %; detener y preservar diagnóstico', p_caso;
+	    END IF;
+	    RAISE NOTICE 'RESULT|%|%|esperado=% observado=%|aserción',
+	        p_caso, 'PASS', p_esperado, v_obs;
+	END $f$;
+2026-11-02 19:27:18.259 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.259 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_error(p_caso text, p_sentencia text, p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text;
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	        -- También revierte un éxito inesperado: no contamina los siguientes casos.
+	        RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'control interno del arnés';
+	    EXCEPTION WHEN SQLSTATE 'ZX001' THEN v_estado := 'sin_error';
+	              WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), p_estado);
+	END $f$;
+2026-11-02 19:27:18.259 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.260 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_ok(p_caso text, p_sentencia text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	    EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), 'sin_error');
+	END $f$;
+2026-11-02 19:27:18.260 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.261 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.id(p_ref text)
+	RETURNS bigint LANGUAGE sql STABLE AS $f$
+	    SELECT current_setting('u5.' || p_ref)::bigint
+	$f$;
+2026-11-02 19:27:18.261 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.262 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.sin_fixtures(p_caso text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	BEGIN
+	    PERFORM pg_temp.verificar(p_caso, $q$
+	        SELECT (NOT EXISTS (SELECT FROM public.categoria WHERE nombre = '__U5_VERIFICACION__')
+	            AND NOT EXISTS (SELECT FROM public.usuario WHERE mail LIKE 'u5.verificacion.%@ejemplo.test')
+	            AND NOT EXISTS (SELECT FROM public.producto
+	                WHERE left(nombre,length('__U5_VERIFICACION_'))='__U5_VERIFICACION_')
+	            AND NOT EXISTS (SELECT FROM public.pedido
+	                WHERE id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	                   OR usuario_id IN (pg_temp.id('u1'),pg_temp.id('u2'),pg_temp.id('ua')))
+	            AND NOT EXISTS (SELECT FROM public.detalle_pedido
+	                WHERE pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))))::text
+	    $q$, 'true');
+	END $f$;
+2026-11-02 19:27:18.262 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.263 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP VIEW u5_diferencias_f0_f1 AS
+	SELECT 'F0-F1'::text AS sentido, d.* FROM (
+	    SELECT * FROM pg_temp.u5_f0 WHERE clase <> 'rutina_acl'
+	    EXCEPT SELECT * FROM pg_temp.u5_huella WHERE clase <> 'rutina_acl') d
+	UNION ALL
+	SELECT 'F1-F0', d.* FROM (
+	    SELECT * FROM pg_temp.u5_huella h WHERE clase <> 'rutina_acl'
+	      -- §4.2 permite crear la materializada NUEVA en reportes si no existía.
+	      -- Una U3 ya presente nunca se mueve ni se excluye de la comparación.
+	      AND NOT (h.clase='vista_u3' AND h.clave='reportes.mv_facturacion_categoria_mes'
+	       AND NOT EXISTS (SELECT FROM pg_temp.u5_f0 f WHERE f.clase='vista_u3'
+	        AND f.clave IN ('public.mv_facturacion_categoria_mes','reportes.mv_facturacion_categoria_mes')))
+	    EXCEPT SELECT * FROM pg_temp.u5_f0 WHERE clase <> 'rutina_acl') d;
+2026-11-02 19:27:18.263 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.292 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.verificar(p_caso text, p_consulta text, p_esperado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_obs text;
+	BEGIN
+	    EXECUTE p_consulta INTO v_obs;
+	    IF v_obs IS DISTINCT FROM p_esperado THEN
+	        RAISE NOTICE 'RESULT|%|FAIL|esperado=% observado=%|aserción',
+	            p_caso, p_esperado, coalesce(v_obs, 'NULL');
+	        RAISE EXCEPTION 'Aserción fallida: %; detener y preservar diagnóstico', p_caso;
+	    END IF;
+	    RAISE NOTICE 'RESULT|%|%|esperado=% observado=%|aserción',
+	        p_caso, 'PASS', p_esperado, v_obs;
+	END $f$;
+2026-11-02 19:27:18.292 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.293 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_error(p_caso text, p_sentencia text, p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text;
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	        -- También revierte un éxito inesperado: no contamina los siguientes casos.
+	        RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'control interno del arnés';
+	    EXCEPTION WHEN SQLSTATE 'ZX001' THEN v_estado := 'sin_error';
+	              WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), p_estado);
+	END $f$;
+2026-11-02 19:27:18.293 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.294 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_ok(p_caso text, p_sentencia text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	    EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), 'sin_error');
+	END $f$;
+2026-11-02 19:27:18.294 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.295 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.id(p_ref text)
+	RETURNS bigint LANGUAGE sql STABLE AS $f$
+	    SELECT current_setting('u5.' || p_ref)::bigint
+	$f$;
+2026-11-02 19:27:18.295 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.296 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.sin_fixtures(p_caso text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	BEGIN
+	    PERFORM pg_temp.verificar(p_caso, $q$
+	        SELECT (NOT EXISTS (SELECT FROM public.categoria WHERE nombre = '__U5_VERIFICACION__')
+	            AND NOT EXISTS (SELECT FROM public.usuario WHERE mail LIKE 'u5.verificacion.%@ejemplo.test')
+	            AND NOT EXISTS (SELECT FROM public.producto
+	                WHERE left(nombre,length('__U5_VERIFICACION_'))='__U5_VERIFICACION_')
+	            AND NOT EXISTS (SELECT FROM public.pedido
+	                WHERE id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	                   OR usuario_id IN (pg_temp.id('u1'),pg_temp.id('u2'),pg_temp.id('ua')))
+	            AND NOT EXISTS (SELECT FROM public.detalle_pedido
+	                WHERE pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))))::text
+	    $q$, 'true');
+	END $f$;
+2026-11-02 19:27:18.296 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.297 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_roles(rol text PRIMARY KEY, login boolean, hereda boolean);
+2026-11-02 19:27:18.297 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.298 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_roles VALUES
+	 ('rol_app_lectura',false,true), ('rol_app_escritura',false,true),
+	 ('rol_app_autenticacion',false,true), ('rol_soporte',false,true), ('rol_reportes',false,true),
+	 ('rol_propietario_ventas',false,false), ('rol_propietario_credenciales',false,false),
+	 ('app_web',true,true), ('admin_datos',true,true);
+2026-11-02 19:27:18.298 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.300 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_membresias_esperadas(rol text, miembro text, administra boolean, hereda boolean, asume boolean);
+2026-11-02 19:27:18.300 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.302 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_membresias_esperadas VALUES
+	 ('rol_app_lectura','app_web',false,true,false), ('rol_app_escritura','app_web',false,true,false),
+	 ('rol_app_autenticacion','app_web',false,true,false);
+2026-11-02 19:27:18.302 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.303 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP VIEW u5_membresias AS
+	SELECT pg_get_userbyid(m.roleid)::text AS rol, pg_get_userbyid(m.member)::text AS miembro,
+	       m.admin_option AS administra, m.inherit_option AS hereda, m.set_option AS asume
+	FROM pg_auth_members m
+	WHERE m.roleid IN (SELECT p.oid FROM pg_roles p JOIN pg_temp.u5_roles u ON u.rol=p.rolname)
+	   OR m.member IN (SELECT p.oid FROM pg_roles p JOIN pg_temp.u5_roles u ON u.rol=p.rolname);
+2026-11-02 19:27:18.303 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.311 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.verificar(p_caso text, p_consulta text, p_esperado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_obs text;
+	BEGIN
+	    EXECUTE p_consulta INTO v_obs;
+	    IF v_obs IS DISTINCT FROM p_esperado THEN
+	        RAISE NOTICE 'RESULT|%|FAIL|esperado=% observado=%|aserción',
+	            p_caso, p_esperado, coalesce(v_obs, 'NULL');
+	        RAISE EXCEPTION 'Aserción fallida: %; detener y preservar diagnóstico', p_caso;
+	    END IF;
+	    RAISE NOTICE 'RESULT|%|%|esperado=% observado=%|aserción',
+	        p_caso, 'PASS', p_esperado, v_obs;
+	END $f$;
+2026-11-02 19:27:18.311 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.312 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_error(p_caso text, p_sentencia text, p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text;
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	        -- También revierte un éxito inesperado: no contamina los siguientes casos.
+	        RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'control interno del arnés';
+	    EXCEPTION WHEN SQLSTATE 'ZX001' THEN v_estado := 'sin_error';
+	              WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), p_estado);
+	END $f$;
+2026-11-02 19:27:18.312 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.312 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_ok(p_caso text, p_sentencia text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	    EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), 'sin_error');
+	END $f$;
+2026-11-02 19:27:18.312 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.313 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.id(p_ref text)
+	RETURNS bigint LANGUAGE sql STABLE AS $f$
+	    SELECT current_setting('u5.' || p_ref)::bigint
+	$f$;
+2026-11-02 19:27:18.313 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.314 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.sin_fixtures(p_caso text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	BEGIN
+	    PERFORM pg_temp.verificar(p_caso, $q$
+	        SELECT (NOT EXISTS (SELECT FROM public.categoria WHERE nombre = '__U5_VERIFICACION__')
+	            AND NOT EXISTS (SELECT FROM public.usuario WHERE mail LIKE 'u5.verificacion.%@ejemplo.test')
+	            AND NOT EXISTS (SELECT FROM public.producto
+	                WHERE left(nombre,length('__U5_VERIFICACION_'))='__U5_VERIFICACION_')
+	            AND NOT EXISTS (SELECT FROM public.pedido
+	                WHERE id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	                   OR usuario_id IN (pg_temp.id('u1'),pg_temp.id('u2'),pg_temp.id('ua')))
+	            AND NOT EXISTS (SELECT FROM public.detalle_pedido
+	                WHERE pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))))::text
+	    $q$, 'true');
+	END $f$;
+2026-11-02 19:27:18.314 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.315 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_mv AS
+	SELECT c.oid, n.nspname::text AS esquema, c.relname::text AS nombre
+	FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+	WHERE c.relname='mv_facturacion_categoria_mes' AND c.relkind='m'
+	AND n.nspname IN ('public','reportes');
+2026-11-02 19:27:18.315 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.317 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_esperado(
+	 clase text, rol text, objeto text, columna text, privilegio text, delegable boolean DEFAULT false);
+2026-11-02 19:27:18.317 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.318 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_esperado(clase,rol,objeto,columna,privilegio) VALUES
+	 ('tabla','admin_datos','public.categoria','','SELECT'),
+	 ('tabla','admin_datos','public.producto','','SELECT'),
+	 ('tabla','admin_datos','public.pedido','','SELECT'),
+	 ('tabla','admin_datos','public.detalle_pedido','','SELECT'),
+	 ('tabla','rol_app_lectura','public.v_productos_vigentes','','SELECT'),
+	 ('tabla','rol_soporte','public.v_usuarios_publico','','SELECT'),
+	 ('tabla','rol_soporte','public.v_pedidos_resumen','','SELECT');
+2026-11-02 19:27:18.318 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.319 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_esperado(clase,rol,objeto,columna,privilegio)
+	SELECT 'tabla',r.rol, m.esquema||'.'||m.nombre,'','SELECT'
+	FROM pg_temp.u5_mv m CROSS JOIN (VALUES ('rol_reportes'),('admin_datos')) r(rol);
+2026-11-02 19:27:18.319 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.321 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_esperado(clase,rol,objeto,columna,privilegio)
+	SELECT 'columna',rol,'public.'||tabla,columna,privilegio FROM (VALUES
+	 ('rol_app_escritura','pedido','INSERT',ARRAY['usuario_id','forma_pago']),
+	 ('rol_app_escritura','pedido','SELECT',ARRAY['id']),
+	 ('rol_propietario_ventas','pedido','SELECT',ARRAY['id','usuario_id','eliminado']),
+	 ('rol_propietario_ventas','pedido','UPDATE',ARRAY['total']),
+	 ('rol_propietario_ventas','usuario','SELECT',ARRAY['id','eliminado']),
+	 ('rol_propietario_ventas','usuario','UPDATE',ARRAY['celular']),
+	 ('rol_propietario_ventas','producto','SELECT',ARRAY['id','precio','stock','disponible','eliminado']),
+	 ('rol_propietario_ventas','producto','UPDATE',ARRAY['stock']),
+	 ('rol_propietario_ventas','detalle_pedido','SELECT',ARRAY['pedido_id','producto_id','subtotal','eliminado']),
+	 ('rol_propietario_ventas','detalle_pedido','INSERT',ARRAY['pedido_id','producto_id','cantidad','precio_unitario']),
+	 ('rol_propietario_credenciales','usuario','SELECT',ARRAY['id','mail','contrasena','rol','eliminado']),
+	 ('rol_propietario_credenciales','usuario','UPDATE',ARRAY['contrasena']),
+	 ('admin_datos','usuario','SELECT',ARRAY['id','rol','eliminado','created_at'])
+	) e(rol,tabla,privilegio,columnas) CROSS JOIN LATERAL unnest(columnas) c(columna);
+2026-11-02 19:27:18.321 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.321 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_esperado(clase,rol,objeto,columna,privilegio)
+	SELECT 'esquema',rol,'public','','USAGE' FROM pg_temp.u5_roles
+	WHERE rol NOT IN ('app_web','rol_reportes');
+2026-11-02 19:27:18.321 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.322 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_esperado(clase,rol,objeto,columna,privilegio)
+	SELECT 'esquema','rol_reportes','public','','USAGE' FROM pg_temp.u5_mv WHERE esquema='public';
+2026-11-02 19:27:18.322 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.322 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_esperado(clase,rol,objeto,columna,privilegio) VALUES
+	 ('esquema','rol_reportes','reportes','','USAGE'),
+	 ('esquema','admin_datos','reportes','','USAGE'),
+	 ('esquema','admin_datos','reportes','','CREATE');
+2026-11-02 19:27:18.322 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.322 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_rutinas(firma text PRIMARY KEY, beneficiario text);
+2026-11-02 19:27:18.322 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.324 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_rutinas VALUES
+	 ('public.registrar_detalle_pedido(bigint,bigint,integer)','rol_propietario_ventas'),
+	 ('public.calcular_total_pedido(bigint)','rol_propietario_ventas'),
+	 ('public.fn_set_subtotal()',NULL), ('public.fn_validar_detalle_vigente()',NULL),
+	 ('public.fn_recalcular_total_insert()',NULL), ('public.fn_recalcular_total_update()',NULL),
+	 ('public.fn_recalcular_total_delete()',NULL),
+	 ('public.api_registrar_detalle_pedido(bigint,bigint,integer)','rol_app_escritura'),
+	 ('public.fn_autenticar(text,text)','rol_app_autenticacion'),
+	 ('public.fn_resetear_password(bigint,text)','rol_soporte');
+2026-11-02 19:27:18.324 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.325 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO pg_temp.u5_esperado(clase,rol,objeto,columna,privilegio)
+	SELECT 'rutina',r.beneficiario,r.firma,'','EXECUTE' FROM pg_temp.u5_rutinas r WHERE beneficiario IS NOT NULL
+	UNION
+	SELECT 'rutina', pg_get_userbyid(p.proowner), r.firma,'','EXECUTE'
+	FROM pg_temp.u5_rutinas r JOIN pg_proc p ON p.oid=to_regprocedure(r.firma);
+2026-11-02 19:27:18.325 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.326 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP VIEW u5_observado AS
+	SELECT 'tabla'::text AS clase, pg_get_userbyid(x.grantee)::text AS rol,
+	       n.nspname||'.'||c.relname AS objeto, ''::text AS columna,
+	       x.privilege_type AS privilegio, x.is_grantable AS delegable
+	FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+	CROSS JOIN LATERAL aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) x
+	WHERE n.nspname IN ('public','reportes') AND c.relkind IN ('r','v','m','S')
+	AND pg_get_userbyid(x.grantee) IN (SELECT rol FROM pg_temp.u5_roles)
+	UNION ALL
+	SELECT 'columna',pg_get_userbyid(x.grantee), n.nspname||'.'||c.relname,a.attname,
+	       x.privilege_type,x.is_grantable
+	FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+	JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+	CROSS JOIN LATERAL aclexplode(a.attacl) x
+	WHERE n.nspname IN ('public','reportes')
+	AND pg_get_userbyid(x.grantee) IN (SELECT rol FROM pg_temp.u5_roles)
+	UNION ALL
+	SELECT 'esquema',pg_get_userbyid(x.grantee),n.nspname,'',x.privilege_type,x.is_grantable
+	FROM pg_namespace n
+	CROSS JOIN LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) x
+	WHERE n.nspname IN ('public','reportes')
+	AND pg_get_userbyid(x.grantee) IN (SELECT rol FROM pg_temp.u5_roles)
+	UNION ALL
+	SELECT 'rutina',CASE WHEN x.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(x.grantee)::text END,
+	       r.firma,'',x.privilege_type,x.is_grantable
+	FROM pg_temp.u5_rutinas r JOIN pg_proc p ON p.oid=to_regprocedure(r.firma)
+	CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) x;
+2026-11-02 19:27:18.326 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.330 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP VIEW u5_diff_matriz AS
+	SELECT 'sobrante'::text AS sentido, d.* FROM
+	 (SELECT * FROM pg_temp.u5_observado EXCEPT SELECT * FROM pg_temp.u5_esperado) d
+	UNION ALL
+	SELECT 'faltante',d.* FROM
+	 (SELECT * FROM pg_temp.u5_esperado EXCEPT SELECT * FROM pg_temp.u5_observado) d;
+2026-11-02 19:27:18.330 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.441 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP VIEW u5_esperado_efectivo AS
+	SELECT clase,rol,objeto,columna,privilegio FROM pg_temp.u5_esperado
+	UNION
+	SELECT clase,'app_web',objeto,columna,privilegio FROM pg_temp.u5_esperado
+	WHERE rol IN ('rol_app_lectura','rol_app_escritura','rol_app_autenticacion');
+2026-11-02 19:27:18.441 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:18.999 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.verificar(p_caso text, p_consulta text, p_esperado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_obs text;
+	BEGIN
+	    EXECUTE p_consulta INTO v_obs;
+	    IF v_obs IS DISTINCT FROM p_esperado THEN
+	        RAISE NOTICE 'RESULT|%|FAIL|esperado=% observado=%|aserción',
+	            p_caso, p_esperado, coalesce(v_obs, 'NULL');
+	        RAISE EXCEPTION 'Aserción fallida: %; detener y preservar diagnóstico', p_caso;
+	    END IF;
+	    RAISE NOTICE 'RESULT|%|%|esperado=% observado=%|aserción',
+	        p_caso, 'PASS', p_esperado, v_obs;
+	END $f$;
+2026-11-02 19:27:18.999 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.001 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_error(p_caso text, p_sentencia text, p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text;
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	        -- También revierte un éxito inesperado: no contamina los siguientes casos.
+	        RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'control interno del arnés';
+	    EXCEPTION WHEN SQLSTATE 'ZX001' THEN v_estado := 'sin_error';
+	              WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), p_estado);
+	END $f$;
+2026-11-02 19:27:19.001 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.002 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_ok(p_caso text, p_sentencia text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	    EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), 'sin_error');
+	END $f$;
+2026-11-02 19:27:19.002 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.002 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.id(p_ref text)
+	RETURNS bigint LANGUAGE sql STABLE AS $f$
+	    SELECT current_setting('u5.' || p_ref)::bigint
+	$f$;
+2026-11-02 19:27:19.002 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.003 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.sin_fixtures(p_caso text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	BEGIN
+	    PERFORM pg_temp.verificar(p_caso, $q$
+	        SELECT (NOT EXISTS (SELECT FROM public.categoria WHERE nombre = '__U5_VERIFICACION__')
+	            AND NOT EXISTS (SELECT FROM public.usuario WHERE mail LIKE 'u5.verificacion.%@ejemplo.test')
+	            AND NOT EXISTS (SELECT FROM public.producto
+	                WHERE left(nombre,length('__U5_VERIFICACION_'))='__U5_VERIFICACION_')
+	            AND NOT EXISTS (SELECT FROM public.pedido
+	                WHERE id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	                   OR usuario_id IN (pg_temp.id('u1'),pg_temp.id('u2'),pg_temp.id('ua')))
+	            AND NOT EXISTS (SELECT FROM public.detalle_pedido
+	                WHERE pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))))::text
+	    $q$, 'true');
+	END $f$;
+2026-11-02 19:27:19.003 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.005 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.categoria(id,nombre) OVERRIDING SYSTEM VALUE
+	VALUES (pg_temp.id('c1'),'__U5_VERIFICACION__');
+2026-11-02 19:27:19.005 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.006 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.usuario(id,nombre,apellido,mail,contrasena,rol,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('u1'),'U5','Prueba','u5.verificacion.uno@ejemplo.test','SEED_NO_AUTH','USUARIO',false),
+	 (pg_temp.id('u2'),'U5','Baja','u5.verificacion.baja@ejemplo.test','SEED_NO_AUTH','USUARIO',true),
+	 (pg_temp.id('ua'),'U5','Admin','u5.verificacion.admin@ejemplo.test','SEED_NO_AUTH','ADMIN',false);
+2026-11-02 19:27:19.006 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.006 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.producto(id,nombre,precio,stock,disponible,eliminado,categoria_id)
+	OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('p1'),'__U5_VERIFICACION_P1',1250.50,10,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p2'),'__U5_VERIFICACION_P2',300,2,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p3'),'__U5_VERIFICACION_P3',100,5,false,false,pg_temp.id('c1')),
+	 (pg_temp.id('p4'),'__U5_VERIFICACION_P4',100,5,true,true,pg_temp.id('c1'));
+2026-11-02 19:27:19.006 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.007 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.pedido(id,usuario_id,forma_pago,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('o1'),pg_temp.id('u1'),'EFECTIVO',false),
+	 (pg_temp.id('o2'),pg_temp.id('u2'),'EFECTIVO',false),
+	 (pg_temp.id('o3'),pg_temp.id('u1'),'EFECTIVO',true);
+2026-11-02 19:27:19.007 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_soporte NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_reportes NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_sin_privilegios NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_soporte TO tst_u5_soporte WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_reportes TO tst_u5_reportes WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:19.008 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.027 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TABLE public.tst_u5_adp(x int);
+2026-11-02 19:27:19.027 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.028 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION reportes.tst_u5_control() RETURNS int LANGUAGE sql AS 'SELECT 1';
+2026-11-02 19:27:19.028 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.036 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: DROP OWNED BY tst_u5_soporte, tst_u5_reportes, tst_u5_sin_privilegios;
+2026-11-02 19:27:19.036 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.036 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: DROP ROLE tst_u5_soporte, tst_u5_reportes, tst_u5_sin_privilegios;
+2026-11-02 19:27:19.036 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.043 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.verificar(p_caso text, p_consulta text, p_esperado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_obs text;
+	BEGIN
+	    EXECUTE p_consulta INTO v_obs;
+	    IF v_obs IS DISTINCT FROM p_esperado THEN
+	        RAISE NOTICE 'RESULT|%|FAIL|esperado=% observado=%|aserción',
+	            p_caso, p_esperado, coalesce(v_obs, 'NULL');
+	        RAISE EXCEPTION 'Aserción fallida: %; detener y preservar diagnóstico', p_caso;
+	    END IF;
+	    RAISE NOTICE 'RESULT|%|%|esperado=% observado=%|aserción',
+	        p_caso, 'PASS', p_esperado, v_obs;
+	END $f$;
+2026-11-02 19:27:19.043 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.044 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_error(p_caso text, p_sentencia text, p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text;
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	        -- También revierte un éxito inesperado: no contamina los siguientes casos.
+	        RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'control interno del arnés';
+	    EXCEPTION WHEN SQLSTATE 'ZX001' THEN v_estado := 'sin_error';
+	              WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), p_estado);
+	END $f$;
+2026-11-02 19:27:19.044 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.045 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_ok(p_caso text, p_sentencia text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	    EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), 'sin_error');
+	END $f$;
+2026-11-02 19:27:19.045 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.046 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.id(p_ref text)
+	RETURNS bigint LANGUAGE sql STABLE AS $f$
+	    SELECT current_setting('u5.' || p_ref)::bigint
+	$f$;
+2026-11-02 19:27:19.046 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.047 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.sin_fixtures(p_caso text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	BEGIN
+	    PERFORM pg_temp.verificar(p_caso, $q$
+	        SELECT (NOT EXISTS (SELECT FROM public.categoria WHERE nombre = '__U5_VERIFICACION__')
+	            AND NOT EXISTS (SELECT FROM public.usuario WHERE mail LIKE 'u5.verificacion.%@ejemplo.test')
+	            AND NOT EXISTS (SELECT FROM public.producto
+	                WHERE left(nombre,length('__U5_VERIFICACION_'))='__U5_VERIFICACION_')
+	            AND NOT EXISTS (SELECT FROM public.pedido
+	                WHERE id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	                   OR usuario_id IN (pg_temp.id('u1'),pg_temp.id('u2'),pg_temp.id('ua')))
+	            AND NOT EXISTS (SELECT FROM public.detalle_pedido
+	                WHERE pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))))::text
+	    $q$, 'true');
+	END $f$;
+2026-11-02 19:27:19.047 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.048 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP VIEW u5_estado_venta AS
+	SELECT 'linea'::text AS tipo, d.pedido_id AS pedido, d.producto_id AS producto,
+	       d.cantidad, d.precio_unitario AS precio, d.subtotal,
+	       NULL::integer AS stock, NULL::numeric AS total, d.eliminado
+	FROM public.detalle_pedido d WHERE d.pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	UNION ALL
+	SELECT 'producto',NULL,p.id,NULL,p.precio,NULL,p.stock,NULL,p.eliminado
+	FROM public.producto p WHERE p.id IN (pg_temp.id('p1'),pg_temp.id('p2'),pg_temp.id('p3'),pg_temp.id('p4'))
+	UNION ALL
+	SELECT 'pedido',p.id,NULL,NULL,NULL,NULL,NULL,p.total,p.eliminado
+	FROM public.pedido p WHERE p.id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'));
+2026-11-02 19:27:19.048 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.051 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.categoria(id,nombre) OVERRIDING SYSTEM VALUE
+	VALUES (pg_temp.id('c1'),'__U5_VERIFICACION__');
+2026-11-02 19:27:19.051 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.051 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.usuario(id,nombre,apellido,mail,contrasena,rol,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('u1'),'U5','Prueba','u5.verificacion.uno@ejemplo.test','SEED_NO_AUTH','USUARIO',false),
+	 (pg_temp.id('u2'),'U5','Baja','u5.verificacion.baja@ejemplo.test','SEED_NO_AUTH','USUARIO',true),
+	 (pg_temp.id('ua'),'U5','Admin','u5.verificacion.admin@ejemplo.test','SEED_NO_AUTH','ADMIN',false);
+2026-11-02 19:27:19.051 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.051 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.producto(id,nombre,precio,stock,disponible,eliminado,categoria_id)
+	OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('p1'),'__U5_VERIFICACION_P1',1250.50,10,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p2'),'__U5_VERIFICACION_P2',300,2,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p3'),'__U5_VERIFICACION_P3',100,5,false,false,pg_temp.id('c1')),
+	 (pg_temp.id('p4'),'__U5_VERIFICACION_P4',100,5,true,true,pg_temp.id('c1'));
+2026-11-02 19:27:19.051 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.052 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.pedido(id,usuario_id,forma_pago,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('o1'),pg_temp.id('u1'),'EFECTIVO',false),
+	 (pg_temp.id('o2'),pg_temp.id('u2'),'EFECTIVO',false),
+	 (pg_temp.id('o3'),pg_temp.id('u1'),'EFECTIVO',true);
+2026-11-02 19:27:19.052 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.categoria(id,nombre) OVERRIDING SYSTEM VALUE
+	VALUES (pg_temp.id('c1'),'__U5_VERIFICACION__');
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.usuario(id,nombre,apellido,mail,contrasena,rol,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('u1'),'U5','Prueba','u5.verificacion.uno@ejemplo.test','SEED_NO_AUTH','USUARIO',false),
+	 (pg_temp.id('u2'),'U5','Baja','u5.verificacion.baja@ejemplo.test','SEED_NO_AUTH','USUARIO',true),
+	 (pg_temp.id('ua'),'U5','Admin','u5.verificacion.admin@ejemplo.test','SEED_NO_AUTH','ADMIN',false);
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.producto(id,nombre,precio,stock,disponible,eliminado,categoria_id)
+	OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('p1'),'__U5_VERIFICACION_P1',1250.50,10,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p2'),'__U5_VERIFICACION_P2',300,2,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p3'),'__U5_VERIFICACION_P3',100,5,false,false,pg_temp.id('c1')),
+	 (pg_temp.id('p4'),'__U5_VERIFICACION_P4',100,5,true,true,pg_temp.id('c1'));
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.pedido(id,usuario_id,forma_pago,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('o1'),pg_temp.id('u1'),'EFECTIVO',false),
+	 (pg_temp.id('o2'),pg_temp.id('u2'),'EFECTIVO',false),
+	 (pg_temp.id('o3'),pg_temp.id('u1'),'EFECTIVO',true);
+2026-11-02 19:27:19.057 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.066 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.verificar(p_caso text, p_consulta text, p_esperado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_obs text;
+	BEGIN
+	    EXECUTE p_consulta INTO v_obs;
+	    IF v_obs IS DISTINCT FROM p_esperado THEN
+	        RAISE NOTICE 'RESULT|%|FAIL|esperado=% observado=%|aserción',
+	            p_caso, p_esperado, coalesce(v_obs, 'NULL');
+	        RAISE EXCEPTION 'Aserción fallida: %; detener y preservar diagnóstico', p_caso;
+	    END IF;
+	    RAISE NOTICE 'RESULT|%|%|esperado=% observado=%|aserción',
+	        p_caso, 'PASS', p_esperado, v_obs;
+	END $f$;
+2026-11-02 19:27:19.066 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.067 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_error(p_caso text, p_sentencia text, p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text;
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	        -- También revierte un éxito inesperado: no contamina los siguientes casos.
+	        RAISE EXCEPTION USING ERRCODE = 'ZX001', MESSAGE = 'control interno del arnés';
+	    EXCEPTION WHEN SQLSTATE 'ZX001' THEN v_estado := 'sin_error';
+	              WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), p_estado);
+	END $f$;
+2026-11-02 19:27:19.067 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.068 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.esperar_ok(p_caso text, p_sentencia text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	    BEGIN
+	        EXECUTE p_sentencia;
+	    EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado = RETURNED_SQLSTATE;
+	    END;
+	    PERFORM pg_temp.verificar(p_caso, format('SELECT %L::text', v_estado), 'sin_error');
+	END $f$;
+2026-11-02 19:27:19.068 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.069 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.id(p_ref text)
+	RETURNS bigint LANGUAGE sql STABLE AS $f$
+	    SELECT current_setting('u5.' || p_ref)::bigint
+	$f$;
+2026-11-02 19:27:19.069 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.070 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE OR REPLACE FUNCTION pg_temp.sin_fixtures(p_caso text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	BEGIN
+	    PERFORM pg_temp.verificar(p_caso, $q$
+	        SELECT (NOT EXISTS (SELECT FROM public.categoria WHERE nombre = '__U5_VERIFICACION__')
+	            AND NOT EXISTS (SELECT FROM public.usuario WHERE mail LIKE 'u5.verificacion.%@ejemplo.test')
+	            AND NOT EXISTS (SELECT FROM public.producto
+	                WHERE left(nombre,length('__U5_VERIFICACION_'))='__U5_VERIFICACION_')
+	            AND NOT EXISTS (SELECT FROM public.pedido
+	                WHERE id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))
+	                   OR usuario_id IN (pg_temp.id('u1'),pg_temp.id('u2'),pg_temp.id('ua')))
+	            AND NOT EXISTS (SELECT FROM public.detalle_pedido
+	                WHERE pedido_id IN (pg_temp.id('o1'),pg_temp.id('o2'),pg_temp.id('o3'))))::text
+	    $q$, 'true');
+	END $f$;
+2026-11-02 19:27:19.070 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.073 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION pg_temp.probar_auth(p_caso text,p_mail text,p_valor text,p_filas bigint,p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_filas bigint; v_identidad boolean; v_estado text := 'sin_error';
+	BEGIN
+	 BEGIN
+	  SELECT count(*),bool_and(a.usuario_id=pg_temp.id('u1') AND a.rol='USUARIO')
+	  INTO v_filas,v_identidad FROM public.fn_autenticar(p_mail,p_valor) a;
+	 EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado=RETURNED_SQLSTATE;
+	 END;
+	 PERFORM pg_temp.verificar(p_caso||'.estado',format('SELECT %L::text',v_estado),p_estado);
+	 IF v_estado='sin_error' THEN
+	  PERFORM pg_temp.verificar(p_caso||'.filas',format('SELECT %L::text',v_filas::text),p_filas::text);
+	  IF p_filas=1 THEN
+	   PERFORM pg_temp.verificar(p_caso||'.identidad',format('SELECT %L::text',v_identidad::text),'true');
+	  END IF;
+	 END IF;
+	END $f$;
+2026-11-02 19:27:19.073 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.074 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE FUNCTION pg_temp.probar_reset(p_caso text,p_id bigint,p_valor text,p_estado text)
+	RETURNS void LANGUAGE plpgsql AS $f$
+	DECLARE v_estado text := 'sin_error';
+	BEGIN
+	 BEGIN
+	  PERFORM public.fn_resetear_password(p_id,p_valor);
+	 EXCEPTION WHEN OTHERS THEN GET STACKED DIAGNOSTICS v_estado=RETURNED_SQLSTATE;
+	 END;
+	 PERFORM pg_temp.verificar(p_caso,format('SELECT %L::text',v_estado),p_estado);
+	END $f$;
+2026-11-02 19:27:19.074 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.075 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.categoria(id,nombre) OVERRIDING SYSTEM VALUE
+	VALUES (pg_temp.id('c1'),'__U5_VERIFICACION__');
+2026-11-02 19:27:19.075 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.076 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.usuario(id,nombre,apellido,mail,contrasena,rol,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('u1'),'U5','Prueba','u5.verificacion.uno@ejemplo.test','SEED_NO_AUTH','USUARIO',false),
+	 (pg_temp.id('u2'),'U5','Baja','u5.verificacion.baja@ejemplo.test','SEED_NO_AUTH','USUARIO',true),
+	 (pg_temp.id('ua'),'U5','Admin','u5.verificacion.admin@ejemplo.test','SEED_NO_AUTH','ADMIN',false);
+2026-11-02 19:27:19.076 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.076 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.producto(id,nombre,precio,stock,disponible,eliminado,categoria_id)
+	OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('p1'),'__U5_VERIFICACION_P1',1250.50,10,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p2'),'__U5_VERIFICACION_P2',300,2,true,false,pg_temp.id('c1')),
+	 (pg_temp.id('p3'),'__U5_VERIFICACION_P3',100,5,false,false,pg_temp.id('c1')),
+	 (pg_temp.id('p4'),'__U5_VERIFICACION_P4',100,5,true,true,pg_temp.id('c1'));
+2026-11-02 19:27:19.076 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.077 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: INSERT INTO public.pedido(id,usuario_id,forma_pago,eliminado) OVERRIDING SYSTEM VALUE VALUES
+	 (pg_temp.id('o1'),pg_temp.id('u1'),'EFECTIVO',false),
+	 (pg_temp.id('o2'),pg_temp.id('u2'),'EFECTIVO',false),
+	 (pg_temp.id('o3'),pg_temp.id('u1'),'EFECTIVO',true);
+2026-11-02 19:27:19.077 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.077 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_soporte NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.077 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_reportes NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_sin_privilegios NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_soporte TO tst_u5_soporte WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_reportes TO tst_u5_reportes WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:19.078 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.079 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: execute <unnamed>: UPDATE public.usuario SET contrasena=public.crypt($1,public.gen_salt('bf')) WHERE id=pg_temp.id('u1')
+2026-11-02 19:27:19.079 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_execute_message, postgres.c:2213
+2026-11-02 19:27:19.117 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: UPDATE public.usuario SET contrasena=overlay(contrasena placing 'b' from 3 for 1) WHERE id=pg_temp.id('u1');
+2026-11-02 19:27:19.117 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.128 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: UPDATE public.usuario SET contrasena=overlay(contrasena placing 'y' from 3 for 1) WHERE id=pg_temp.id('u1');
+2026-11-02 19:27:19.128 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.138 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: UPDATE public.usuario SET contrasena='SEED_NO_AUTH' WHERE id=pg_temp.id('u1');
+2026-11-02 19:27:19.138 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.149 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: UPDATE public.usuario SET contrasena='hash_no_valido' WHERE id=pg_temp.id('u1');
+2026-11-02 19:27:19.149 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.159 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: execute <unnamed>: UPDATE public.usuario SET contrasena=left(public.crypt($1,public.gen_salt('bf')),59) WHERE id=pg_temp.id('u1')
+2026-11-02 19:27:19.159 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_execute_message, postgres.c:2213
+2026-11-02 19:27:19.179 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: execute <unnamed>: UPDATE public.usuario SET contrasena=public.crypt($1,public.gen_salt('bf')) WHERE id=pg_temp.id('u1')
+2026-11-02 19:27:19.179 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_execute_message, postgres.c:2213
+2026-11-02 19:27:19.223 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: DROP OWNED BY tst_u5_soporte, tst_u5_reportes, tst_u5_sin_privilegios;
+2026-11-02 19:27:19.223 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.224 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: DROP ROLE tst_u5_soporte, tst_u5_reportes, tst_u5_sin_privilegios;
+2026-11-02 19:27:19.224 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_soporte NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_reportes NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE ROLE tst_u5_sin_privilegios NOLOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_soporte TO tst_u5_soporte WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:19.233 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.234 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: GRANT rol_reportes TO tst_u5_reportes WITH INHERIT TRUE, SET FALSE, ADMIN FALSE;
+2026-11-02 19:27:19.234 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.235 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: ALTER ROLE tst_u5_soporte LOGIN;
+2026-11-02 19:27:19.235 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.235 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: ALTER ROLE tst_u5_reportes LOGIN;
+2026-11-02 19:27:19.235 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.235 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: CREATE TEMP TABLE u5_logins_creados AS
+	SELECT oid,rolname FROM pg_roles WHERE rolname IN
+	 ('tst_u5_soporte','tst_u5_reportes','tst_u5_sin_privilegios');
+2026-11-02 19:27:19.235 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.345 UTC [159] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:19.345 UTC [159] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:19.346 UTC [159] [unknown] tst_u5_reportes@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="tst_u5_reportes" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:19.346 UTC [159] [unknown] tst_u5_reportes@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:19.346 UTC [159] [unknown] tst_u5_reportes@foodstore_tpi_oficial LOG:  00000: connection authorized: user=tst_u5_reportes database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:19.346 UTC [159] [unknown] tst_u5_reportes@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:19.353 UTC [159] psql tst_u5_reportes@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.007 user=tst_u5_reportes database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:19.353 UTC [159] psql tst_u5_reportes@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:19.490 UTC [166] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:19.490 UTC [166] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:19.490 UTC [166] [unknown] tst_u5_soporte@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="tst_u5_soporte" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:19.490 UTC [166] [unknown] tst_u5_soporte@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:19.490 UTC [166] [unknown] tst_u5_soporte@foodstore_tpi_oficial LOG:  00000: connection authorized: user=tst_u5_soporte database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:19.490 UTC [166] [unknown] tst_u5_soporte@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:19.497 UTC [166] psql tst_u5_soporte@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.007 user=tst_u5_soporte database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:19.497 UTC [166] psql tst_u5_soporte@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:19.594 UTC [173] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:19.594 UTC [173] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:19.595 UTC [173] [unknown] rol_app_lectura@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="rol_app_lectura" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:19.595 UTC [173] [unknown] rol_app_lectura@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:19.595 UTC [173] [unknown] rol_app_lectura@foodstore_tpi_oficial LOG:  00000: connection authorized: user=rol_app_lectura database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:19.595 UTC [173] [unknown] rol_app_lectura@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:19.595 UTC [173] [unknown] rol_app_lectura@foodstore_tpi_oficial FATAL:  28000: role "rol_app_lectura" is not permitted to log in
+2026-11-02 19:27:19.595 UTC [173] [unknown] rol_app_lectura@foodstore_tpi_oficial LOCATION:  InitializeSessionUserId, miscinit.c:851
+2026-11-02 19:27:19.603 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: DROP OWNED BY tst_u5_soporte, tst_u5_reportes, tst_u5_sin_privilegios;
+2026-11-02 19:27:19.603 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.603 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: statement: DROP ROLE tst_u5_soporte, tst_u5_reportes, tst_u5_sin_privilegios;
+2026-11-02 19:27:19.603 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:19.649 UTC [153] u5_control postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:01.523 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:19.649 UTC [153] u5_control postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:19.756 UTC [180] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:19.756 UTC [180] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:19.757 UTC [180] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:19.757 UTC [180] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:19.757 UTC [180] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:19.757 UTC [180] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:19.822 UTC [180] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.065 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:19.822 UTC [180] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:19.931 UTC [187] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:19.931 UTC [187] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:19.932 UTC [187] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:19.932 UTC [187] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:19.932 UTC [187] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:19.932 UTC [187] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:19.937 UTC [187] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.005 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:19.937 UTC [187] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:20.065 UTC [194] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:20.065 UTC [194] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:20.066 UTC [194] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:20.066 UTC [194] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:20.066 UTC [194] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:20.066 UTC [194] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:20.070 UTC [194] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.005 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:20.070 UTC [194] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:20.207 UTC [201] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:20.207 UTC [201] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:20.207 UTC [201] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:20.207 UTC [201] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:20.207 UTC [201] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:20.207 UTC [201] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:20.214 UTC [201] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.007 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:20.214 UTC [201] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:20.348 UTC [208] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:20.348 UTC [208] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:20.349 UTC [208] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:20.349 UTC [208] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:20.349 UTC [208] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:20.349 UTC [208] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:20.439 UTC [208] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.091 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:20.439 UTC [208] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:20.563 UTC [215] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:20.563 UTC [215] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:20.564 UTC [215] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:20.564 UTC [215] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:20.564 UTC [215] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:20.564 UTC [215] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:20.569 UTC [215] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.006 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:20.569 UTC [215] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:20.673 UTC [222] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:20.673 UTC [222] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:20.673 UTC [222] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:20.673 UTC [222] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:20.673 UTC [222] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:20.673 UTC [222] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:20.677 UTC [222] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.004 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:20.677 UTC [222] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:20.908 UTC [236] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:20.908 UTC [236] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:20.909 UTC [236] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:117)
+2026-11-02 19:27:20.909 UTC [236] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:20.909 UTC [236] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:20.909 UTC [236] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:20.910 UTC [1]  @ LOG:  00000: received SIGHUP, reloading configuration files
+2026-11-02 19:27:20.910 UTC [1]  @ LOCATION:  process_pm_reload_request, postmaster.c:2108
+2026-11-02 19:27:20.911 UTC [236] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:20.911 UTC [236] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:21.025 UTC [243] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:21.025 UTC [243] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:21.026 UTC [243] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 19:27:21.026 UTC [243] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:21.026 UTC [243] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:21.026 UTC [243] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:21.030 UTC [243] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.004 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:21.030 UTC [243] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:21.153 UTC [250] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:21.153 UTC [250] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:21.154 UTC [250] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 19:27:21.154 UTC [250] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:21.154 UTC [250] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:21.154 UTC [250] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:21.163 UTC [250] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.009 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:21.163 UTC [250] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:21.275 UTC [257] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:21.275 UTC [257] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:21.275 UTC [257] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 19:27:21.275 UTC [257] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:21.275 UTC [257] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:21.275 UTC [257] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:21.280 UTC [257] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.005 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:21.280 UTC [257] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:21.403 UTC [264] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=127.0.0.1 port=57232
+2026-11-02 19:27:21.403 UTC [264] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:207
+2026-11-02 19:27:21.411 UTC [264] [unknown] tst_u5_scram@foodstore_tpi_oficial LOG:  00000: connection authenticated: identity="tst_u5_scram" method=scram-sha-256 (/var/lib/postgresql/data/pg_hba.conf:1)
+2026-11-02 19:27:21.411 UTC [264] [unknown] tst_u5_scram@foodstore_tpi_oficial LOCATION:  set_authn_id, auth.c:375
+2026-11-02 19:27:21.412 UTC [264] [unknown] tst_u5_scram@foodstore_tpi_oficial LOG:  00000: connection authorized: user=tst_u5_scram database=foodstore_tpi_oficial application_name=u5_scram_valid
+2026-11-02 19:27:21.412 UTC [264] [unknown] tst_u5_scram@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:21.414 UTC [264] u5_scram_valid tst_u5_scram@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.010 user=tst_u5_scram database=foodstore_tpi_oficial host=127.0.0.1 port=57232
+2026-11-02 19:27:21.414 UTC [264] u5_scram_valid tst_u5_scram@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:21.553 UTC [271] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=127.0.0.1 port=57238
+2026-11-02 19:27:21.553 UTC [271] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:207
+2026-11-02 19:27:21.564 UTC [271] [unknown] tst_u5_scram@foodstore_tpi_oficial FATAL:  28P01: password authentication failed for user "tst_u5_scram"
+2026-11-02 19:27:21.564 UTC [271] [unknown] tst_u5_scram@foodstore_tpi_oficial DETAIL:  Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 1: "host all all 127.0.0.1/32 scram-sha-256"
+2026-11-02 19:27:21.564 UTC [271] [unknown] tst_u5_scram@foodstore_tpi_oficial LOCATION:  auth_failed, auth.c:329
+2026-11-02 19:27:21.694 UTC [278] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:21.694 UTC [278] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:21.694 UTC [278] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 19:27:21.694 UTC [278] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:21.694 UTC [278] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:21.694 UTC [278] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:21.696 UTC [278] psql postgres@foodstore_tpi_oficial LOG:  00000: statement: DROP ROLE tst_u5_scram; SELECT count(*) AS roles_scram_restantes FROM pg_roles WHERE rolname='tst_u5_scram'; DO $$BEGIN IF EXISTS(SELECT FROM pg_roles WHERE rolname='tst_u5_scram') THEN RAISE EXCEPTION 'Rol SCRAM residual'; END IF; END$$;
+2026-11-02 19:27:21.696 UTC [278] psql postgres@foodstore_tpi_oficial LOCATION:  exec_simple_query, postgres.c:1076
+2026-11-02 19:27:21.700 UTC [278] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.006 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:21.700 UTC [278] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236
+2026-11-02 19:27:21.818 UTC [285] [unknown] [unknown]@[unknown] LOG:  00000: connection received: host=[local]
+2026-11-02 19:27:21.818 UTC [285] [unknown] [unknown]@[unknown] LOCATION:  BackendInitialize, backend_startup.c:212
+2026-11-02 19:27:21.818 UTC [285] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authenticated: user="postgres" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 19:27:21.818 UTC [285] [unknown] postgres@foodstore_tpi_oficial LOCATION:  ClientAuthentication, auth.c:663
+2026-11-02 19:27:21.818 UTC [285] [unknown] postgres@foodstore_tpi_oficial LOG:  00000: connection authorized: user=postgres database=foodstore_tpi_oficial application_name=psql
+2026-11-02 19:27:21.818 UTC [285] [unknown] postgres@foodstore_tpi_oficial LOCATION:  PerformAuthentication, postinit.c:299
+2026-11-02 19:27:21.820 UTC [285] psql postgres@foodstore_tpi_oficial LOG:  00000: disconnection: session time: 0:00:00.002 user=postgres database=foodstore_tpi_oficial host=[local]
+2026-11-02 19:27:21.820 UTC [285] psql postgres@foodstore_tpi_oficial LOCATION:  log_disconnections, postgres.c:5236

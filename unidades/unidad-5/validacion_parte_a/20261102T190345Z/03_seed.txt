@@ -1,0 +1,16 @@
+BEGIN
+DO
+INSERT 0 2
+INSERT 0 3
+INSERT 0 3
+INSERT 0 7
+UPDATE 5
+ detalle_id | subtotal | subtotal_calculado 
+------------+----------+--------------------
+(0 rows)
+
+ pedido_id | total | total_calculado 
+-----------+-------+-----------------
+(0 rows)
+
+COMMIT

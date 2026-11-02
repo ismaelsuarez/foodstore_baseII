@@ -1,0 +1,16 @@
+ nspname |           relname            | relkind |                                             pg_get_viewdef                                             
+---------+------------------------------+---------+--------------------------------------------------------------------------------------------------------
+ public  | mv_facturacion_categoria_mes | m       |  SELECT c.id AS categoria_id,                                                                         +
+         |                              |         |     c.nombre AS categoria_nombre,                                                                     +
+         |                              |         |     (date_trunc('month'::text, (ped.fecha)::timestamp with time zone))::date AS mes,                  +
+         |                              |         |     count(DISTINCT ped.id) AS cantidad_pedidos,                                                       +
+         |                              |         |     sum(dp.cantidad) AS unidades_vendidas,                                                            +
+         |                              |         |     sum(dp.subtotal) AS facturacion_total                                                             +
+         |                              |         |    FROM (((categoria c                                                                                +
+         |                              |         |      JOIN producto pr ON ((pr.categoria_id = c.id)))                                                  +
+         |                              |         |      JOIN detalle_pedido dp ON ((dp.producto_id = pr.id)))                                            +
+         |                              |         |      JOIN pedido ped ON ((ped.id = dp.pedido_id)))                                                    +
+         |                              |         |   WHERE ((dp.eliminado = false) AND (ped.eliminado = false))                                          +
+         |                              |         |   GROUP BY c.id, c.nombre, ((date_trunc('month'::text, (ped.fecha)::timestamp with time zone))::date);
+(1 row)
+

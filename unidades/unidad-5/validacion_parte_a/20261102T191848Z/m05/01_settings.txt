@@ -1,0 +1,20 @@
+               name                |             setting             |    source    
+-----------------------------------+---------------------------------+--------------
+ log_error_verbosity               | verbose                         | command line
+ log_file_mode                     | 0600                            | command line
+ log_parameter_max_length          | 0                               | command line
+ log_parameter_max_length_on_error | 0                               | command line
+ log_statement                     | mod                             | command line
+ logging_collector                 | on                              | command line
+ password_encryption               | scram-sha-256                   | command line
+ server_version                    | 17.11 (Debian 17.11-1.pgdg13+2) | default
+(8 rows)
+
+        datname        
+-----------------------
+ foodstore_tpi_oficial
+ postgres
+ template0
+ template1
+(4 rows)
+

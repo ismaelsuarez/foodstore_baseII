@@ -1,0 +1,5 @@
+3ebf354baac4829cf6a3745f862b3f8e695cd393cd9024cf43af68f837ea5a14
+f57710b5614de8a11c98d0067e89faf79c9a4382218bcc9d78e442cd25490d6b
+libreria-pgdata
+taller_datos_pg
+tpi_ssd_db_data

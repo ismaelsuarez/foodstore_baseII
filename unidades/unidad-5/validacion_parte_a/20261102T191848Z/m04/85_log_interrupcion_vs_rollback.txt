@@ -1,0 +1,2 @@
+2026-11-02 19:27:13.676 UTC [161] u5_m04_terminate postgres@foodstore_tpi_oficial FATAL:  57P01: terminating connection due to administrator command
+2026-11-02 19:27:14.051 UTC [189] u5_m04_rollback postgres@foodstore_tpi_oficial LOG:  00000: statement: ROLLBACK;

@@ -1,0 +1,23 @@
+ api | auth | reset 
+-----+------+-------
+     |      | 
+(1 row)
+
+ funciones_u5 
+--------------
+            0
+(1 row)
+
+ entradas_acl_u5 
+-----------------
+               0
+(1 row)
+
+DO
+ pid | application_name |        state        | backend_xid 
+-----+------------------+---------------------+-------------
+ 161 | u5_m04_terminate | idle in transaction |         751
+(1 row)
+
+DO
+M04_PID=161

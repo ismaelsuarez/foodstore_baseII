@@ -1,0 +1,2 @@
+grep -F -q valores sintéticos exactos + bcrypt + PASSWORD literal
+exit_code=1

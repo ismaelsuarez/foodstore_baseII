@@ -1,0 +1,5 @@
+     rolname     | rolcanlogin 
+-----------------+-------------
+ rol_app_lectura | f
+(1 row)
+

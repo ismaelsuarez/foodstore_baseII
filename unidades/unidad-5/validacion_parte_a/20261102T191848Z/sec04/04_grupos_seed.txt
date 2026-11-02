@@ -1,0 +1,6 @@
+ categoria_id | categoria_nombre |    mes     | pedidos | usuarios_del_grupo | unidades | facturacion 
+--------------+------------------+------------+---------+--------------------+----------+-------------
+            1 | Pizzas           | 2026-03-01 |       5 |                  3 |        9 |    10700.00
+            2 | Bebidas          | 2026-03-01 |       2 |                  2 |        5 |     4000.00
+(2 rows)
+

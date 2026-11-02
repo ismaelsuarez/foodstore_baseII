@@ -1,0 +1,1 @@
+Capturadas todas las salidas disponibles, estados, diagnósticos, catálogos, log y scans. Pasos incompletos se reportan, no se sustituyen. Se autoriza destruir SOLO el contenedor recién creado y su volumen.

@@ -1,0 +1,45 @@
+DO
+         base          |             version             | conexion | ejecutor 
+-----------------------+---------------------------------+----------+----------
+ foodstore_tpi_oficial | 17.11 (Debian 17.11-1.pgdg13+2) | postgres | postgres
+(1 row)
+
+DO
+SET
+CREATE VIEW
+psql:/repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql:18: NOTICE:  RESULT|MATRIZ.efectiva.columnas_exactas|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql:24: NOTICE:  RESULT|MATRIZ.efectiva.tabla_sin_extras|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql:30: NOTICE:  RESULT|MATRIZ.efectiva.rutinas|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql:38: NOTICE:  RESULT|MATRIZ.efectiva.esquemas|PASS|esperado=0 observado=0|aserción
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql:43: NOTICE:  RESULT|MATRIZ.efectiva.sin_secuencias|PASS|esperado=0 observado=0|aserción
+psql:/repo/unidades/unidad-5/sql/pruebas/16_matriz_efectiva.sql:46: NOTICE:  RESULT|CREDENCIALES.pgcrypto_acl|PASS|esperado=true observado=true|aserción
+ verificar 
+-----------
+ 
+(1 row)
+

@@ -1,0 +1,29 @@
+--- ejecutar_cierre.py (draft no ejecutado)
++++ ejecutar_cierre_v2.py
+@@ -283,7 +283,7 @@
+ 
+ 
+ def observe(app):
+-    return ABSENT + f"""
++    return ABSENT + fr"""
+  SELECT pid,application_name,state,backend_xid FROM pg_stat_activity WHERE application_name='{app}';
+  DO $$BEGIN IF (SELECT state FROM pg_stat_activity WHERE application_name='{app}') IS DISTINCT FROM 'idle in transaction' THEN RAISE EXCEPTION 'M04: no está idle in transaction'; END IF; END$$;
+  SELECT pid AS m04_pid FROM pg_stat_activity WHERE application_name='{app}' \gset
+@@ -329,7 +329,7 @@
+             raise RuntimeError('BLOCKED: no se confirmó transacción pendiente')
+         text = (OUT/'32_segunda_conexion_pre.txt').read_text()
+         pid = int(re.search(r'M04_PID=(\d+)',text).group(1))
+-        if not observer.step('33_terminar_backend', "SELECT pg_terminate_backend(:m04_pid) AS m04_terminated \gset\n\\if :m04_terminated\n\\echo TERMINATED=true\n\\else\nDO $$BEGIN RAISE EXCEPTION 'No se terminó backend'; END$$;\n\\endif"):
++        if not observer.step('33_terminar_backend', "SELECT pg_terminate_backend(:m04_pid) AS m04_terminated \\gset\n\\if :m04_terminated\n\\echo TERMINATED=true\n\\else\nDO $$BEGIN RAISE EXCEPTION 'No se terminó backend'; END$$;\n\\endif"):
+             raise RuntimeError('BLOCKED: comando de terminación')
+         # psql espera stdin: SELECT 1 permite observar el FATAL asíncrono. No se envía ROLLBACK.
+         if installer.step('34_cliente_interrumpido', 'SELECT 1;'):
+@@ -392,7 +392,7 @@
+     base_env['U5_SCRAM_VERIFIER'] = verifier
+     secret_keys.append('U5_SCRAM_VERIFIER')
+     secrets.append(verifier)
+-    template = """SET log_statement = 'none';
++    template = r"""SET log_statement = 'none';
+ SET log_min_error_statement = 'panic';
+ SHOW log_statement;
+ SHOW log_min_error_statement;

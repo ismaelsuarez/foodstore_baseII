@@ -1,0 +1,9 @@
+SET log_statement = 'none';
+SET log_min_error_statement = 'panic';
+SHOW log_statement;
+SHOW log_min_error_statement;
+CREATE ROLE tst_u5_scram LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+\getenv u5_scram_verifier U5_SCRAM_VERIFIER
+ALTER ROLE tst_u5_scram PASSWORD :'u5_scram_verifier';
+\unset u5_scram_verifier
+SELECT rolname,split_part(rolpassword,'$',1)||'$' AS verifier_prefix FROM pg_authid WHERE rolname='tst_u5_scram';

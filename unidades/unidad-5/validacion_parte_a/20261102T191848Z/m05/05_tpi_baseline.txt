@@ -1,0 +1,54 @@
+BEGIN
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: CALL válido mantiene detalle, subtotal, total y stock
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: cantidades 0, -1 y NULL rechazadas sin efectos
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: stock insuficiente rechazado sin efectos
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: producto eliminado rechazado por ambas rutas sin efectos
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: producto no disponible rechazado por ambas rutas sin efectos
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: pedido eliminado rechazado por ambas rutas sin efectos
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: usuario eliminado rechazado por ambas rutas sin efectos
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: duplicados CALL y directo no alteran línea, total ni stock
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: pedido inexistente rechazado
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: producto inexistente rechazado; FK identificada en ruta directa
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: FK de pedido conserva autoridad estructural
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: precio NULL completado y stock intacto en INSERT directo
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: precio explícito histórico preservado frente al catálogo
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: UPDATE cantidad mantiene precio y recalcula derivados
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: UPDATE precio_unitario recalcula subtotal y total
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: DIRECT_SUBTOTAL_TAMPERING_PROTECTED = YES
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: cambio de producto deriva precio nuevo sin reconciliar stock
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: cambio de producto conserva precio especial explícito
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: baja y reactivación del detalle mantienen total sin administrar stock
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: DELETE físico recalcula total sin reponer stock
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: movimiento recalcula ambos pedidos sin administrar stock
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: operaciones masivas mantienen tres subtotales y total por sentencia
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: calcular_total_pedido coincide con total y devuelve cero sin líneas
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: CHECK cantidad aislado
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: CHECK stock aislado
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: CHECK total aislado
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: UNIQUE usuario.mail rechaza duplicado
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: total cero antes del alta y después de excluir la única línea
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: detalle, subtotal, total y stock revierten juntos
+psql:/repo/tpi/pruebas/pruebas_objetos_programables.sql:937: NOTICE:  PASS: batería completa de objetos programables del modelo oficial
+DO
+ROLLBACK
+ categorias_restantes | usuarios_restantes | productos_restantes | limpieza_ok 
+----------------------+--------------------+---------------------+-------------
+                    0 |                  0 |                   0 | t
+(1 row)
+
+                     objeto                      | presente_y_habilitado 
+-------------------------------------------------+-----------------------
+ calcular_total_pedido(bigint)                   | t
+ fn_recalcular_total_delete()                    | t
+ fn_recalcular_total_insert()                    | t
+ fn_recalcular_total_update()                    | t
+ fn_set_subtotal()                               | t
+ fn_validar_detalle_vigente()                    | t
+ registrar_detalle_pedido(bigint,bigint,integer) | t
+ trg_detalle_vigente                             | t
+ trg_subtotal                                    | t
+ trg_total_detalle_delete                        | t
+ trg_total_detalle_insert                        | t
+ trg_total_detalle_update                        | t
+(12 rows)
+

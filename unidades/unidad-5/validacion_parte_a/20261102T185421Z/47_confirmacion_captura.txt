@@ -1,0 +1,3 @@
+Evidencias SQL/stdout+stderr, sesión, inventario, RESULT, configuración, permisos y M02 capturadas antes de destruir.
+Los pasos no ejecutados se reportarán BLOCKED, no PASS.
+Log completo del intervalo de pruebas capturado; cierre del servidor posterior fuera de ese intervalo.

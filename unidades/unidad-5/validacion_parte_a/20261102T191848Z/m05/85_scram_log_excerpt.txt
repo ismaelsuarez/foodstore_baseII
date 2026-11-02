@@ -1,0 +1,1 @@
+2026-11-02 19:27:21.412 UTC [264] [unknown] tst_u5_scram@foodstore_tpi_oficial LOG:  00000: connection authorized: user=tst_u5_scram database=foodstore_tpi_oficial application_name=u5_scram_valid
