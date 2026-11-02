@@ -1,0 +1,18 @@
+# Fragmento del log de PostgreSQL 17.11 (laboratorio descartable foodstore_u5_auditoria_b, 2026-11-02).
+# Archivo de origen: $PGDATA/log/postgresql.log, lineas 37-51, copiadas sin cambios.
+# Prefijo: log_line_prefix = '%m [%p] %q%u@%d %r ' (hora, PID, usuario@base, host(puerto)).
+2026-11-02 19:56:37.456 UTC [174] [unknown]@[unknown] 127.0.0.1(47058) LOG:  connection received: host=127.0.0.1 port=47058
+2026-11-02 19:56:37.462 UTC [174] postgres@foodstore_auditoria_b 127.0.0.1(47058) LOG:  connection authenticated: identity="postgres" method=scram-sha-256 (/var/lib/postgresql/data/pg_hba.conf:1)
+2026-11-02 19:56:37.462 UTC [174] postgres@foodstore_auditoria_b 127.0.0.1(47058) LOG:  connection authorized: user=postgres database=foodstore_auditoria_b application_name=auditoria_test
+2026-11-02 19:56:37.464 UTC [174] postgres@foodstore_auditoria_b 127.0.0.1(47058) LOG:  statement: INSERT INTO public.categoria (nombre, descripcion)
+	VALUES ('Auditoría Parte B', 'Fila de prueba; se revierte al final')
+	RETURNING id, nombre;
+2026-11-02 19:56:37.465 UTC [174] postgres@foodstore_auditoria_b 127.0.0.1(47058) LOG:  statement: UPDATE public.producto
+	SET stock = stock + 1
+	WHERE id = (SELECT min(id) FROM public.producto)
+	RETURNING id, stock;
+2026-11-02 19:56:37.466 UTC [174] postgres@foodstore_auditoria_b 127.0.0.1(47058) LOG:  disconnection: session time: 0:00:00.010 user=postgres database=foodstore_auditoria_b host=127.0.0.1 port=47058
+2026-11-02 19:56:37.542 UTC [186] [unknown]@[unknown] 127.0.0.1(47064) LOG:  connection received: host=127.0.0.1 port=47064
+2026-11-02 19:56:37.548 UTC [186] auditor_inexistente@foodstore_auditoria_b 127.0.0.1(47064) FATAL:  password authentication failed for user "auditor_inexistente"
+2026-11-02 19:56:37.548 UTC [186] auditor_inexistente@foodstore_auditoria_b 127.0.0.1(47064) DETAIL:  Role "auditor_inexistente" does not exist.
+	Connection matched file "/var/lib/postgresql/data/pg_hba.conf" line 1: "host all all 127.0.0.1/32 scram-sha-256"
