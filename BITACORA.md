@@ -8,7 +8,7 @@ propuestas, pruebas y decisiones pertenece al equipo.
 | Parte | Estado |
 |---|---|
 | A — Roles y permisos | Implementada y validada en laboratorio; SEC-04 pendiente de aceptación formal del equipo |
-| B — Auditoría | **Pendiente**: sin interacciones registradas |
+| B — Auditoría | Ejecutada en laboratorio y versionada (commit `6c44294`) |
 | C — Simulacro de incidente | **Pendiente**: sin interacciones registradas; el mecanismo de §7.3 sigue sin elegir |
 | D — Anonimización | **Pendiente**: sin interacciones registradas |
 
@@ -81,6 +81,50 @@ Ver [design.md §13.7](unidades/unidad-5/specs/design.md) (POC) y
 [§15](unidades/unidad-5/specs/design.md) (validación integral). Las evidencias están en
 `unidades/unidad-5/poc_permisos/` y `unidades/unidad-5/validacion_parte_a/`.
 
-## Partes B, C y D
+## Parte B — Prompts y respuestas
+
+| Fecha | Prompt enviado a la IA | Respuesta relevante recibida | Validación o corrección humana |
+|---|---|---|---|
+| 2026-11-02 | «Food Store — TP Unidad 5 — Parte B: Auditoría» | Antes de escribir, la IA pidió permiso para leer la consigna oficial, que está fuera del repositorio, para citar las preguntas de la Parte B | Autorizó la lectura del PDF de la consigna, en modo solo lectura |
+| 2026-11-02 | (misma tarea, después de leer la consigna) | `auditoria_test.sql`; ejecución en un contenedor descartable; `log_auditoria_prueba.txt` e `informe_auditoria.md` | Revisó el resultado y ordenó el commit con los tres archivos |
+| 2026-11-02 | «realizar: git add … git diff --cached --check … git commit -m "feat(u5): completar auditoria y evidencias de la parte B"» | Commit `6c44294` con exactamente esos tres archivos; `--check` sin avisos | Comandos indicados por el equipo |
+| 2026-11-02 | «Food Store — Unidad 5 — Cierre documental de la Parte B» | Esta sección de la bitácora y la publicación de la rama | Autorización del commit de la bitácora y del push |
+
+## Parte B — Resultados
+
+Detalle en [`informe_auditoria.md`](unidades/unidad-5/docs/informe_auditoria.md) y
+[`log_auditoria_prueba.txt`](unidades/unidad-5/docs/log_auditoria_prueba.txt).
+
+- **Configuración de logging.** PostgreSQL 17.11 en un contenedor descartable, sin red ni
+  puertos. Con `ALTER SYSTEM` y `pg_reload_conf()`: `log_connections = on`,
+  `log_disconnections = on` y `log_statement = mod`. Además, `log_line_prefix =
+  '%m [%p] %q%u@%d %r '` para que cada línea muestre usuario, base y origen.
+- **Operaciones.** `auditoria_test.sql` ejecutó por TCP un `SELECT` sobre `producto`, y un
+  `INSERT` en `categoria` y un `UPDATE` de stock dentro de una transacción que termina en
+  `ROLLBACK`: 0 filas de prueba al final, exit 0. El inicio de sesión con un rol inexistente y una
+  contraseña sintética fue rechazado con `FATAL: password authentication failed` (exit 2).
+- **Captura y análisis.** El fragmento muestra, para cada evento, quién (`postgres`,
+  `auditor_inexistente`), qué (texto del INSERT y del UPDATE, conexión, desconexión, rechazo),
+  cuándo (hora con milisegundos) y desde dónde (`127.0.0.1` y puerto). Ninguna contraseña aparece
+  en el log.
+- **Límite de `log_statement = mod`.** El `SELECT` no quedó registrado. Tampoco `BEGIN` ni
+  `ROLLBACK`, así que el log no muestra que el INSERT y el UPDATE se revirtieron.
+- **Alcance de pgaudit (nociones, no instalado).** Registra por clase de sentencia y por objeto,
+  incluidas las lecturas y lo que ocurre dentro de funciones, pero no guarda los valores de las
+  filas. Para un historial fila por fila harían falta triggers de auditoría o decodificación
+  lógica.
+- **Respuesta al punto 4.** El log es un activo sensible. Deberían leerlo solo el administrador
+  y el responsable de auditoría: archivos de `postgres` con modo `0600` en el sistema operativo y,
+  en el motor, ningún rol de aplicación con acceso a la lectura de archivos del servidor.
+
+## Parte B — Errores e imprecisiones detectados
+
+| Origen | Error o imprecisión | Cómo se detectó | Tratamiento |
+|---|---|---|---|
+| Configuración del laboratorio | La imagen de PostgreSQL trae `trust` para el loopback por TCP: el inicio de sesión fallido no podía fallar | La IA lo detectó al revisar `pg_hba.conf` antes de la prueba | Se agregó una regla `scram-sha-256` al principio, solo dentro del contenedor, y se documentó en el informe |
+| Redacción de la consigna | Atribuye a pgaudit el «detalle fila por fila»; pgaudit registra objetos y clases, no valores de filas | La IA lo señaló al redactar el punto 3 | Se aclaró en el informe. La consigna no se modificó |
+| Procedimiento de la IA | Guardó el log completo de forma temporal en `/tmp`, fuera del proyecto, sin pedir permiso antes | La propia IA lo informó en la entrega | El archivo no contenía secretos y se borró después de extraer el fragmento |
+
+## Partes C y D
 
 Pendientes. Se registrarán aquí cuando se trabajen.
