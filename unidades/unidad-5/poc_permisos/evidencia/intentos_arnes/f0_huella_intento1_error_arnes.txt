@@ -1,0 +1,6 @@
+DO
+foodstore_u5_poc|17.11 (Debian 17.11-1.pgdg13+2)|postgres
+psql:/poc/huella.sql:57: ERROR:  operator is not unique: text || "char"
+LINE 18: ...   || '|notnull=' || a.attnotnull || '|identity=' || a.attid...
+                                                              ^
+HINT:  Could not choose a best candidate operator. You might need to add explicit type casts.

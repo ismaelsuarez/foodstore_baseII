@@ -1,0 +1,38 @@
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+     tabla      | acl_tabla 
+----------------+-----------
+ categoria      | NULL
+ detalle_pedido | NULL
+ pedido         | NULL
+ producto       | NULL
+ usuario        | NULL
+(5 rows)
+
+     tabla      |     columna     |                           acl_columna                            
+----------------+-----------------+------------------------------------------------------------------
+ detalle_pedido | cantidad        | {rol_propietario_ventas=a/postgres}
+ detalle_pedido | eliminado       | {rol_propietario_ventas=r/postgres}
+ detalle_pedido | pedido_id       | {rol_propietario_ventas=ar/postgres}
+ detalle_pedido | precio_unitario | {rol_propietario_ventas=a/postgres}
+ detalle_pedido | producto_id     | {rol_propietario_ventas=ar/postgres}
+ detalle_pedido | subtotal        | {rol_propietario_ventas=r/postgres}
+ pedido         | eliminado       | {rol_propietario_ventas=r/postgres}
+ pedido         | forma_pago      | {rol_app_escritura=a/postgres}
+ pedido         | id              | {rol_app_escritura=r/postgres,rol_propietario_ventas=r/postgres}
+ pedido         | total           | {rol_propietario_ventas=w/postgres}
+ pedido         | usuario_id      | {rol_app_escritura=a/postgres,rol_propietario_ventas=r/postgres}
+ producto       | disponible      | {rol_propietario_ventas=r/postgres}
+ producto       | eliminado       | {rol_propietario_ventas=r/postgres}
+ producto       | id              | {rol_propietario_ventas=r/postgres}
+ producto       | precio          | {rol_propietario_ventas=r/postgres}
+ producto       | stock           | {rol_propietario_ventas=rw/postgres}
+ usuario        | celular         | {rol_propietario_ventas=w/postgres}
+ usuario        | eliminado       | {rol_propietario_ventas=r/postgres}
+ usuario        | id              | {rol_propietario_ventas=r/postgres}
+(19 rows)
+

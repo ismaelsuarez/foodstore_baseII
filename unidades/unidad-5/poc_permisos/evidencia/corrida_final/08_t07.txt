@@ -1,0 +1,282 @@
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+ c1 | u1 | u2 | p1 | p2 | p3 | p4 | o1 | o2 | o3 
+----+----+----+----+----+----+----+----+----+----
+ 1  | 1  | 2  | 1  | 2  | 3  | 4  | 1  | 2  | 3
+(1 row)
+
+psql:/poc/08_t07_ablacion.sql:9: NOTICE:  RESULT|T07.estado_inicial|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ verificar 
+-----------
+ 
+(1 row)
+
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:16: NOTICE:  RESULT|T07.01 REVOKE EXECUTE ON PROCEDURE public.registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)|PASS|esperado=42501 observado=42501|permission denied for procedure registrar_detalle_pedido
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/08_t07_ablacion.sql:16: NOTICE:  CONTEXT|T07.01 REVOKE EXECUTE ON PROCEDURE public.registrar_detalle_pedido(BIGINT, BIGINT, INTEGER)|SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:24: NOTICE:  RESULT|T07.02 REVOKE EXECUTE ON FUNCTION public.calcular_total_pedido(BIGINT)|PASS|esperado=42501 observado=42501|permission denied for function calcular_total_pedido
+psql:/poc/08_t07_ablacion.sql:24: NOTICE:  CONTEXT|T07.02 REVOKE EXECUTE ON FUNCTION public.calcular_total_pedido(BIGINT)|SQL statement "UPDATE pedido p <-         SET total = calcular_total_pedido(p.id) <-         WHERE p.id = v_pedido_id" <- PL/pgSQL function fn_recalcular_total_insert() line 8 at SQL statement <- SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:32: NOTICE:  RESULT|T07.03 REVOKE SELECT (id) ON pedido|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/08_t07_ablacion.sql:32: NOTICE:  CONTEXT|T07.03 REVOKE SELECT (id) ON pedido|SQL statement "SELECT usuario_id                       FROM pedido <-     WHERE id = p_pedido_id AND eliminado = FALSE <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 19 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/08_t07_ablacion.sql:40: NOTICE:  RESULT|T07.04 REVOKE SELECT (usuario_id) ON pedido|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/08_t07_ablacion.sql:40: NOTICE:  CONTEXT|T07.04 REVOKE SELECT (usuario_id) ON pedido|SQL statement "SELECT usuario_id                       FROM pedido <-     WHERE id = p_pedido_id AND eliminado = FALSE <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 19 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/08_t07_ablacion.sql:48: NOTICE:  RESULT|T07.05 REVOKE SELECT (eliminado) ON pedido|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/08_t07_ablacion.sql:48: NOTICE:  CONTEXT|T07.05 REVOKE SELECT (eliminado) ON pedido|SQL statement "SELECT usuario_id                       FROM pedido <-     WHERE id = p_pedido_id AND eliminado = FALSE <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 19 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:56: NOTICE:  RESULT|T07.06 REVOKE UPDATE (total) ON pedido|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/08_t07_ablacion.sql:56: NOTICE:  CONTEXT|T07.06 REVOKE UPDATE (total) ON pedido|SQL statement "SELECT usuario_id                       FROM pedido <-     WHERE id = p_pedido_id AND eliminado = FALSE <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 19 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:64: NOTICE:  RESULT|T07.07 REVOKE SELECT (id) ON usuario|PASS|esperado=42501 observado=42501|permission denied for table usuario
+psql:/poc/08_t07_ablacion.sql:64: NOTICE:  CONTEXT|T07.07 REVOKE SELECT (id) ON usuario|SQL statement "SELECT eliminado                              FROM usuario <-     WHERE id = v_usuario_id <-     FOR SHARE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 34 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:72: NOTICE:  RESULT|T07.08 REVOKE SELECT (eliminado) ON usuario|PASS|esperado=42501 observado=42501|permission denied for table usuario
+psql:/poc/08_t07_ablacion.sql:72: NOTICE:  CONTEXT|T07.08 REVOKE SELECT (eliminado) ON usuario|SQL statement "SELECT eliminado                              FROM usuario <-     WHERE id = v_usuario_id <-     FOR SHARE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 34 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/08_t07_ablacion.sql:80: NOTICE:  RESULT|T07.09 REVOKE UPDATE (celular) ON usuario|PASS|esperado=42501 observado=42501|permission denied for table usuario
+psql:/poc/08_t07_ablacion.sql:80: NOTICE:  CONTEXT|T07.09 REVOKE UPDATE (celular) ON usuario|SQL statement "SELECT eliminado                              FROM usuario <-     WHERE id = v_usuario_id <-     FOR SHARE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 34 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:88: NOTICE:  RESULT|T07.10 REVOKE SELECT (id) ON producto|PASS|esperado=42501 observado=42501|permission denied for table producto
+psql:/poc/08_t07_ablacion.sql:88: NOTICE:  CONTEXT|T07.10 REVOKE SELECT (id) ON producto|SQL statement "SELECT precio, stock, disponible, eliminado <-                                                                    FROM producto <-     WHERE id = p_producto_id <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 47 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+psql:/poc/08_t07_ablacion.sql:96: NOTICE:  RESULT|T07.11 REVOKE SELECT (precio) ON producto|PASS|esperado=42501 observado=42501|permission denied for table producto
+psql:/poc/08_t07_ablacion.sql:96: NOTICE:  CONTEXT|T07.11 REVOKE SELECT (precio) ON producto|SQL statement "SELECT precio, stock, disponible, eliminado <-                                                                    FROM producto <-     WHERE id = p_producto_id <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 47 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/08_t07_ablacion.sql:104: NOTICE:  RESULT|T07.12 REVOKE SELECT (stock) ON producto|PASS|esperado=42501 observado=42501|permission denied for table producto
+psql:/poc/08_t07_ablacion.sql:104: NOTICE:  CONTEXT|T07.12 REVOKE SELECT (stock) ON producto|SQL statement "SELECT precio, stock, disponible, eliminado <-                                                                    FROM producto <-     WHERE id = p_producto_id <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 47 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/08_t07_ablacion.sql:112: NOTICE:  RESULT|T07.13 REVOKE SELECT (disponible) ON producto|PASS|esperado=42501 observado=42501|permission denied for table producto
+psql:/poc/08_t07_ablacion.sql:112: NOTICE:  CONTEXT|T07.13 REVOKE SELECT (disponible) ON producto|SQL statement "SELECT precio, stock, disponible, eliminado <-                                                                    FROM producto <-     WHERE id = p_producto_id <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 47 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/08_t07_ablacion.sql:120: NOTICE:  RESULT|T07.14 REVOKE SELECT (eliminado) ON producto|PASS|esperado=42501 observado=42501|permission denied for table producto
+psql:/poc/08_t07_ablacion.sql:120: NOTICE:  CONTEXT|T07.14 REVOKE SELECT (eliminado) ON producto|SQL statement "SELECT precio, stock, disponible, eliminado <-                                                                    FROM producto <-     WHERE id = p_producto_id <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 47 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:128: NOTICE:  RESULT|T07.15 REVOKE UPDATE (stock) ON producto|PASS|esperado=42501 observado=42501|permission denied for table producto
+psql:/poc/08_t07_ablacion.sql:128: NOTICE:  CONTEXT|T07.15 REVOKE UPDATE (stock) ON producto|SQL statement "SELECT precio, stock, disponible, eliminado <-                                                                    FROM producto <-     WHERE id = p_producto_id <-     FOR UPDATE" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 47 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:136: NOTICE:  RESULT|T07.16 REVOKE SELECT (pedido_id) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:136: NOTICE:  CONTEXT|T07.16 REVOKE SELECT (pedido_id) ON detalle_pedido|SQL statement "SELECT 1 FROM detalle_pedido <-     WHERE pedido_id = p_pedido_id AND producto_id = p_producto_id" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 69 at PERFORM <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:144: NOTICE:  RESULT|T07.17 REVOKE SELECT (producto_id) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:144: NOTICE:  CONTEXT|T07.17 REVOKE SELECT (producto_id) ON detalle_pedido|SQL statement "SELECT 1 FROM detalle_pedido <-     WHERE pedido_id = p_pedido_id AND producto_id = p_producto_id" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 69 at PERFORM <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:152: NOTICE:  RESULT|T07.18 REVOKE SELECT (subtotal) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:152: NOTICE:  CONTEXT|T07.18 REVOKE SELECT (subtotal) ON detalle_pedido|SQL function "calcular_total_pedido" statement 1 <- SQL statement "UPDATE pedido p <-         SET total = calcular_total_pedido(p.id) <-         WHERE p.id = v_pedido_id" <- PL/pgSQL function fn_recalcular_total_insert() line 8 at SQL statement <- SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:160: NOTICE:  RESULT|T07.19 REVOKE SELECT (eliminado) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:160: NOTICE:  CONTEXT|T07.19 REVOKE SELECT (eliminado) ON detalle_pedido|SQL function "calcular_total_pedido" statement 1 <- SQL statement "UPDATE pedido p <-         SET total = calcular_total_pedido(p.id) <-         WHERE p.id = v_pedido_id" <- PL/pgSQL function fn_recalcular_total_insert() line 8 at SQL statement <- SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:168: NOTICE:  RESULT|T07.20 REVOKE INSERT (pedido_id) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:168: NOTICE:  CONTEXT|T07.20 REVOKE INSERT (pedido_id) ON detalle_pedido|SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:176: NOTICE:  RESULT|T07.21 REVOKE INSERT (producto_id) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:176: NOTICE:  CONTEXT|T07.21 REVOKE INSERT (producto_id) ON detalle_pedido|SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:184: NOTICE:  RESULT|T07.22 REVOKE INSERT (cantidad) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:184: NOTICE:  CONTEXT|T07.22 REVOKE INSERT (cantidad) ON detalle_pedido|SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+BEGIN
+REVOKE
+SET
+psql:/poc/08_t07_ablacion.sql:192: NOTICE:  RESULT|T07.23 REVOKE INSERT (precio_unitario) ON detalle_pedido|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/08_t07_ablacion.sql:192: NOTICE:  CONTEXT|T07.23 REVOKE INSERT (precio_unitario) ON detalle_pedido|SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_15.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/08_t07_ablacion.sql:195: NOTICE:  RESULT|T07.residuo|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|

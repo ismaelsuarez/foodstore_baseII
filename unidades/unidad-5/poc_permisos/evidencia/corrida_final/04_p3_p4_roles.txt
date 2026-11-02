@@ -1,0 +1,51 @@
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+DO
+BEGIN
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+GRANT ROLE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+REVOKE
+REVOKE
+GRANT
+GRANT
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+COMMIT
+        rolname         | rolcanlogin | rolinherit | rolsuper | rolcreaterole | rolcreatedb | rolreplication | rolbypassrls 
+------------------------+-------------+------------+----------+---------------+-------------+----------------+--------------
+ app_web                | t           | t          | f        | f             | f           | f              | f
+ rol_app_escritura      | f           | t          | f        | f             | f           | f              | f
+ rol_propietario_ventas | f           | f          | f        | f             | f           | f              | f
+ tst_u5_sin_privilegios | f           | t          | f        | f             | f           | f              | f
+(4 rows)
+
+         rol          |  miembro   | admin_option | inherit_option | set_option 
+----------------------+------------+--------------+----------------+------------
+ pg_read_all_settings | pg_monitor | f            | t              | t
+ pg_read_all_stats    | pg_monitor | f            | t              | t
+ pg_stat_scan_tables  | pg_monitor | f            | t              | t
+ rol_app_escritura    | app_web    | f            | t              | t
+(4 rows)
+

@@ -1,0 +1,27 @@
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+DO
+BEGIN
+INSERT 0 1
+INSERT 0 2
+INSERT 0 4
+INSERT 0 3
+COMMIT
+ c1 | u1 | u2 | p1 | p2 | p3 | p4 | o1 | o2 | o3 
+----+----+----+----+----+----+----+----+----+----
+ 1  | 1  | 2  | 1  | 2  | 3  | 4  | 1  | 2  | 3
+(1 row)
+
+     tabla      | count 
+----------------+-------
+ categoria      |     1
+ usuario        |     2
+ producto       |     4
+ pedido         |     3
+ detalle_pedido |     0
+(5 rows)
+

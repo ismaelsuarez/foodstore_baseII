@@ -1,0 +1,107 @@
+DO
+foodstore_u5_poc|17.11 (Debian 17.11-1.pgdg13+2)|postgres
+base|foodstore_u5_poc|owner=postgres
+columna|categoria.created_at|timestamp with time zone|notnull=true|identity=|default=now()
+columna|categoria.descripcion|character varying(255)|notnull=false|identity=|default=
+columna|categoria.eliminado|boolean|notnull=true|identity=|default=false
+columna|categoria.id|bigint|notnull=true|identity=a|default=
+columna|categoria.nombre|character varying(100)|notnull=true|identity=|default=
+columna|detalle_pedido.cantidad|integer|notnull=true|identity=|default=
+columna|detalle_pedido.created_at|timestamp with time zone|notnull=true|identity=|default=now()
+columna|detalle_pedido.eliminado|boolean|notnull=true|identity=|default=false
+columna|detalle_pedido.id|bigint|notnull=true|identity=a|default=
+columna|detalle_pedido.pedido_id|bigint|notnull=true|identity=|default=
+columna|detalle_pedido.precio_unitario|numeric(12,2)|notnull=true|identity=|default=
+columna|detalle_pedido.producto_id|bigint|notnull=true|identity=|default=
+columna|detalle_pedido.subtotal|numeric(12,2)|notnull=true|identity=|default=
+columna|pedido.created_at|timestamp with time zone|notnull=true|identity=|default=now()
+columna|pedido.eliminado|boolean|notnull=true|identity=|default=false
+columna|pedido.estado|estado_pedido|notnull=true|identity=|default='PENDIENTE'::estado_pedido
+columna|pedido.fecha|date|notnull=true|identity=|default=CURRENT_DATE
+columna|pedido.forma_pago|forma_pago|notnull=true|identity=|default=
+columna|pedido.id|bigint|notnull=true|identity=a|default=
+columna|pedido.total|numeric(12,2)|notnull=true|identity=|default=0
+columna|pedido.usuario_id|bigint|notnull=true|identity=|default=
+columna|producto.categoria_id|bigint|notnull=true|identity=|default=
+columna|producto.created_at|timestamp with time zone|notnull=true|identity=|default=now()
+columna|producto.descripcion|character varying(255)|notnull=false|identity=|default=
+columna|producto.disponible|boolean|notnull=true|identity=|default=true
+columna|producto.eliminado|boolean|notnull=true|identity=|default=false
+columna|producto.id|bigint|notnull=true|identity=a|default=
+columna|producto.imagen|character varying(255)|notnull=false|identity=|default=
+columna|producto.nombre|character varying(120)|notnull=true|identity=|default=
+columna|producto.precio|numeric(12,2)|notnull=true|identity=|default=
+columna|producto.stock|integer|notnull=true|identity=|default=0
+columna|usuario.apellido|character varying(80)|notnull=true|identity=|default=
+columna|usuario.celular|character varying(30)|notnull=false|identity=|default=
+columna|usuario.contrasena|character varying(255)|notnull=true|identity=|default=
+columna|usuario.created_at|timestamp with time zone|notnull=true|identity=|default=now()
+columna|usuario.eliminado|boolean|notnull=true|identity=|default=false
+columna|usuario.id|bigint|notnull=true|identity=a|default=
+columna|usuario.mail|character varying(120)|notnull=true|identity=|default=
+columna|usuario.nombre|character varying(80)|notnull=true|identity=|default=
+columna|usuario.rol|rol|notnull=true|identity=|default='USUARIO'::rol
+esquema|public|owner=pg_database_owner|acl={pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,rol_app_escritura=U/pg_database_owner,rol_propietario_ventas=U/pg_database_owner}
+indice|categoria_nombre_key|CREATE UNIQUE INDEX categoria_nombre_key ON public.categoria USING btree (nombre)
+indice|categoria_pkey|CREATE UNIQUE INDEX categoria_pkey ON public.categoria USING btree (id)
+indice|detalle_pedido_pkey|CREATE UNIQUE INDEX detalle_pedido_pkey ON public.detalle_pedido USING btree (id)
+indice|idx_pedido_usuario|CREATE INDEX idx_pedido_usuario ON public.pedido USING btree (usuario_id)
+indice|idx_producto_categoria|CREATE INDEX idx_producto_categoria ON public.producto USING btree (categoria_id)
+indice|idx_producto_nombre_vig|CREATE INDEX idx_producto_nombre_vig ON public.producto USING btree (nombre) WHERE (eliminado = false)
+indice|pedido_pkey|CREATE UNIQUE INDEX pedido_pkey ON public.pedido USING btree (id)
+indice|producto_pkey|CREATE UNIQUE INDEX producto_pkey ON public.producto USING btree (id)
+indice|uq_detalle_pedido_pedido_producto|CREATE UNIQUE INDEX uq_detalle_pedido_pedido_producto ON public.detalle_pedido USING btree (pedido_id, producto_id)
+indice|usuario_mail_key|CREATE UNIQUE INDEX usuario_mail_key ON public.usuario USING btree (mail)
+indice|usuario_pkey|CREATE UNIQUE INDEX usuario_pkey ON public.usuario USING btree (id)
+restriccion|categoria.categoria_nombre_key|UNIQUE (nombre)
+restriccion|categoria.categoria_pkey|PRIMARY KEY (id)
+restriccion|detalle_pedido.chk_detalle_pedido_cantidad|CHECK ((cantidad > 0))
+restriccion|detalle_pedido.chk_detalle_pedido_precio_unitario|CHECK ((precio_unitario >= (0)::numeric))
+restriccion|detalle_pedido.chk_detalle_pedido_subtotal|CHECK ((subtotal >= (0)::numeric))
+restriccion|detalle_pedido.detalle_pedido_pkey|PRIMARY KEY (id)
+restriccion|detalle_pedido.fk_detalle_pedido_pedido|FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE RESTRICT
+restriccion|detalle_pedido.fk_detalle_pedido_producto|FOREIGN KEY (producto_id) REFERENCES producto(id) ON DELETE RESTRICT
+restriccion|detalle_pedido.uq_detalle_pedido_pedido_producto|UNIQUE (pedido_id, producto_id)
+restriccion|pedido.chk_pedido_total|CHECK ((total >= (0)::numeric))
+restriccion|pedido.fk_pedido_usuario|FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE RESTRICT
+restriccion|pedido.pedido_pkey|PRIMARY KEY (id)
+restriccion|producto.chk_producto_precio|CHECK ((precio >= (0)::numeric))
+restriccion|producto.chk_producto_stock|CHECK ((stock >= 0))
+restriccion|producto.fk_producto_categoria|FOREIGN KEY (categoria_id) REFERENCES categoria(id) ON DELETE RESTRICT
+restriccion|producto.producto_pkey|PRIMARY KEY (id)
+restriccion|usuario.usuario_mail_key|UNIQUE (mail)
+restriccion|usuario.usuario_pkey|PRIMARY KEY (id)
+rutina_acl|api_registrar_detalle_pedido(bigint,bigint,integer)|{rol_propietario_ventas=X/rol_propietario_ventas,rol_app_escritura=X/rol_propietario_ventas}
+rutina_acl|calcular_total_pedido(bigint)|{postgres=X/postgres,rol_propietario_ventas=X/postgres}
+rutina_acl|fn_recalcular_total_delete()|{postgres=X/postgres}
+rutina_acl|fn_recalcular_total_insert()|{postgres=X/postgres}
+rutina_acl|fn_recalcular_total_update()|{postgres=X/postgres}
+rutina_acl|fn_set_subtotal()|{postgres=X/postgres}
+rutina_acl|fn_validar_detalle_vigente()|{postgres=X/postgres}
+rutina_acl|registrar_detalle_pedido(bigint,bigint,integer)|{postgres=X/postgres,rol_propietario_ventas=X/postgres}
+rutina|api_registrar_detalle_pedido(bigint,bigint,integer)|owner=rol_propietario_ventas|prosecdef=true|proconfig=search_path=public, pg_temp|def_md5=fb0f44aedb506586a40352d287b04c3b
+rutina|calcular_total_pedido(bigint)|owner=postgres|prosecdef=false|proconfig=NULL|def_md5=f502e051ef35a751fbbd772d1cf8b18f
+rutina|fn_recalcular_total_delete()|owner=postgres|prosecdef=false|proconfig=NULL|def_md5=29a16f5a59f3c428306e358fa26805b5
+rutina|fn_recalcular_total_insert()|owner=postgres|prosecdef=false|proconfig=NULL|def_md5=ec1e4b9df6fb05f5707f107abd778189
+rutina|fn_recalcular_total_update()|owner=postgres|prosecdef=false|proconfig=NULL|def_md5=1390624a76f818292300d1ec6094492e
+rutina|fn_set_subtotal()|owner=postgres|prosecdef=false|proconfig=NULL|def_md5=e979d027fdaff01f6742b781ae7b8e38
+rutina|fn_validar_detalle_vigente()|owner=postgres|prosecdef=false|proconfig=NULL|def_md5=a825b1201cbc2a35c7488101e0030aa9
+rutina|registrar_detalle_pedido(bigint,bigint,integer)|owner=postgres|prosecdef=false|proconfig=NULL|def_md5=cb7de68dfec389f021818cf9d8a60616
+secuencia|categoria_id_seq|owner=postgres|acl=NULL
+secuencia|detalle_pedido_id_seq|owner=postgres|acl=NULL
+secuencia|pedido_id_seq|owner=postgres|acl=NULL
+secuencia|producto_id_seq|owner=postgres|acl=NULL
+secuencia|usuario_id_seq|owner=postgres|acl=NULL
+tabla|categoria|owner=postgres
+tabla|detalle_pedido|owner=postgres
+tabla|pedido|owner=postgres
+tabla|producto|owner=postgres
+tabla|usuario|owner=postgres
+tipo|estado_pedido|owner=postgres|labels=PENDIENTE,CONFIRMADO,TERMINADO,CANCELADO
+tipo|forma_pago|owner=postgres|labels=EFECTIVO,TARJETA,TRANSFERENCIA
+tipo|rol|owner=postgres|labels=ADMIN,USUARIO
+trigger|detalle_pedido.trg_detalle_vigente|fn_validar_detalle_vigente()|enabled=O|CREATE TRIGGER trg_detalle_vigente BEFORE INSERT OR UPDATE OF pedido_id, producto_id ON public.detalle_pedido FOR EACH ROW EXECUTE FUNCTION fn_validar_detalle_vigente()
+trigger|detalle_pedido.trg_subtotal|fn_set_subtotal()|enabled=O|CREATE TRIGGER trg_subtotal BEFORE INSERT OR UPDATE OF cantidad, precio_unitario, producto_id, subtotal ON public.detalle_pedido FOR EACH ROW EXECUTE FUNCTION fn_set_subtotal()
+trigger|detalle_pedido.trg_total_detalle_delete|fn_recalcular_total_delete()|enabled=O|CREATE TRIGGER trg_total_detalle_delete AFTER DELETE ON public.detalle_pedido REFERENCING OLD TABLE AS anteriores FOR EACH STATEMENT EXECUTE FUNCTION fn_recalcular_total_delete()
+trigger|detalle_pedido.trg_total_detalle_insert|fn_recalcular_total_insert()|enabled=O|CREATE TRIGGER trg_total_detalle_insert AFTER INSERT ON public.detalle_pedido REFERENCING NEW TABLE AS nuevos FOR EACH STATEMENT EXECUTE FUNCTION fn_recalcular_total_insert()
+trigger|detalle_pedido.trg_total_detalle_update|fn_recalcular_total_update()|enabled=O|CREATE TRIGGER trg_total_detalle_update AFTER UPDATE ON public.detalle_pedido REFERENCING OLD TABLE AS anteriores NEW TABLE AS nuevos FOR EACH STATEMENT EXECUTE FUNCTION fn_recalcular_total_update()

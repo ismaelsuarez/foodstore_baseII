@@ -1,0 +1,22 @@
+44c44
+< esquema|public|owner=pg_database_owner|acl={pg_database_owner=UC/pg_database_owner,=U/pg_database_owner}
+---
+> esquema|public|owner=pg_database_owner|acl={pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,rol_app_escritura=U/pg_database_owner,rol_propietario_ventas=U/pg_database_owner}
+74,80c74,82
+< rutina_acl|calcular_total_pedido(bigint)|NULL
+< rutina_acl|fn_recalcular_total_delete()|NULL
+< rutina_acl|fn_recalcular_total_insert()|NULL
+< rutina_acl|fn_recalcular_total_update()|NULL
+< rutina_acl|fn_set_subtotal()|NULL
+< rutina_acl|fn_validar_detalle_vigente()|NULL
+< rutina_acl|registrar_detalle_pedido(bigint,bigint,integer)|NULL
+---
+> rutina_acl|api_registrar_detalle_pedido(bigint,bigint,integer)|{rol_propietario_ventas=X/rol_propietario_ventas,rol_app_escritura=X/rol_propietario_ventas}
+> rutina_acl|calcular_total_pedido(bigint)|{postgres=X/postgres,rol_propietario_ventas=X/postgres}
+> rutina_acl|fn_recalcular_total_delete()|{postgres=X/postgres}
+> rutina_acl|fn_recalcular_total_insert()|{postgres=X/postgres}
+> rutina_acl|fn_recalcular_total_update()|{postgres=X/postgres}
+> rutina_acl|fn_set_subtotal()|{postgres=X/postgres}
+> rutina_acl|fn_validar_detalle_vigente()|{postgres=X/postgres}
+> rutina_acl|registrar_detalle_pedido(bigint,bigint,integer)|{postgres=X/postgres,rol_propietario_ventas=X/postgres}
+> rutina|api_registrar_detalle_pedido(bigint,bigint,integer)|owner=rol_propietario_ventas|prosecdef=true|proconfig=search_path=public, pg_temp|def_md5=fb0f44aedb506586a40352d287b04c3b

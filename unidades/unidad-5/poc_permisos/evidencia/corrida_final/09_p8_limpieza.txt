@@ -1,0 +1,35 @@
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+BEGIN
+DROP OWNED
+DROP ROLE
+COMMIT
+DO
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+psql:/poc/09_p8_limpieza.sql:16: NOTICE:  RESULT|P8.roles|PASS|esperado=0 observado=0|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/09_p8_limpieza.sql:19: NOTICE:  RESULT|P8.api|PASS|esperado=NULL observado=NULL|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/09_p8_limpieza.sql:21: NOTICE:  RESULT|P8.membresias|FAIL|esperado=0 observado=3|
+ verificar 
+-----------
+ 
+(1 row)
+

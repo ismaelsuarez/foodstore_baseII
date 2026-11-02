@@ -1,0 +1,113 @@
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+DO
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE PROCEDURE
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+DO
+== VP-02 propietarios
+  clase  |                     objeto                      |    propietario    
+---------+-------------------------------------------------+-------------------
+ base    | foodstore_u5_poc                                | postgres
+ esquema | public                                          | pg_database_owner
+ rutina  | calcular_total_pedido(bigint)                   | postgres
+ rutina  | fn_recalcular_total_delete()                    | postgres
+ rutina  | fn_recalcular_total_insert()                    | postgres
+ rutina  | fn_recalcular_total_update()                    | postgres
+ rutina  | fn_set_subtotal()                               | postgres
+ rutina  | fn_validar_detalle_vigente()                    | postgres
+ rutina  | registrar_detalle_pedido(bigint,bigint,integer) | postgres
+ tabla   | categoria                                       | postgres
+ tabla   | categoria_id_seq                                | postgres
+ tabla   | detalle_pedido                                  | postgres
+ tabla   | detalle_pedido_id_seq                           | postgres
+ tabla   | pedido                                          | postgres
+ tabla   | pedido_id_seq                                   | postgres
+ tabla   | producto                                        | postgres
+ tabla   | producto_id_seq                                 | postgres
+ tabla   | usuario                                         | postgres
+ tabla   | usuario_id_seq                                  | postgres
+ tipo    | estado_pedido                                   | postgres
+ tipo    | forma_pago                                      | postgres
+ tipo    | rol                                             | postgres
+(22 rows)
+
+== VP-03 ACL y configuración de las rutinas (consulta de design.md §3.2)
+                     rutina                      | propietario | proacl_null | prosecdef | proconfig | beneficiario | privilege_type 
+-------------------------------------------------+-------------+-------------+-----------+-----------+--------------+----------------
+ calcular_total_pedido(bigint)                   | postgres    | t           | f         |           | PUBLIC       | EXECUTE
+ calcular_total_pedido(bigint)                   | postgres    | t           | f         |           | postgres     | EXECUTE
+ fn_set_subtotal()                               | postgres    | t           | f         |           | PUBLIC       | EXECUTE
+ fn_set_subtotal()                               | postgres    | t           | f         |           | postgres     | EXECUTE
+ fn_validar_detalle_vigente()                    | postgres    | t           | f         |           | PUBLIC       | EXECUTE
+ fn_validar_detalle_vigente()                    | postgres    | t           | f         |           | postgres     | EXECUTE
+ fn_recalcular_total_insert()                    | postgres    | t           | f         |           | PUBLIC       | EXECUTE
+ fn_recalcular_total_insert()                    | postgres    | t           | f         |           | postgres     | EXECUTE
+ fn_recalcular_total_update()                    | postgres    | t           | f         |           | PUBLIC       | EXECUTE
+ fn_recalcular_total_update()                    | postgres    | t           | f         |           | postgres     | EXECUTE
+ fn_recalcular_total_delete()                    | postgres    | t           | f         |           | PUBLIC       | EXECUTE
+ fn_recalcular_total_delete()                    | postgres    | t           | f         |           | postgres     | EXECUTE
+ registrar_detalle_pedido(bigint,bigint,integer) | postgres    | t           | f         |           | PUBLIC       | EXECUTE
+ registrar_detalle_pedido(bigint,bigint,integer) | postgres    | t           | f         |           | postgres     | EXECUTE
+(14 rows)
+
+== VP-04 triggers
+     tabla      |          tgname          |           funcion            | tgenabled 
+----------------+--------------------------+------------------------------+-----------
+ detalle_pedido | trg_detalle_vigente      | fn_validar_detalle_vigente() | O
+ detalle_pedido | trg_subtotal             | fn_set_subtotal()            | O
+ detalle_pedido | trg_total_detalle_delete | fn_recalcular_total_delete() | O
+ detalle_pedido | trg_total_detalle_insert | fn_recalcular_total_insert() | O
+ detalle_pedido | trg_total_detalle_update | fn_recalcular_total_update() | O
+(5 rows)
+
+== VP-11 vistas y materializada de U3 (no forman parte de la instalación mínima)
+            objeto            | presente 
+------------------------------+----------
+ mv_facturacion_categoria_mes | f
+ v_pedido_detalle             | f
+ v_pedidos_resumen            | f
+ v_productos_vigentes         | f
+ v_usuarios_publico           | f
+(5 rows)
+
+== VP-12 secuencias de identidad y ACL
+     tabla      |          secuencia           | acl 
+----------------+------------------------------+-----
+ categoria      | public.categoria_id_seq      | 
+ detalle_pedido | public.detalle_pedido_id_seq | 
+ pedido         | public.pedido_id_seq         | 
+ producto       | public.producto_id_seq       | 
+ usuario        | public.usuario_id_seq        | 
+(5 rows)
+

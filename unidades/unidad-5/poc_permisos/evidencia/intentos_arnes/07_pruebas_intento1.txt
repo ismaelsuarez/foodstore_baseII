@@ -1,0 +1,491 @@
+DO
+       base       |         server_version          | ejecutor 
+------------------+---------------------------------+----------
+ foodstore_u5_poc | 17.11 (Debian 17.11-1.pgdg13+2) | postgres
+(1 row)
+
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+ c1 | u1 | u2 | p1 | p2 | p3 | p4 | o1 | o2 | o3 
+----+----+----+----+----+----+----+----+----+----
+ 1  | 1  | 2  | 1  | 2  | 3  | 4  | 1  | 2  | 3
+(1 row)
+
+psql:/poc/07_pruebas.sql:9: NOTICE:  RESULT|F.estado_inicial|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ verificar 
+-----------
+ 
+(1 row)
+
+BEGIN
+SET
+psql:/poc/07_pruebas.sql:15: NOTICE:  RESULT|T01.api|PASS|esperado=sin_error observado=sin_error|
+ esperar_ok 
+------------
+ 
+(1 row)
+
+RESET
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/poc/07_pruebas.sql:18: NOTICE:  RESULT|T01.estado|PASS|esperado=lineas=[O1/P1:3:1250.50:3751.50] stock_p1=7 stock_p2=2 total_o1=3751.50 observado=lineas=[O1/P1:3:1250.50:3751.50] stock_p1=7 stock_p2=2 total_o1=3751.50|
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:21: NOTICE:  RESULT|T02.api|PASS|esperado=sin_error observado=sin_error|
+RESET
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:24: NOTICE:  RESULT|T02.estado|PASS|esperado=lineas=[O1/P1:3:1250.50:3751.50,O1/P2:2:300.00:600.00] stock_p1=7 stock_p2=0 total_o1=4351.50 observado=lineas=[O1/P1:3:1250.50:3751.50,O1/P2:2:300.00:600.00] stock_p1=7 stock_p2=0 total_o1=4351.50|
+ROLLBACK
+psql:/poc/07_pruebas.sql:26: NOTICE:  RESULT|T02.rollback|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ verificar 
+-----------
+ 
+(1 row)
+
+BEGIN
+SET
+psql:/poc/07_pruebas.sql:33: NOTICE:  RESULT|T03.01_insert_detalle|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/07_pruebas.sql:33: NOTICE:  CONTEXT|T03.01_insert_detalle|SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-        VALUES (pg_temp.id('o1'), pg_temp.id('p1'), 1, 1250.50)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:35: NOTICE:  RESULT|T03.02_update_detalle|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/07_pruebas.sql:35: NOTICE:  CONTEXT|T03.02_update_detalle|SQL statement "UPDATE detalle_pedido SET cantidad = 1" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:37: NOTICE:  RESULT|T03.03_delete_detalle|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/07_pruebas.sql:37: NOTICE:  CONTEXT|T03.03_delete_detalle|SQL statement "DELETE FROM detalle_pedido" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:39: NOTICE:  RESULT|T03.04_select_detalle|PASS|esperado=42501 observado=42501|permission denied for table detalle_pedido
+psql:/poc/07_pruebas.sql:39: NOTICE:  CONTEXT|T03.04_select_detalle|SQL statement "SELECT * FROM detalle_pedido" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+ROLLBACK
+ verificar 
+-----------
+ 
+(1 row)
+
+BEGIN
+SET
+ esperar_ok 
+------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+ verificar 
+-----------
+ 
+(1 row)
+
+ROLLBACK
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:41: NOTICE:  RESULT|T03.05_call_procedimiento|PASS|esperado=42501 observado=42501|permission denied for procedure registrar_detalle_pedido
+psql:/poc/07_pruebas.sql:41: NOTICE:  CONTEXT|T03.05_call_procedimiento|SQL statement "CALL public.registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:43: NOTICE:  RESULT|T03.06_calcular_total|PASS|esperado=42501 observado=42501|permission denied for function calcular_total_pedido
+psql:/poc/07_pruebas.sql:43: NOTICE:  CONTEXT|T03.06_calcular_total|SQL statement "SELECT public.calcular_total_pedido(pg_temp.id('o1'))" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:45: NOTICE:  RESULT|T03.07_update_stock|PASS|esperado=42501 observado=42501|permission denied for table producto
+psql:/poc/07_pruebas.sql:45: NOTICE:  CONTEXT|T03.07_update_stock|SQL statement "UPDATE producto SET stock = 0" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:47: NOTICE:  RESULT|T03.08_update_total|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/07_pruebas.sql:47: NOTICE:  CONTEXT|T03.08_update_total|SQL statement "UPDATE pedido SET total = 0" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:49: NOTICE:  RESULT|T03.09_select_total|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/07_pruebas.sql:49: NOTICE:  CONTEXT|T03.09_select_total|SQL statement "SELECT total FROM pedido" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:51: NOTICE:  RESULT|T03.10_select_usuario|PASS|esperado=42501 observado=42501|permission denied for table usuario
+psql:/poc/07_pruebas.sql:51: NOTICE:  CONTEXT|T03.10_select_usuario|SQL statement "SELECT * FROM usuario" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:54: NOTICE:  RESULT|T03.residuo|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+psql:/poc/07_pruebas.sql:60: NOTICE:  RESULT|T04.1_insert_columnas_permitidas|PASS|esperado=sin_error observado=sin_error|
+psql:/poc/07_pruebas.sql:63: NOTICE:  RESULT|T04.2_insert_con_fecha|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/07_pruebas.sql:63: NOTICE:  CONTEXT|T04.2_insert_con_fecha|SQL statement "INSERT INTO pedido (usuario_id, forma_pago, fecha) <-        VALUES (pg_temp.id('u1'), 'TARJETA', DATE '2000-01-01') RETURNING id" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:66: NOTICE:  RESULT|T04.3_insert_con_total|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/07_pruebas.sql:66: NOTICE:  CONTEXT|T04.3_insert_con_total|SQL statement "INSERT INTO pedido (usuario_id, forma_pago, total) <-        VALUES (pg_temp.id('u1'), 'TARJETA', 0) RETURNING id" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:73: NOTICE:  RESULT|T04.1_fila|FAIL|esperado=usuario=U1 fecha_hoy=true estado=PENDIENTE total=0.00 eliminado=false observado=usuario=U1 fecha_hoy=t estado=PENDIENTE total=0.00 eliminado=f|
+psql:/poc/07_pruebas.sql:76: NOTICE:  RESULT|T04.residuo|PASS|esperado=0 observado=0|
+BEGIN
+SET
+psql:/poc/07_pruebas.sql:82: NOTICE:  RESULT|T05.1_cantidad_0|PASS|esperado=22023 observado=22023|La cantidad debe ser mayor que cero: 0
+psql:/poc/07_pruebas.sql:82: NOTICE:  CONTEXT|T05.1_cantidad_0|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 15 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 0)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:84: NOTICE:  RESULT|T05.2_cantidad_null|PASS|esperado=22023 observado=22023|pedido_id, producto_id y cantidad son obligatorios
+psql:/poc/07_pruebas.sql:84: NOTICE:  CONTEXT|T05.2_cantidad_null|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 11 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), NULL)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:86: NOTICE:  RESULT|T05.3_pedido_inexistente|PASS|esperado=23503 observado=23503|El pedido -1 no existe
+psql:/poc/07_pruebas.sql:86: NOTICE:  CONTEXT|T05.3_pedido_inexistente|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 29 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(-1, pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:88: NOTICE:  RESULT|T05.4_pedido_eliminado_O3|PASS|esperado=23514 observado=23514|El pedido 3 está eliminado
+psql:/poc/07_pruebas.sql:88: NOTICE:  CONTEXT|T05.4_pedido_eliminado_O3|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 26 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o3'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:90: NOTICE:  RESULT|T05.5_usuario_eliminado_O2|PASS|esperado=23514 observado=23514|El usuario 2 del pedido está eliminado
+psql:/poc/07_pruebas.sql:90: NOTICE:  CONTEXT|T05.5_usuario_eliminado_O2|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 43 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o2'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:92: NOTICE:  RESULT|T05.6_producto_no_disponible_P3|PASS|esperado=23514 observado=23514|El producto 3 no está disponible
+psql:/poc/07_pruebas.sql:92: NOTICE:  CONTEXT|T05.6_producto_no_disponible_P3|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 61 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p3'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:94: NOTICE:  RESULT|T05.7_producto_eliminado_P4|PASS|esperado=23514 observado=23514|El producto 4 está eliminado
+psql:/poc/07_pruebas.sql:94: NOTICE:  CONTEXT|T05.7_producto_eliminado_P4|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 57 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p4'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+psql:/poc/07_pruebas.sql:96: NOTICE:  RESULT|T05.8_stock_insuficiente|PASS|esperado=23514 observado=23514|Stock insuficiente para producto 2: disponible 2, solicitado 3
+psql:/poc/07_pruebas.sql:96: NOTICE:  CONTEXT|T05.8_stock_insuficiente|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 65 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p2'), 3)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+ verificar 
+-----------
+ 
+(1 row)
+
+SET
+psql:/poc/07_pruebas.sql:98: NOTICE:  RESULT|T05.1-8_sin_efectos|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:101: NOTICE:  RESULT|T05.9a_primera_llamada|PASS|esperado=sin_error observado=sin_error|
+psql:/poc/07_pruebas.sql:103: NOTICE:  RESULT|T05.9b_duplicado|PASS|esperado=23505 observado=23505|El producto 1 ya existe en el pedido 1
+psql:/poc/07_pruebas.sql:103: NOTICE:  CONTEXT|T05.9b_duplicado|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 72 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+ verificar 
+-----------
+ 
+(1 row)
+
+ROLLBACK
+psql:/poc/07_pruebas.sql:106: NOTICE:  RESULT|T05.9_estado|PASS|esperado=lineas=[O1/P1:1:1250.50:1250.50] stock_p1=9 stock_p2=2 total_o1=1250.50 observado=lineas=[O1/P1:1:1250.50:1250.50] stock_p1=9 stock_p2=2 total_o1=1250.50|
+psql:/poc/07_pruebas.sql:108: NOTICE:  RESULT|T05.residuo|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:115: NOTICE:  RESULT|T06a.venta_valida|PASS|esperado=sin_error observado=sin_error|
+BEGIN
+SET
+ esperar_ok 
+------------
+ 
+(1 row)
+
+SAVEPOINT
+psql:/poc/07_pruebas.sql:118: NOTICE:  RESULT|T06a.stock_insuficiente|PASS|esperado=23514 observado=23514|Stock insuficiente para producto 2: disponible 2, solicitado 5
+psql:/poc/07_pruebas.sql:118: NOTICE:  CONTEXT|T06a.stock_insuficiente|PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 65 at RAISE <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p2'), 5)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+ROLLBACK
+RESET
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:122: NOTICE:  RESULT|T06a.estado|PASS|esperado=lineas=[O1/P1:3:1250.50:3751.50] stock_p1=7 stock_p2=2 total_o1=3751.50 observado=lineas=[O1/P1:3:1250.50:3751.50] stock_p1=7 stock_p2=2 total_o1=3751.50|
+ROLLBACK
+psql:/poc/07_pruebas.sql:124: NOTICE:  RESULT|T06a.residuo|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ verificar 
+-----------
+ 
+(1 row)
+
+BEGIN
+REVOKE
+SAVEPOINT
+SET
+ esperar_error 
+---------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:132: NOTICE:  RESULT|T06b.trigger_after_sin_execute|PASS|esperado=42501 observado=42501|permission denied for function calcular_total_pedido
+psql:/poc/07_pruebas.sql:132: NOTICE:  CONTEXT|T06b.trigger_after_sin_execute|SQL statement "UPDATE pedido p <-         SET total = calcular_total_pedido(p.id) <-         WHERE p.id = v_pedido_id" <- PL/pgSQL function fn_recalcular_total_insert() line 8 at SQL statement <- SQL statement "INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario) <-     VALUES (p_pedido_id, p_producto_id, p_cantidad, v_precio)" <- PL/pgSQL function registrar_detalle_pedido(bigint,bigint,integer) line 79 at SQL statement <- SQL statement "CALL public.registrar_detalle_pedido(p_pedido_id, p_producto_id, p_cantidad)" <- PL/pgSQL function api_registrar_detalle_pedido(bigint,bigint,integer) line 4 at CALL <- SQL statement "SELECT public.api_registrar_detalle_pedido(pg_temp.id('o1'), pg_temp.id('p1'), 1)" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ROLLBACK
+RESET
+psql:/poc/07_pruebas.sql:135: NOTICE:  RESULT|T06b.estado|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ verificar 
+-----------
+ 
+(1 row)
+
+ROLLBACK
+psql:/poc/07_pruebas.sql:139: NOTICE:  RESULT|T06b.residuo_acl|PASS|esperado=true observado=true|
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:152: NOTICE:  RESULT|T08.catalogo|PASS|esperado=0 observado=0|
+psql:/poc/07_pruebas.sql:158: NOTICE:  RESULT|T08.has_function_privilege|PASS|esperado=false,false,false,false,false observado=false,false,false,false,false|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:163: NOTICE:  RESULT|T09.catalogo|PASS|esperado=NULL observado=NULL|
+ verificar 
+-----------
+ 
+(1 row)
+
+BEGIN
+SET
+psql:/poc/07_pruebas.sql:169: NOTICE:  RESULT|T10.1_for_share_usuario_matriz_completa|PASS|esperado=sin_error observado=sin_error|
+ esperar_ok 
+------------
+ 
+(1 row)
+
+RESET
+REVOKE
+SET
+psql:/poc/07_pruebas.sql:174: NOTICE:  RESULT|T10.2_for_share_usuario_sin_update|PASS|esperado=42501 observado=42501|permission denied for table usuario
+psql:/poc/07_pruebas.sql:174: NOTICE:  CONTEXT|T10.2_for_share_usuario_sin_update|SQL statement "SELECT eliminado FROM usuario WHERE id = pg_temp.id('u1') FOR SHARE" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+REVOKE
+SET
+psql:/poc/07_pruebas.sql:179: NOTICE:  RESULT|T10.3_for_update_pedido_sin_update|PASS|esperado=42501 observado=42501|permission denied for table pedido
+psql:/poc/07_pruebas.sql:179: NOTICE:  CONTEXT|T10.3_for_update_pedido_sin_update|SQL statement "SELECT usuario_id FROM pedido WHERE id = pg_temp.id('o1') FOR UPDATE" <- PL/pgSQL function pg_temp_14.esperar_error(text,text,text) line 8 at EXECUTE
+ esperar_error 
+---------------
+ 
+(1 row)
+
+RESET
+ROLLBACK
+BEGIN
+SET
+psql:/poc/07_pruebas.sql:188: NOTICE:  OBSERVADO|T11.literal_create_temp_like|observado=42501|permission denied for table producto
+ observar 
+----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:193: NOTICE:  RESULT|T11.create_temp_explicita|PASS|esperado=sin_error observado=sin_error|
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:196: NOTICE:  RESULT|T11.insert_temp|PASS|esperado=sin_error observado=sin_error|
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:198: NOTICE:  RESULT|T11.api|PASS|esperado=sin_error observado=sin_error|
+ esperar_ok 
+------------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:201: NOTICE:  RESULT|T11.public_producto|PASS|esperado=9 observado=9|
+psql:/poc/07_pruebas.sql:203: NOTICE:  RESULT|T11.temp_producto|PASS|esperado=999 observado=999|
+RESET
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+ROLLBACK
+psql:/poc/07_pruebas.sql:205: NOTICE:  RESULT|T11.residuo|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:207: NOTICE:  RESULT|T11.residuo_temp|PASS|esperado=NULL observado=NULL|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:213: NOTICE:  RESULT|T13.propietario|PASS|esperado=rol_propietario_ventas observado=rol_propietario_ventas|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:217: NOTICE:  RESULT|T13.prosecdef|PASS|esperado=true observado=true|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:221: NOTICE:  RESULT|T13.proconfig|PASS|esperado=search_path=public, pg_temp observado=search_path=public, pg_temp|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:228: NOTICE:  RESULT|T13.acl|FAIL|esperado=rol_app_escritura:EXECUTE,rol_propietario_ventas:EXECUTE observado=rol_propietario_ventas:EXECUTE,rol_app_escritura:EXECUTE|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:234: NOTICE:  RESULT|T13.rol_propietario_atributos|FAIL|esperado=login=false inherit=false super=false createrole=false createdb=false replication=false bypassrls=false observado=login=f inherit=f super=f createrole=f createdb=f replication=f bypassrls=f|
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:237: NOTICE:  RESULT|T13.rol_propietario_miembros|PASS|esperado=0 observado=0|
+psql:/poc/07_pruebas.sql:242: NOTICE:  RESULT|T13.create_public_roles_poc|PASS|esperado=app_web=false,rol_app_escritura=false,rol_propietario_ventas=false,tst_u5_sin_privilegios=false observado=app_web=false,rol_app_escritura=false,rol_propietario_ventas=false,tst_u5_sin_privilegios=false|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:246: NOTICE:  RESULT|T13.create_public_PUBLIC|PASS|esperado=0 observado=0|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:252: NOTICE:  RESULT|T13.membresia_app_web|FAIL|esperado=rol_app_escritura<-app_web admin=false observado=pg_read_all_settings<-pg_monitor admin=f,pg_read_all_stats<-pg_monitor admin=f,pg_stat_scan_tables<-pg_monitor admin=f,rol_app_escritura<-app_web admin=f|
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:256: NOTICE:  RESULT|T13.sin_privilegios_api|PASS|esperado=false observado=false|
+ verificar 
+-----------
+ 
+(1 row)
+
+ verificar 
+-----------
+ 
+(1 row)
+
+psql:/poc/07_pruebas.sql:258: NOTICE:  RESULT|F.estado_final|PASS|esperado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00 observado=lineas=[] stock_p1=10 stock_p2=2 total_o1=0.00|
