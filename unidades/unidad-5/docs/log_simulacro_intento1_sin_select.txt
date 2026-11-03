@@ -1,0 +1,12 @@
+2026-11-02 20:17:57.122 UTC [167] [unknown]@[unknown] 127.0.0.1(57848) LOG:  connection received: host=127.0.0.1 port=57848
+2026-11-02 20:17:57.123 UTC [167] app_web@foodstore_simulacro_c 127.0.0.1(57848) LOG:  connection authenticated: user="app_web" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 20:17:57.123 UTC [167] app_web@foodstore_simulacro_c 127.0.0.1(57848) LOG:  connection authorized: user=app_web database=foodstore_simulacro_c application_name=psql
+2026-11-02 20:17:57.140 UTC [168] [unknown]@[unknown] 127.0.0.1(57862) LOG:  connection received: host=127.0.0.1 port=57862
+2026-11-02 20:17:57.140 UTC [168] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(57862) LOG:  connection authenticated: user="tst_u5_lector" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 20:17:57.140 UTC [168] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(57862) LOG:  connection authorized: user=tst_u5_lector database=foodstore_simulacro_c application_name=psql
+2026-11-02 20:17:57.141 UTC [167] app_web@foodstore_simulacro_c 127.0.0.1(57848) LOG:  disconnection: session time: 0:00:00.018 user=app_web database=foodstore_simulacro_c host=127.0.0.1 port=57848
+2026-11-02 20:17:57.141 UTC [168] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(57862) LOG:  statement: GRANT admin_datos TO tst_u5_lector;
+2026-11-02 20:17:57.141 UTC [168] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(57862) ERROR:  permission denied to grant role "admin_datos"
+2026-11-02 20:17:57.141 UTC [168] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(57862) DETAIL:  Only roles with the ADMIN option on role "admin_datos" may grant this role.
+2026-11-02 20:17:57.141 UTC [168] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(57862) STATEMENT:  GRANT admin_datos TO tst_u5_lector;
+2026-11-02 20:17:57.142 UTC [168] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(57862) LOG:  disconnection: session time: 0:00:00.001 user=tst_u5_lector database=foodstore_simulacro_c host=127.0.0.1 port=57862

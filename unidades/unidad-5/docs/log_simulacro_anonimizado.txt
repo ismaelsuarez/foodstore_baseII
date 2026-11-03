@@ -1,0 +1,18 @@
+2026-11-02 20:18:53.781 UTC [174] [unknown]@[unknown] 127.0.0.1(59610) LOG:  connection received: host=127.0.0.1 port=59610
+2026-11-02 20:18:53.781 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  connection authenticated: user="app_web" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 20:18:53.781 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  connection authorized: user=app_web database=foodstore_simulacro_c application_name=psql
+2026-11-02 20:18:53.782 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  statement: SELECT current_database() = 'foodstore_simulacro_c' AND current_user = 'app_web' AS u5c_destino_ok
+2026-11-02 20:18:53.782 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  execute <unnamed>: SELECT * FROM public.fn_autenticar($1, $2) 
+2026-11-02 20:18:53.788 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  execute <unnamed>: SELECT * FROM public.fn_autenticar($1, $2) 
+2026-11-02 20:18:53.791 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  execute <unnamed>: SELECT * FROM public.fn_autenticar($1, $2) 
+2026-11-02 20:18:53.794 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  execute <unnamed>: SELECT * FROM public.fn_autenticar($1, $2) 
+2026-11-02 20:18:53.799 UTC [175] [unknown]@[unknown] 127.0.0.1(59624) LOG:  connection received: host=127.0.0.1 port=59624
+2026-11-02 20:18:53.799 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) LOG:  connection authenticated: user="tst_u5_lector" method=trust (/var/lib/postgresql/data/pg_hba.conf:119)
+2026-11-02 20:18:53.799 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) LOG:  connection authorized: user=tst_u5_lector database=foodstore_simulacro_c application_name=psql
+2026-11-02 20:18:53.800 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) LOG:  statement: SELECT * FROM public.usuario;
+2026-11-02 20:18:53.800 UTC [174] app_web@foodstore_simulacro_c 127.0.0.1(59610) LOG:  disconnection: session time: 0:00:00.019 user=app_web database=foodstore_simulacro_c host=127.0.0.1 port=59610
+2026-11-02 20:18:53.801 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) LOG:  statement: GRANT admin_datos TO tst_u5_lector;
+2026-11-02 20:18:53.801 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) ERROR:  permission denied to grant role "admin_datos"
+2026-11-02 20:18:53.801 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) DETAIL:  Only roles with the ADMIN option on role "admin_datos" may grant this role.
+2026-11-02 20:18:53.801 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) STATEMENT:  GRANT admin_datos TO tst_u5_lector;
+2026-11-02 20:18:53.801 UTC [175] tst_u5_lector@foodstore_simulacro_c 127.0.0.1(59624) LOG:  disconnection: session time: 0:00:00.002 user=tst_u5_lector database=foodstore_simulacro_c host=127.0.0.1 port=59624
