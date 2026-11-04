@@ -9,7 +9,7 @@ propuestas, pruebas y decisiones pertenece al equipo.
 |---|---|
 | A — Roles y permisos | Implementada y validada en laboratorio; SEC-04 pendiente de aceptación formal del equipo |
 | B — Auditoría | Ejecutada en laboratorio y versionada (commit `6c44294`) |
-| C — Simulacro de incidente | **Pendiente**: sin interacciones registradas; el mecanismo de §7.3 sigue sin elegir |
+| C — Simulacro de incidente | Ejecutada en laboratorio; decisión de contención aprobada por el equipo el 2026-11-03 |
 | D — Anonimización | **Pendiente**: sin interacciones registradas |
 
 ## Herramientas
@@ -18,6 +18,8 @@ propuestas, pruebas y decisiones pertenece al equipo.
 |---|---|
 | Especificaciones iniciales (commit `edf3c3f`) | Kiro |
 | Auditoría, diseño, POC, implementación y validación de la Parte A (2026-10-25 a 2026-11-02) | Claude Code, modelo Claude Opus 5.5 (`claude-opus-5-5`), autorizado por la cátedra como reemplazo de OpenCode. Parte del trabajo lo hicieron subagentes de escritura y de verificación lanzados desde la misma sesión; no se registró su modelo exacto |
+| Simulacro, contraste y cierre de la Parte C (2026-11-02 y 2026-11-03) | Pi con el arnés Gentle Shell, modelo Claude Opus 5.5 (`claude-opus-5-5`) |
+| Reconstrucción independiente del log (Parte C, punto 4) | Claude Code, modelo Claude Opus 5.5 (`claude-opus-5-5`), sesión nueva fuera del repositorio |
 | Motor de laboratorio | PostgreSQL 17.11 en contenedores descartables (`postgres:17`) |
 
 ## Parte A — Prompts y respuestas
@@ -125,6 +127,73 @@ Detalle en [`informe_auditoria.md`](unidades/unidad-5/docs/informe_auditoria.md)
 | Redacción de la consigna | Atribuye a pgaudit el «detalle fila por fila»; pgaudit registra objetos y clases, no valores de filas | La IA lo señaló al redactar el punto 3 | Se aclaró en el informe. La consigna no se modificó |
 | Procedimiento de la IA | Guardó el log completo de forma temporal en `/tmp`, fuera del proyecto, sin pedir permiso antes | La propia IA lo informó en la entrega | El archivo no contenía secretos y se borró después de extraer el fragmento |
 
-## Partes C y D
+## Parte C — Prompts y respuestas
 
-Pendientes. Se registrarán aquí cuando se trabajen.
+Horas locales (UTC−3), tomadas de las transcripciones de las sesiones. Los textos largos se
+identifican por su título o por su comienzo.
+
+| Fecha | Prompt enviado a la IA | Respuesta relevante recibida | Validación o corrección humana |
+|---|---|---|---|
+| 2026-11-02 17:14 | «Food Store — Unidad 5 — Parte C: Simulacro de incidente» | Antes de escribir, la IA pidió permiso para volver a leer la consigna oficial, fuera del repositorio | Autorizó la lectura, en modo solo lectura |
+| 2026-11-02 | (misma tarea) | `simulacro_incidente.sql` y `.sh`; corrida en un contenedor descartable. El primer intento no registró los SELECT por un error del arnés; se corrigió el script y se repitió. Log anonimizado (0 reemplazos) e informe de los puntos 1 a 3 | Revisó el resultado |
+| 2026-11-02 17:25 | «Analizá exclusivamente el archivo de log adjunto…», prompt neutral redactado por el equipo, enviado a la misma sesión | La IA no hizo la reconstrucción: el mensaje no tenía adjunto y advirtió que conocía el escenario, lo que contaminaría el análisis. Propuso una sesión nueva sin memoria | — |
+| 2026-11-02 20:28 | «Vamos a utilizar una sesión nueva y aislada de Claude para el punto 4…» | Sin modificar archivos: sha256 del log y cuidados de aislamiento (carpeta vacía fuera del repositorio, sin Engram) | Decisión del equipo: reconstrucción en una sesión aislada |
+| 2026-11-03 10:08 | «Hola, necesito saber como vamos» | Estado: puntos 1 a 3 sin commitear; puntos 4 a 6 pendientes | — |
+| 2026-11-03 10:10 | «si realiza el commit + push antes de seguir por favor» | Commit `1245dcb` con los cinco entregables de los puntos 1 a 3, publicado en `feat/u5-seguridad` | Autorización del commit y del push |
+| 2026-11-03 10:12 a 10:15 | Consulta sobre dónde abrir la sesión nueva y sobre Engram; dos intentos de copia fallidos | Recomendó una carpeta vacía fuera del repositorio y una sesión sin memoria. Copió el log a `~/u5c_ciego` y lo verificó con `cmp` | — |
+| 2026-11-03 10:17 | «que prompt de analisis?» | Propuso un prompt nuevo de seis instrucciones, que pide marcar cada afirmación como demostrada o inferida | El equipo lo usó en la sesión independiente |
+| 2026-11-03 10:19 (sesión independiente) | El prompt anterior, pegado junto con tres párrafos de comentario (ver errores) | Reconstrucción completa del log, conservada en [`analisis_ia_log_simulacro.md`](unidades/unidad-5/docs/analisis_ia_log_simulacro.md) | El equipo pidió guardarla en un archivo |
+| 2026-11-03 10:21 | Entrega de la respuesta de la sesión independiente | Borrador del contraste y pregunta sobre si Engram estaba activo en esa sesión | — |
+| 2026-11-03 10:39 a 10:41 | «hasta donde yo se no uso engram…»; autorizaciones de lectura | Engram sí estaba activo. Con las transcripciones: contexto inyectado vacío, 0 llamadas a la memoria y 0 menciones del proyecto | Autorizó leer las transcripciones fuera del repositorio |
+| 2026-11-03 10:42 | «si por favor» | Copia del análisis al repositorio; puntos 4 y 5 en el informe, con el contraste como borrador | — |
+| 2026-11-03 21:37 | Texto del equipo: «Punto 5 — Omisiones y evaluación humana» y «Punto 6 — Decisión propuesta de contención» | Incorporación textual en los §11 y §12 del informe | Evaluación y decisión redactadas por el equipo |
+| 2026-11-03 21:41 | «Vamos a esperar la aprobación formal del equipo…» | Sin cambios, commits ni push | — |
+| 2026-11-03 21:42 | «Food Store — Cierre de Parte C» | Estado del punto 6, verificación del prompt y de la respuesta contra la transcripción, y esta sección | Aprobación formal del punto 6 y autorización para leer la transcripción del 2026-11-02 |
+
+## Parte C — Resultados
+
+Detalle en [`informe_incidente.md`](unidades/unidad-5/docs/informe_incidente.md).
+
+- **Simulacro.** `app_web` hizo tres llamadas fallidas y una correcta a `fn_autenticar`.
+  `tst_u5_lector`, un rol temporal con SELECT deliberado, leyó `usuario` (4 filas). El GRANT de
+  `admin_datos` fue rechazado con `42501`. El rol temporal se eliminó y `admin_datos` quedó con 0
+  miembros.
+- **Log.** Tiene 18 líneas; la anonimización hizo 0 reemplazos, porque el mail y las contraseñas
+  viajaron como parámetros. El log no permite saber cuál de las cuatro llamadas funcionó ni
+  cuántas filas se leyeron.
+- **Reconstrucción independiente.** La cronología es correcta, y la IA declaró no determinables
+  los mismos hechos que el informe. Sus inferencias marcadas como tales fueron correctas: éxito de
+  la lectura, mismo actor y ejercicio planificado. Hubo una afirmación mal etiquetada como
+  demostrada («el rol `admin_datos` existe») y un solapamiento de sesiones que no podía
+  interpretar sin contexto. La autenticación `trust` que señaló ya estaba declarada como
+  limitación del laboratorio.
+- **Evaluación del equipo.** Sin omisiones importantes en la cronología. Algunas conclusiones
+  sobre permisos y responsables eran inferencias, y un log no siempre alcanza para reconstruir
+  un incidente.
+- **Contención.** Decisión del equipo, aprobada el 2026-11-03. Ninguna recomendación de la IA se
+  aplica automáticamente.
+
+## Parte C — Errores e imprecisiones detectados
+
+| Origen | Error o imprecisión | Cómo se detectó | Tratamiento |
+|---|---|---|---|
+| Arnés del simulacro escrito por la IA | `log_statement=mod` como opción de arranque del contenedor tiene prioridad sobre `ALTER SYSTEM`: el primer intento no registró los SELECT | Revisión del log del primer intento | Fragmento conservado; se corrigió solo el script, con una guarda, y se repitió en un contenedor nuevo |
+| Asistencia de la IA | Al pedir el prompt de análisis, la IA dijo que solo se conservaba su comienzo y propuso uno nuevo. El texto completo del equipo estaba en la transcripción del 2026-11-02 | Verificación del cierre (2026-11-03) | Registrado. El prompt enviado no es el que redactó el equipo el 2026-11-02 |
+| Copia del prompt | Junto con el prompt se pegó un comentario de la IA de asistencia. Menciona el informe, el contraste, al equipo y la consigna, pero no hechos del escenario | Comparación del prompt conservado con la transcripción | Declarado en el §10 del informe como limitación; no se repitió la reconstrucción |
+| Aislamiento | Se había previsto una sesión sin Engram, pero Engram estaba activo | Pregunta de la IA y registro de Engram | Transcripción revisada: contexto inyectado vacío y 0 llamadas a la memoria |
+| Instrucción de la IA | El comando de copia usaba una ruta relativa y falló fuera del repositorio | Error del equipo al ejecutarlo | La IA hizo la copia y la verificó con `cmp` |
+| Borrador de contraste de la IA | Afirmó que el informe no trataba la autenticación `trust`; el §9 ya la declaraba | Relectura antes de editar | Corregido antes de escribir el §11 |
+
+## Parte C — Validaciones humanas
+
+- Autorización para leer la consigna oficial (2026-11-02).
+- Decisión de hacer la reconstrucción en una sesión aislada (2026-11-02).
+- Autorización del commit `1245dcb` y de su push (2026-11-03).
+- Ejecución de la sesión independiente por el equipo (2026-11-03).
+- Autorizaciones para leer las transcripciones fuera del repositorio (2026-11-03).
+- Evaluación de omisiones del punto 5, redactada por el equipo (2026-11-03).
+- Aprobación formal de la decisión de contención del punto 6 (2026-11-03).
+
+## Parte D
+
+Pendiente. Se registrará aquí cuando se trabaje.

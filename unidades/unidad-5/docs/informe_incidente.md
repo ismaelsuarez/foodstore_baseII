@@ -1,9 +1,9 @@
 # Informe del simulacro de incidente — Unidad 5, Parte C
 
-Cubre los puntos 1, 2 y 3 de la Parte C: simulacro, verificación del escalamiento y log
-anonimizado. Los puntos 4, 5 y 6 (reconstrucción con IA, contraste y decisión de contención)
-quedan pendientes y se completan en una sesión nueva, usando solo
-[`log_simulacro_anonimizado.txt`](log_simulacro_anonimizado.txt).
+Cubre los puntos 1 a 5 de la Parte C: simulacro, verificación del escalamiento, log anonimizado,
+reconstrucción con IA a partir de [`log_simulacro_anonimizado.txt`](log_simulacro_anonimizado.txt)
+y contraste humano. El punto 6 (decisión de contención) contiene la decisión del equipo,
+aprobada el 2026-11-03.
 
 Archivos: [`../sql/simulacro_incidente.sql`](../sql/simulacro_incidente.sql) (secuencia del
 incidente) y [`../sql/simulacro_incidente.sh`](../sql/simulacro_incidente.sh) (preparación del
@@ -142,11 +142,108 @@ queda en `all`. Después se repitió la corrida completa en un contenedor nuevo.
   sentencias, como el nombre de la base en la guarda inicial. Por eso las credenciales se
   mandaron siempre como parámetros.
 
-## 10. Pendiente
+## 10. Reconstrucción con IA (punto 4)
 
-- **Punto 4 — Reconstrucción con IA.** Pendiente. Se hará en una sesión nueva, entregando solo
-  `log_simulacro_anonimizado.txt`, sin contexto adicional.
-- **Punto 5 — Contraste humano.** Pendiente. Comparar la reconstrucción con las secciones 4 a 6 de
-  este informe: qué acertó la IA, qué omitió y qué afirmó sin sustento en el log.
-- **Punto 6 — Decisión de contención.** Pendiente. La toma el equipo a partir de la evidencia, no
-  como una acción automática derivada de la IA.
+El prompt exacto y la respuesta completa se conservan sin cambios en
+[`analisis_ia_log_simulacro.md`](analisis_ia_log_simulacro.md).
+
+**Entorno.** Claude Code (modelo Claude Opus 5.5), sesión nueva abierta el 2026-11-03 a las
+10:16 (UTC−3) en un directorio vacío fuera del repositorio (`~/u5c_ciego`), que solo contenía una
+copia de `log_simulacro_anonimizado.txt` verificada con `cmp`. El prompt pide distinguir, en cada
+afirmación, lo demostrado por una línea del log ([D]) de lo inferido ([I]).
+
+**Fidelidad de la evidencia.** El prompt y la respuesta conservados se compararon con la
+transcripción de la sesión. El prompt coincide con el texto enviado; solo difieren la sangría de la
+primera línea y las marcas `<pasted_content>` con que la herramienta encierra un texto pegado. La
+respuesta conservada coincide con la respuesta de la sesión.
+
+**Contenido del prompt.** Además de las seis instrucciones, el texto pegado incluyó por error tres
+párrafos de comentario de la sesión de asistencia. Mencionan el informe, el contraste del punto 5,
+al equipo y la consigna oficial. Revelan que se trata de un trabajo académico, pero ningún hecho
+del escenario: ni el resultado de las autenticaciones, ni las filas leídas, ni los permisos de los
+roles. No se repitió la reconstrucción; queda registrado como limitación. Este prompt tampoco es el
+que el equipo redactó el 2026-11-02; el detalle está en [`BITACORA.md`](../../../BITACORA.md).
+
+**Aislamiento.** La sesión no tenía acceso al repositorio, al informe ni a sesiones anteriores.
+Engram estaba activo en esa herramienta, por lo que se verificó, con autorización, la
+transcripción de la sesión:
+
+| Comprobación | Resultado |
+|---|---|
+| Contexto inyectado por Engram al inicio | Solo «Recent Sessions: u5c_ciego [0 observations]»: proyecto nuevo, sin observaciones |
+| Herramientas usadas | Tres: listado del directorio (`ls`, `wc`), lectura del log y escritura del análisis |
+| Llamadas a `mem_search` o `mem_context` | 0 |
+| Menciones a `foodstore_baseii` en la transcripción | 0 |
+| Memoria propia de Claude Code para ese directorio | Vacía |
+
+La respuesta también es coherente con ese aislamiento: declara como no determinables los hechos
+que solo constan en la salida del script (cuál de las cuatro llamadas tuvo éxito, cuántas filas
+se leyeron).
+
+## 11. Contraste humano (punto 5)
+
+> Compara la respuesta de la IA con las secciones 4 a 6 y con el log. Las listas de aciertos,
+> afirmaciones y puntos ya tratados se redactaron como borrador asistido por IA; la evaluación de
+> omisiones y la conclusión son del equipo, que es responsable del contraste.
+
+**Aciertos.**
+
+- La cronología, con marcas de tiempo, PID, puertos y líneas, coincide con el log y con el orden
+  de la sección 4.
+- Declara como no determinables los mismos hechos que la sección 6 marca con **No**: cuál de las
+  cuatro llamadas a `fn_autenticar` funcionó, con qué cuenta y cuántas filas devolvió la lectura.
+- Infiere, marcándolo como [I], que la lectura masiva tuvo éxito (fueron 4 filas), que las dos
+  sesiones pertenecen al mismo actor o script y que se trata de un ejercicio planificado (el prompt
+  mencionaba el contexto académico; ver §10). Las tres
+  inferencias son correctas.
+- Interpreta las cuatro llamadas seguidas como un patrón compatible con prueba de credenciales,
+  coherente con lo ejecutado: tres fallidas y una correcta.
+- Advierte que `127.0.0.1` no identifica al actor real. La secuencia corrió dentro del contenedor.
+- Describe correctamente el rechazo del escalamiento a partir de `ERROR` y `DETAIL` (sección 5).
+
+**Afirmaciones con sustento débil o sin contexto.**
+
+- «El rol `admin_datos` existe» está marcado como [D], pero no figura en el log. Se deduce de cómo
+  responde PostgreSQL a un rol inexistente, por lo que corresponde a [I].
+- El solapamiento de las dos sesiones está bien marcado como [D], pero sin contexto no podía
+  saber que se debe a `\connect` de psql (sección 6) y no a actividad concurrente.
+
+**Puntos que la IA destacó y el informe ya trataba.**
+
+- La autenticación `trust` (E1 de la IA) figura en la sección 9 como condición del laboratorio.
+  La IA la presenta como hallazgo de seguridad, que es lo esperable sin contexto del entorno.
+- El uso de `app_web` desde psql (E3) es propio del simulacro, que reemplaza a la aplicación.
+
+### Punto 5 — Omisiones y evaluación humana
+
+Al comparar el análisis de la IA con los resultados reales del simulacro, consideramos que no hubo omisiones importantes en la reconstrucción cronológica.
+
+Claude identificó los cuatro intentos de autenticación, la lectura de la tabla `usuario` y el intento fallido de escalamiento de privilegios.
+
+Sin embargo, el log no permitía identificar que las primeras tres autenticaciones fallaron y la cuarta fue exitosa, ni que la lectura devolvió cuatro registros. Estos resultados solamente pudieron comprobarse mediante la salida del script ejecutado.
+
+También observamos que algunas conclusiones sobre los permisos y los posibles responsables eran inferencias, no hechos confirmados.
+
+En general, la IA realizó un análisis adecuado, pero comprobamos que un log no siempre contiene toda la información necesaria para reconstruir un incidente.
+
+### Propuestas de contención de la IA
+
+Se consideran insumo para el punto 6, no decisiones.
+`tst_u5_lector` ya fue eliminado y `admin_datos` quedó con 0 miembros (sección 5), por lo que las
+propuestas 3 y 4 no se pueden aplicar tal como están redactadas.
+
+## 12. Decisión de contención (punto 6)
+
+### Punto 6 — Decisión propuesta de contención
+
+Como equipo, proponemos que ante un incidente real con estas características primero se conserven los registros de auditoría y se investigue el origen de las conexiones.
+
+También revisaríamos los permisos de las cuentas involucradas, especialmente el acceso a información de usuarios. Si se detectara una cuenta comprometida, se bloquearía temporalmente y se evaluarían los cambios de contraseña necesarios.
+
+En nuestro simulacro, PostgreSQL rechazó correctamente el intento de obtener permisos administrativos. Además, el rol temporal utilizado para la lectura fue eliminado al finalizar.
+
+Por tratarse de un ejercicio controlado con datos sintéticos, no consideramos necesario ejecutar otras medidas de contención.
+
+La decisión final corresponde al equipo y no se aplicará automáticamente ninguna recomendación de la inteligencia artificial.
+
+**Estado: Aprobado por el equipo** (2026-11-03).
