@@ -10,7 +10,8 @@ propuestas, pruebas y decisiones pertenece al equipo.
 | A — Roles y permisos | Implementada y validada en laboratorio; SEC-04 pendiente de aceptación formal del equipo |
 | B — Auditoría | Ejecutada en laboratorio y versionada (commit `6c44294`) |
 | C — Simulacro de incidente | Ejecutada en laboratorio; decisión de contención aprobada por el equipo el 2026-11-03 |
-| D — Anonimización | **Pendiente**: sin interacciones registradas |
+| D — Anonimización | Completada: equivalencia verificada en laboratorio y aceptada por el equipo el 2026-11-03 |
+| E — Cierre final | **Pendiente** |
 
 ## Herramientas
 
@@ -19,6 +20,7 @@ propuestas, pruebas y decisiones pertenece al equipo.
 | Especificaciones iniciales (commit `edf3c3f`) | Kiro |
 | Auditoría, diseño, POC, implementación y validación de la Parte A (2026-10-25 a 2026-11-02) | Claude Code, modelo Claude Opus 5.5 (`claude-opus-5-5`), autorizado por la cátedra como reemplazo de OpenCode. Parte del trabajo lo hicieron subagentes de escritura y de verificación lanzados desde la misma sesión; no se registró su modelo exacto |
 | Simulacro, contraste y cierre de la Parte C (2026-11-02 y 2026-11-03) | Pi con el arnés Gentle Shell, modelo Claude Opus 5.5 (`claude-opus-5-5`) |
+| Anonimización y equivalencia de la Parte D (2026-11-03) | Pi con el arnés Gentle Shell, modelo Claude Opus 5.5 (`claude-opus-5-5`) |
 | Reconstrucción independiente del log (Parte C, punto 4) | Claude Code, modelo Claude Opus 5.5 (`claude-opus-5-5`), sesión nueva fuera del repositorio |
 | Motor de laboratorio | PostgreSQL 17.11 en contenedores descartables (`postgres:17`) |
 
@@ -194,6 +196,34 @@ Detalle en [`informe_incidente.md`](unidades/unidad-5/docs/informe_incidente.md)
 - Evaluación de omisiones del punto 5, redactada por el equipo (2026-11-03).
 - Aprobación formal de la decisión de contención del punto 6 (2026-11-03).
 
-## Parte D
+## Parte D — Prompts y respuestas
 
-Pendiente. Se registrará aquí cuando se trabaje.
+| Fecha | Prompt enviado a la IA | Respuesta relevante recibida | Validación o corrección humana |
+|---|---|---|---|
+| 2026-11-03 | «Food Store — TP Unidad 5 — Parte D: Anonimización» (texto completo en el §7 de [`verificacion_equivalencia.md`](unidades/unidad-5/docs/verificacion_equivalencia.md)) | `usuario_anon.sql`, consultas por rol y mes de alta sobre `usuario_anon` y `usuario`, ejecución en un contenedor descartable e informe. La IA señaló que el seed canónico produce un único grupo y ofreció agregar usuarios sintéticos solo en el laboratorio | — |
+| 2026-11-03 | «Dejamos la Parte D con el dataset canónico de Food Store…» | Se agregaron al informe la nota de alcance académico (riesgo de reidentificación por `id` y `created_at` con datos reales) y la validación humana. El SQL no se modificó | El equipo aceptó la equivalencia observada y decidió conservar el dataset canónico, sin usuarios adicionales ni nuevas pruebas, reconociendo que los tres usuarios generan un único grupo |
+| 2026-11-03 | «Food Store — Cierre y publicación de la Parte D» | Esta sección de la bitácora, el commit y la publicación de la rama | Aprobación del cierre y autorización del commit y del push |
+
+## Parte D — Resultados
+
+Detalle en [`verificacion_equivalencia.md`](unidades/unidad-5/docs/verificacion_equivalencia.md).
+
+- **Anonimización.** `usuario_anon` tiene la estructura de `usuario`. Nombre, apellido, mail,
+  celular y contraseña se reemplazan por valores sintéticos deterministas; `id`, `rol`,
+  `eliminado` y `created_at` se conservan.
+- **Equivalencia.** En PostgreSQL 17.11, sobre el schema y el seed canónicos, las dos consultas
+  devolvieron `USUARIO | 2026-11 | 3`. `EXCEPT ALL` en ambos sentidos: 0 filas distintas.
+- **Controles.** 0 filas de `usuario_anon` con identificadores de `usuario`. La huella de `usuario`
+  (`count` y `md5`) fue igual antes y después del script.
+- **Límite.** Los tres usuarios del seed tienen el mismo rol y el mismo mes de alta, así que la
+  prueba tiene un único grupo. Con datos reales, conservar `id` y `created_at` puede permitir la
+  reidentificación.
+- **Datos vistos por la IA.** Sobre `usuario`, solo agregados, conteos y la huella `md5`; ninguna
+  fila.
+
+## Parte D — Validaciones humanas
+
+- Decisión de conservar el dataset canónico, sin usuarios adicionales ni nuevas pruebas
+  (2026-11-03).
+- Aceptación de los resultados observados y de las limitaciones de la prueba (2026-11-03).
+- Autorización del commit y del push de la Parte D (2026-11-03).
