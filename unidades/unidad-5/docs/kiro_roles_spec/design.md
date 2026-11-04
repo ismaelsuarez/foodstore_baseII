@@ -6,8 +6,9 @@ Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 **Motor objetivo:** PostgreSQL 17.11
 > **Estado de la Parte A (2026-11-02).** Los scripts de `unidades/unidad-5/sql/` se instalaron y
 > validaron en instancias PostgreSQL 17.11 descartables y aisladas, ya destruidas (§15). No se
-> instalaron en ninguna base compartida ni en bases de unidades anteriores. SEC-04 sigue pendiente
-> de aceptación formal del equipo y SEC-16 vale para el intervalo ensayado. D4, D8 (resto) y D9
+> instalaron en ninguna base compartida ni en bases de unidades anteriores. SEC-04 tiene aceptación
+> formal del equipo desde el 2026-11-03, limitada al entorno académico con datos sintéticos (§15.4),
+> y SEC-16 vale para el intervalo ensayado. D4, D8 (resto) y D9
 > siguen sin implementar.
 
 > **Estado de evidencia.** POC de permisos (§13.7, evidencia en `../poc_permisos/`) y validación
@@ -23,7 +24,7 @@ Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 > verificaciones previas (§14).
 
 > **Consolidación de la POC (2026-11-02, Claude Code).** Resultados observados en §13.7;
-> evidencia en [`../poc_permisos/`](../poc_permisos/README.md). Las afirmaciones que decían «a
+> evidencia en [`../poc_permisos/`](../../poc_permisos/README.md). Las afirmaciones que decían «a
 > confirmar en la POC» indican ahora el caso que las comprobó o que siguen sin comprobar.
 > Correcciones del plan: T03 (diez sentencias), T11 (tabla temporal con columnas explícitas),
 > T12 (entre P4 y P5) y T14 (diferencias esperadas). D11 documentada con evidencia (§9).
@@ -754,7 +755,7 @@ no están definidas. No se implementan hasta que el equipo las especifique.
 | RR-04 | `S(id)` sobre `pedido` permite enumerar identificadores de pedidos | Solo identificadores, sin datos asociados |
 | RR-05 | El código canónico usa nombres sin calificar | `search_path` fijo, `pg_temp` al final, sin CREATE no confiable en `public` (SEC-17); D9 retira TEMP. Comprobado en la POC con TEMP permitido: una `pg_temp.producto` homónima no fue usada por la API (T11) |
 | RR-06 | Diferencia de tiempo en `fn_autenticar` permite inferir si un mail existe | Equivalencia temporal de bcrypt **no acreditada**: no hay mediciones. D16 conserva trabajo bcrypt en las ramas de búsqueda, pero el costo por defecto y los hashes de costo 04..31 pueden diferir; nulos/vacíos abortan antes. Las afirmaciones temporales de §5.2 son intención, no una garantía probada. No se modifica la lógica de autenticación; REVISAR: medición autorizada pendiente |
-| RR-07 | Una reinstalación desde cero de `objetos_programables.sql` restaura el EXECUTE de PUBLIC | Seguir [Recuperación manual de ACL tras reinstalar el TPI](../sql/README.md#recuperación-manual-de-acl-tras-reinstalar-el-tpi-rr-07), con autorización separada: verificar roles existentes, reaplicar solo ACL y repetir SEC-13, huella SEC-15 y matriz. No reejecutar `roles.sql`, recrear objetos canónicos ni cambiar sus propietarios |
+| RR-07 | Una reinstalación desde cero de `objetos_programables.sql` restaura el EXECUTE de PUBLIC | Seguir [Recuperación manual de ACL tras reinstalar el TPI](../../sql/README.md#recuperación-manual-de-acl-tras-reinstalar-el-tpi-rr-07), con autorización separada: verificar roles existentes, reaplicar solo ACL y repetir SEC-13, huella SEC-15 y matriz. No reejecutar `roles.sql`, recrear objetos canónicos ni cambiar sus propietarios |
 | RR-08 | El superusuario evita todos los controles | Uso limitado a la etapa de instalación autorizada |
 
 ---
@@ -839,6 +840,9 @@ dentro de funciones o procedimientos.
 
 Para que el simulacro permita reconstruir la secuencia completa incluyendo la lectura masiva,
 se propone una de las siguientes opciones. El equipo elige una antes de implementar:
+
+**Estado:** en la Parte C se aplicó la opción A, con `log_parameter_max_length = 0`
+(`docs/informe_incidente.md` §3).
 
 **Opción A — `log_statement = 'all'` temporalmente:**
 Activar `all` solo durante la ejecución del simulacro, sobre la instancia de laboratorio
@@ -1247,7 +1251,9 @@ detectado.
 
 **Exportación de specs:** los archivos `requirements.md` y `design.md` se mantienen bajo
 `specs/` durante el desarrollo y se copian a `docs/kiro_roles_spec/` para la entrega.
-No eliminar los originales de `specs/`.
+No eliminar los originales de `specs/`. En la copia, los enlaces relativos a otras carpetas de
+`unidades/unidad-5/` se ajustan a su ubicación (`../../` en lugar de `../`); el resto del texto
+es idéntico.
 
 ---
 
@@ -1262,10 +1268,11 @@ No eliminar los originales de `specs/`.
 5. **Aprobar D8 completa** — definir las políticas adicionales de contraseña.
 6. **Autorizar D9** — confirmar instancia aislada antes de REVOKE de CONNECT/TEMP a PUBLIC.
 7. **Definir D4** — especificar qué rol puede cambiar `pedido.estado` y bajo qué condición.
-8. **Elegir mecanismo complementario de auditoría (§7.3)** — Opción A, B o C.
+8. ~~Elegir mecanismo complementario de auditoría (§7.3)~~ — **aplicada la opción A** en la
+   Parte C.
 9. ~~Recibir revisión humana de este design.md antes de escribir SQL de implementación~~ —
    hecho; la implementación se escribió y validó después (§15).
-10. **Aceptación formal de SEC-04 por el equipo** (§15.4).
+10. ~~Aceptación formal de SEC-04 por el equipo~~ — **aceptada el 2026-11-03** (§15.4).
 
 ---
 
@@ -1312,7 +1319,7 @@ matriz mínima de `rol_propietario_ventas` y que cada privilegio de esa matriz e
   implementación (D12).
 - Logs y salidas de la POC se guardan fuera del repositorio hasta su revisión humana. Tras esa
   revisión (2026-11-02) se incorporaron, sin editar, en
-  [`unidades/unidad-5/poc_permisos/`](../poc_permisos/README.md).
+  [`unidades/unidad-5/poc_permisos/`](../../poc_permisos/README.md).
 
 ### 13.3. Pasos
 
@@ -1384,7 +1391,7 @@ implementación con los criterios SEC.
 Ejecución única en un contenedor PostgreSQL 17.11 sin red, con la base `foodstore_u5_poc`
 (D14), destruido al terminar. `schema.sql` y `tpi/sql/objetos_programables.sql` se instalaron
 sin modificaciones y sin seed. Herramienta: Claude Code. Evidencia sin editar en
-[`unidades/unidad-5/poc_permisos/evidencia/`](../poc_permisos/README.md): `corrida_final/` para la
+[`unidades/unidad-5/poc_permisos/evidencia/`](../../poc_permisos/README.md): `corrida_final/` para la
 corrida aceptada e `intentos_arnes/` para los intentos con defectos del arnés. Cada resultado
 se emitió como `NOTICE RESULT|<caso>|PASS/FAIL|esperado=… observado=…|<mensaje>`.
 
@@ -1556,7 +1563,7 @@ describen esos laboratorios: en cualquier otra instancia hay que repetirlas ante
 ## 15. Validación integral de la Parte A (2026-11-02)
 
 Resultados observados en laboratorio. La evidencia se conserva sin editar en
-[`../validacion_parte_a/`](../validacion_parte_a/README.md), con una carpeta por corrida. Los
+[`../validacion_parte_a/`](../../validacion_parte_a/README.md), con una carpeta por corrida. Los
 fuentes ejecutados (canon, U3 y `unidades/unidad-5/sql/**`) quedaron registrados por sha256 antes
 y después de cada corrida, y no cambiaron. Herramienta: Claude Code. Nada se ejecutó sobre
 instancias compartidas ni sobre bases de unidades anteriores.
@@ -1611,8 +1618,12 @@ del seed son pequeñas (3 y 2 usuarios por categoría y mes), así que no se acr
 reidentificación con conocimiento auxiliar. La revisión humana del 2026-11-02 «acepta
 provisionalmente el uso académico de datos sintéticos y agregados, pero no autoriza exposición de
 datos personales reales». Las condiciones para la aceptación formal están en
-`../validacion_parte_a/20261102T191848Z/sec04/README.md`. **Estado: aceptación provisional,
-pendiente de aceptación formal del equipo.**
+`../validacion_parte_a/20261102T191848Z/sec04/README.md`.
+
+**Estado: aceptación formal del equipo (2026-11-03).** La aprobación se limita al entorno
+académico con datos sintéticos y reconoce los riesgos residuales de reidentificación descriptos.
+No autoriza utilizar datos personales reales. Cualquier cambio de datos, esquema o finalidad
+requiere una nueva evaluación.
 
 ### 15.5. Estado de los criterios de aceptación
 
@@ -1620,7 +1631,7 @@ pendiente de aceptación formal del equipo.**
 |---|---|
 | PASS | SEC-01 (con M05), SEC-02, SEC-03, SEC-05 a SEC-15, SEC-17 (con M04), SEC-18 a SEC-20 |
 | PASS limitado al intervalo ensayado | SEC-16: valores sintéticos exactos ausentes del log capturado, más SCRAM; no es una garantía universal |
-| Pendiente de aceptación formal | SEC-04 (§15.4) |
+| Aceptado formalmente, solo para el entorno académico con datos sintéticos (2026-11-03) | SEC-04 (§15.4) |
 
 Regresión: batería TPI con 29 grupos, 37 variantes, 30 NOTICE PASS y exit 0, antes y después de
 U5, en las dos instalaciones. F0/F1 solo difieren en los ACL que autoriza D3. P8.membresias, con
@@ -1631,7 +1642,7 @@ la aserción corregida, dio PASS también después del COMMIT de la limpieza.
 - No se midieron concurrencia, serialización multisesión, tiempos de bcrypt (RR-06) ni estrés.
 - RR-01 (`UPDATE (celular)`), RR-03 (pertenencia del pedido al usuario final), RR-04 (enumeración
   de IDs) y RR-07 (recuperación manual de ACL) siguen como riesgos del diseño.
-- D4, D8 (resto) y D9 siguen sin implementar. El mecanismo de auditoría de §7.3 (Parte C) sigue
-  sin elegir.
+- D4, D8 (resto) y D9 siguen sin implementar. El mecanismo de auditoría de §7.3 se aplicó después,
+  en la Parte C, con la opción A (`docs/informe_incidente.md` §3).
 - La evidencia vale para los laboratorios descriptos. En otra instancia hay que repetir las
   precondiciones y la validación.

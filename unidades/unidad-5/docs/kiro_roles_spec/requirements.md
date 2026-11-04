@@ -7,8 +7,8 @@ Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 > **Estado de la Parte A (2026-11-02).** Los scripts de `unidades/unidad-5/sql/` se instalaron y
 > validaron en instancias PostgreSQL 17.11 descartables y aisladas, ya destruidas (`design.md`
 > §15; evidencia en `unidades/unidad-5/validacion_parte_a/`). SEC-01 a SEC-20 tienen PASS, salvo
-> SEC-16, cuyo PASS vale para el intervalo ensayado, y SEC-04, pendiente de aceptación formal del
-> equipo. P8.membresias se repitió con la aserción corregida y dio PASS. La POC previa está en
+> SEC-16, cuyo PASS vale para el intervalo ensayado, y SEC-04, con aceptación formal del equipo
+> (2026-11-03) limitada al entorno académico con datos sintéticos. P8.membresias se repitió con la aserción corregida y dio PASS. La POC previa está en
 > `design.md` §13.7 (evidencia en `unidades/unidad-5/poc_permisos/`).
 
 > **Revisión técnica final de la Parte A (2026-10-26, Claude Code).** Corrige la

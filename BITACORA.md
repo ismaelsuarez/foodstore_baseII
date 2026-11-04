@@ -7,11 +7,11 @@ propuestas, pruebas y decisiones pertenece al equipo.
 
 | Parte | Estado |
 |---|---|
-| A — Roles y permisos | Implementada y validada en laboratorio; SEC-04 pendiente de aceptación formal del equipo |
+| A — Roles y permisos | Implementada, validada en laboratorio y versionada; SEC-04 aceptado formalmente el 2026-11-03, solo para el entorno académico |
 | B — Auditoría | Ejecutada en laboratorio y versionada (commit `6c44294`) |
 | C — Simulacro de incidente | Ejecutada en laboratorio; decisión de contención aprobada por el equipo el 2026-11-03 |
 | D — Anonimización | Completada: equivalencia verificada en laboratorio y aceptada por el equipo el 2026-11-03 |
-| E — Cierre final | **Pendiente** |
+| E — Cierre final | Bitácora consolidada; en revisión del equipo, sin versionar |
 
 ## Herramientas
 
@@ -47,7 +47,8 @@ de la herramienta; no se reconstruye aquí.
 | 2026-11-02 | «Food Store — Unidad 5 — Cierre estático de implementación Parte A» | Resolución de siete puntos; segunda auditoría: 13 PASS y C11 FAIL, corregido | Aceptación documental de C11 sin tercera auditoría |
 | 2026-11-02 | «Food Store — Unidad 5 — Validación integral de la Parte A» | Corrida 1 BLOCKED por el arnés antes de SQL; corrida 2: 207 PASS / 0 FAIL, TPI 29/37/30 | Autorización de contenedores descartables |
 | 2026-11-02 | «Food Store — Unidad 5 — Cierre experimental de la Parte A» | M04, M05 y SCRAM PASS; revisión de SEC-04 | Aceptación provisional del uso académico de datos sintéticos y agregados para SEC-04 |
-| 2026-11-02 | «Food Store — Unidad 5 — Consolidación y commits de Parte A» | Esta bitácora, la exportación de specs, la actualización de §15 y cuatro commits | Pendiente: revisión de este cierre y autorización del push |
+| 2026-11-02 | «Food Store — Unidad 5 — Consolidación y commits de Parte A» | Esta bitácora, la exportación de specs, la actualización de §15 y cuatro commits | Revisión del cierre |
+| 2026-11-02 | «Autorizo publicar los cuatro commits de la Parte A…» | Publicación de `c728585`, `4c6bb70`, `3944a1f` y `75fe22f` en `feat/u5-seguridad` | Autorización explícita del push |
 
 El registro también contiene un mensaje automático de la herramienta del 2026-10-26 13:31, que
 avisa que se restableció el límite de uso. No es un prompt del equipo.
@@ -76,8 +77,14 @@ avisa que se restableció el límite de uso. No es un prompt del equipo.
 - Aceptación documental de las correcciones de C11 (2026-11-02).
 - Autorización de las validaciones en contenedores descartables (2026-11-02).
 - Aceptación provisional del uso académico de datos sintéticos y agregados para SEC-04
-  (2026-11-02). **La aceptación formal del equipo sigue pendiente.**
-- Pendientes: D4, D8 (resto), D9 y el mecanismo de auditoría de §7.3.
+  (2026-11-02).
+- **Aceptación formal de SEC-04 (2026-11-03)**, limitada al entorno académico con datos
+  sintéticos. Reconoce los riesgos residuales de reidentificación documentados, no autoriza utilizar
+  datos personales reales, y cualquier cambio de datos, esquema o finalidad requiere una nueva
+  evaluación.
+- Autorización del push de los cuatro commits de la Parte A (2026-11-02).
+- Pendientes: D4, D8 (resto) y D9. El mecanismo de auditoría de §7.3 se aplicó después, en la
+  Parte C, con la opción A (`log_statement = 'all'` temporal).
 
 ## Parte A — Resultados
 
@@ -227,3 +234,43 @@ Detalle en [`verificacion_equivalencia.md`](unidades/unidad-5/docs/verificacion_
   (2026-11-03).
 - Aceptación de los resultados observados y de las limitaciones de la prueba (2026-11-03).
 - Autorización del commit y del push de la Parte D (2026-11-03).
+
+## Parte E — Prompts y respuestas
+
+| Fecha | Prompt enviado a la IA | Respuesta relevante recibida | Validación o corrección humana |
+|---|---|---|---|
+| 2026-11-03 | «Food Store — Unidad 5 — Cierre académico de la Parte E» | Antes de revisar, la IA pidió permiso para leer la consigna oficial, fuera del repositorio | Autorizó la lectura, en modo solo lectura |
+| 2026-11-03 | (misma tarea) | Revisión de la bitácora, del historial y de los entregables. Corrigió referencias desactualizadas (push de la Parte A, mecanismo de §7.3) y cinco enlaces rotos en la exportación de Kiro. Redactó esta sección | Revisión del equipo |
+| 2026-11-03 | «Food Store — Aprobación SEC-04 y cierre de Parte E» | Registro de la aceptación de SEC-04 en las specs y en esta bitácora; corrección del punto §7.3 que seguía abierto en la lista de decisiones de `design.md` | Aceptación formal de SEC-04. **Pendiente**: revisión del cierre antes de versionar |
+
+## Parte E — Caso más significativo de error de la IA
+
+> Propuesta para validación del equipo.
+
+El caso más significativo fue la guarda de seguridad de las pruebas de la Parte A. La IA la
+escribió con `\quit 3` para detener la batería si `current_database()` no coincidía con la base
+indicada en `u5_base_objetivo`.
+Parecía correcta, pero no protegía: en psql 17, `\quit` dentro de un archivo incluido solo termina
+ese archivo, y la ejecución seguía con los siguientes. Las pruebas podían haber corrido sobre una
+base distinta de la indicada, sin ningún síntoma visible. Lo
+detectó la primera auditoría independiente, antes de ejecutar ningún SQL, y se confirmó con la
+documentación de psql 17. Se corrigió reemplazándola por `RAISE EXCEPTION` bajo `ON_ERROR_STOP`,
+que sí aborta toda la ejecución. Es el caso más grave porque la propuesta era insegura y parecía
+funcionar; solo una revisión previa a la ejecución lo hizo visible.
+
+## Parte E — Historial de Git
+
+La rama `feat/u5-seguridad` tiene 12 commits sobre `main`, con mensajes en formato Conventional
+Commits y avance por partes:
+
+| Etapa | Commits |
+|---|---|
+| Especificaciones y POC | `edf3c3f`, `165e3d7`, `68689db` |
+| Parte A | `c728585`, `4c6bb70`, `3944a1f`, `75fe22f` |
+| Parte B | `6c44294`, `96a9bc3` |
+| Parte C | `1245dcb`, `050aa24` |
+| Parte D | `9076b1c` |
+
+El historial no quedó desordenado. Para la próxima vez: explicar en el cuerpo de cada commit el
+porqué del cambio, que hoy solo aparece en la bitácora y en los informes, y registrar la bitácora de
+cada parte en su mismo commit, en lugar de hacerlo en commits posteriores.

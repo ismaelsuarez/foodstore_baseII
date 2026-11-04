@@ -6,8 +6,9 @@ Base de Datos II — Tecnicatura Universitaria en Programación — UTN
 **Motor objetivo:** PostgreSQL 17.11
 > **Estado de la Parte A (2026-11-02).** Los scripts de `unidades/unidad-5/sql/` se instalaron y
 > validaron en instancias PostgreSQL 17.11 descartables y aisladas, ya destruidas (§15). No se
-> instalaron en ninguna base compartida ni en bases de unidades anteriores. SEC-04 sigue pendiente
-> de aceptación formal del equipo y SEC-16 vale para el intervalo ensayado. D4, D8 (resto) y D9
+> instalaron en ninguna base compartida ni en bases de unidades anteriores. SEC-04 tiene aceptación
+> formal del equipo desde el 2026-11-03, limitada al entorno académico con datos sintéticos (§15.4),
+> y SEC-16 vale para el intervalo ensayado. D4, D8 (resto) y D9
 > siguen sin implementar.
 
 > **Estado de evidencia.** POC de permisos (§13.7, evidencia en `../poc_permisos/`) y validación
@@ -840,6 +841,9 @@ dentro de funciones o procedimientos.
 Para que el simulacro permita reconstruir la secuencia completa incluyendo la lectura masiva,
 se propone una de las siguientes opciones. El equipo elige una antes de implementar:
 
+**Estado:** en la Parte C se aplicó la opción A, con `log_parameter_max_length = 0`
+(`docs/informe_incidente.md` §3).
+
 **Opción A — `log_statement = 'all'` temporalmente:**
 Activar `all` solo durante la ejecución del simulacro, sobre la instancia de laboratorio
 descartable. El log registra el texto de las sentencias y, salvo que `log_parameter_max_length = 0`,
@@ -1247,7 +1251,9 @@ detectado.
 
 **Exportación de specs:** los archivos `requirements.md` y `design.md` se mantienen bajo
 `specs/` durante el desarrollo y se copian a `docs/kiro_roles_spec/` para la entrega.
-No eliminar los originales de `specs/`.
+No eliminar los originales de `specs/`. En la copia, los enlaces relativos a otras carpetas de
+`unidades/unidad-5/` se ajustan a su ubicación (`../../` en lugar de `../`); el resto del texto
+es idéntico.
 
 ---
 
@@ -1262,10 +1268,11 @@ No eliminar los originales de `specs/`.
 5. **Aprobar D8 completa** — definir las políticas adicionales de contraseña.
 6. **Autorizar D9** — confirmar instancia aislada antes de REVOKE de CONNECT/TEMP a PUBLIC.
 7. **Definir D4** — especificar qué rol puede cambiar `pedido.estado` y bajo qué condición.
-8. **Elegir mecanismo complementario de auditoría (§7.3)** — Opción A, B o C.
+8. ~~Elegir mecanismo complementario de auditoría (§7.3)~~ — **aplicada la opción A** en la
+   Parte C.
 9. ~~Recibir revisión humana de este design.md antes de escribir SQL de implementación~~ —
    hecho; la implementación se escribió y validó después (§15).
-10. **Aceptación formal de SEC-04 por el equipo** (§15.4).
+10. ~~Aceptación formal de SEC-04 por el equipo~~ — **aceptada el 2026-11-03** (§15.4).
 
 ---
 
@@ -1611,8 +1618,12 @@ del seed son pequeñas (3 y 2 usuarios por categoría y mes), así que no se acr
 reidentificación con conocimiento auxiliar. La revisión humana del 2026-11-02 «acepta
 provisionalmente el uso académico de datos sintéticos y agregados, pero no autoriza exposición de
 datos personales reales». Las condiciones para la aceptación formal están en
-`../validacion_parte_a/20261102T191848Z/sec04/README.md`. **Estado: aceptación provisional,
-pendiente de aceptación formal del equipo.**
+`../validacion_parte_a/20261102T191848Z/sec04/README.md`.
+
+**Estado: aceptación formal del equipo (2026-11-03).** La aprobación se limita al entorno
+académico con datos sintéticos y reconoce los riesgos residuales de reidentificación descriptos.
+No autoriza utilizar datos personales reales. Cualquier cambio de datos, esquema o finalidad
+requiere una nueva evaluación.
 
 ### 15.5. Estado de los criterios de aceptación
 
@@ -1620,7 +1631,7 @@ pendiente de aceptación formal del equipo.**
 |---|---|
 | PASS | SEC-01 (con M05), SEC-02, SEC-03, SEC-05 a SEC-15, SEC-17 (con M04), SEC-18 a SEC-20 |
 | PASS limitado al intervalo ensayado | SEC-16: valores sintéticos exactos ausentes del log capturado, más SCRAM; no es una garantía universal |
-| Pendiente de aceptación formal | SEC-04 (§15.4) |
+| Aceptado formalmente, solo para el entorno académico con datos sintéticos (2026-11-03) | SEC-04 (§15.4) |
 
 Regresión: batería TPI con 29 grupos, 37 variantes, 30 NOTICE PASS y exit 0, antes y después de
 U5, en las dos instalaciones. F0/F1 solo difieren en los ACL que autoriza D3. P8.membresias, con
@@ -1631,7 +1642,7 @@ la aserción corregida, dio PASS también después del COMMIT de la limpieza.
 - No se midieron concurrencia, serialización multisesión, tiempos de bcrypt (RR-06) ni estrés.
 - RR-01 (`UPDATE (celular)`), RR-03 (pertenencia del pedido al usuario final), RR-04 (enumeración
   de IDs) y RR-07 (recuperación manual de ACL) siguen como riesgos del diseño.
-- D4, D8 (resto) y D9 siguen sin implementar. El mecanismo de auditoría de §7.3 (Parte C) sigue
-  sin elegir.
+- D4, D8 (resto) y D9 siguen sin implementar. El mecanismo de auditoría de §7.3 se aplicó después,
+  en la Parte C, con la opción A (`docs/informe_incidente.md` §3).
 - La evidencia vale para los laboratorios descriptos. En otra instancia hay que repetir las
   precondiciones y la validación.
