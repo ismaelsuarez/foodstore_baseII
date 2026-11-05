@@ -1,0 +1,385 @@
+Extracto de evidencia — ensayo funcional U6 con el núcleo canónico de Food Store
+================================================================================
+Corrida: ensayo_20261105_130238 (directorio de evidencia externo, fuera del repositorio).
+Este archivo copia líneas literales de la evidencia original; cada bloque indica su
+archivo de procedencia. Transformaciones: las rutas del host se sustituyen por
+<RUN> (directorio de la corrida) y <HOME>, y se eliminan los espacios al final de
+línea de la salida tabular de psql. Las líneas que empiezan con "Nota:" o
+"Resultado de comparación:" no son copias: son anotaciones del extracto calculadas
+sobre los archivos indicados. Las zonas horarias son las que constan en cada
+registro: -03:00 en los logs de los scripts; UTC (Z o +00) en Docker, el servidor y
+pg_restore.
+No incluye filas de usuario, contraseñas, verificadores ni dumps. Las huellas md5 por
+tabla se omiten; solo se informa si coinciden.
+Alcance: ensayo técnico del núcleo canónico (schema, seed, objetos TPI). No es la
+comprobación docente ni la recuperación de la seguridad de U5.
+
+[1] Contenedor, inicio y versión
+
+--- Fuente: <RUN>/00_previas/contenedor_detenido_diagnostico.txt
+status=exited exit_code=0 oom=false error="" started=2026-11-05T02:15:36.061725138Z finished=2026-11-05T03:35:46.011206762Z restart_policy=no
+
+--- Fuente: <RUN>/00_previas/docker_start.txt
+$ docker start foodstore-u6-lab
+foodstore-u6-lab
+exit=0
+
+--- Fuente: <RUN>/00_previas/contenedor_tras_start.txt
+id=2625b25f320ce7c14fdb9cc2c154f4d7040b926568bf5e7658ff04f47adfd602 state=running started=2026-11-05T16:13:33.685649729Z restarts=0 image=sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3 net=none privileged=false ports={} | /run/foodstore-u6-auth rw=false | /var/lib/postgresql/data rw=true
+
+--- Fuente: <RUN>/00_previas/version.txt
+$ docker exec foodstore-u6-lab psql -X -w -U postgres -d postgres -At -c SELECT\ version\(\) -c SHOW\ server_version
+PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+17.11 (Debian 17.11-1.pgdg13+2)
+exit=0
+
+--- Fuente: <RUN>/00_previas/clientes.txt
+$ bash -c for\ t\ in\ psql\ pg_dump\ pg_restore\ createdb\;\ do\ docker\ exec\ foodstore-u6-lab\ \"\$t\"\ --version\;\ done
+psql (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+pg_dump (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+pg_restore (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+createdb (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+exit=0
+
+--- Fuente: <RUN>/00_previas/hba_trust.txt
+$ docker exec foodstore-u6-lab psql -X -w -U postgres -d postgres -At -c SELECT\ count\(\*\)\ FILTER\ \(WHERE\ auth_method=\'trust\'\)\ \|\|\ \'\ trust\ de\ \'\ \|\|\ count\(\*\)\ FROM\ pg_hba_file_rules
+0 trust de 7
+exit=0
+
+--- Fuente: <RUN>/00_previas/ausencia_bases.txt
+$ docker exec foodstore-u6-lab psql -X -w -U postgres -d postgres -At -c SELECT\ n\ \|\|\ \'\|\'\ \|\|\ EXISTS\ \(SELECT\ 1\ FROM\ pg_database\ WHERE\ datname\ =\ n\)\ FROM\ unnest\(ARRAY\[\'u6_ensayo_origen\'\,\'u6_ensayo_restauracion\'\,\'u6_ensayo_rechazo\'\]\)\ AS\ n
+u6_ensayo_origen|false
+u6_ensayo_restauracion|false
+u6_ensayo_rechazo|false
+exit=0
+
+[2] Huellas de los archivos ejecutados
+
+--- Fuente: <RUN>/01_origen/sha256_archivos.txt
+d5cbb990c76ecc085c44736e877d3fc9d993a734ecc137120679ff3706e8a108  schema.sql
+ab983fbe7547793bc9fa5483c6254cee0d7c4b1363ba12f8b67ad3577327565f  datos_iniciales.sql
+9696a32e8edf56a5bdf23a30eda3bd589cedb0a1b00a382e63969bf3386aa6c4  tpi/sql/objetos_programables.sql
+e4afea968f84dc721ecd7bf084630fe73de632d7c0b54e555c82548e28112eba  unidades/unidad-6/validaciones.sql
+
+--- Fuente: <RUN>/06_estado_final/estado.txt
+3b8e39c80b6bdfdd96da620a42f820230d79a6ace3ba3a076fa4be5123a44b52  unidades/unidad-6/backup_foodstore.sh
+fd7dde44a0980b9f9c442735e55907ce7ab5034f58d2df8d3c1d5f226d58a426  unidades/unidad-6/restore_test.sh
+ed2644efc13b06b6dacddc9a7f784331a6877bd4fca3fe5ff84c9a63a26ec3c7  unidades/unidad-6/health_check.sql
+f5e6bd2a07512bf318631401bc7bcc781da55381b49c1b2c4085f6595db0bbcd  unidades/unidad-6/maintenance.sql
+e4afea968f84dc721ecd7bf084630fe73de632d7c0b54e555c82548e28112eba  unidades/unidad-6/validaciones.sql
+Nota: 06_estado_final/estado.txt registra las huellas de los scripts de U6 al terminar
+la corrida. Al inicio solo quedó guardada en archivo la de validaciones.sql
+(01_origen/sha256_archivos.txt); las demás se observaron en la consola de la sesión,
+sin archivo propio. Las huellas del final coinciden con las de los archivos versionados
+junto con este extracto.
+
+[3] Instalación del origen u6_ensayo_origen (códigos de salida)
+
+--- Fuente: <RUN>/01_origen/1_createdb.txt
+$ docker exec foodstore-u6-lab createdb -w -U postgres u6_ensayo_origen
+exit=0
+
+--- Fuente: <RUN>/01_origen/2_schema.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_ensayo_origen\ -v\ ON_ERROR_STOP=1\ -1\ -f\ -\ \<\ schema.sql
+exit=0
+
+--- Fuente: <RUN>/01_origen/3_seed.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_ensayo_origen\ -v\ ON_ERROR_STOP=1\ -f\ -\ \<\ datos_iniciales.sql
+exit=0
+
+--- Fuente: <RUN>/01_origen/4_objetos.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_ensayo_origen\ -v\ ON_ERROR_STOP=1\ -1\ -f\ -\ \<\ tpi/sql/objetos_programables.sql
+exit=0
+
+--- Fuente: <RUN>/01_origen/6_inventario_origen.txt
+  tipo   | tablas | rutinas | triggers | enums | indices | restricciones | extensiones
+ resumen |      5 |       7 |        5 |     3 |      11 |            18 | plpgsql
+
+[4] Conteos y controles del origen tras la instalación
+
+--- Fuente: <RUN>/01_origen/5_validaciones_origen.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_ensayo_origen\ -v\ ON_ERROR_STOP=1\ -f\ -\ \<\ unidades/unidad-6/validaciones.sql
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+exit=0
+
+[5] Respaldo y línea base
+
+--- Fuente: <RUN>/02_respaldo/0_sesiones_previas.txt
+$ psql ... sesiones cliente en u6_ensayo_origen (excluye la propia)
+0
+exit=0
+
+--- Fuente: <RUN>/02_respaldo/1_backup_consola.txt
+$ bash unidades/unidad-6/backup_foodstore.sh -c foodstore-u6-lab -d u6_ensayo_origen -U postgres -o <RUN>/02_respaldo/backups -l <RUN>/02_respaldo/logs
+2026-11-05T13:14:27-03:00 [INFO] run=20261105_131427 inicio de ejecución: contenedor=foodstore-u6-lab base=u6_ensayo_origen usuario=postgres
+2026-11-05T13:14:27-03:00 [INFO] run=20261105_131427 destino: <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 herramienta: pg_dump (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 LINEA_BASE_INICIO 2026-11-05T13:14:28-03:00
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 LINEA_BASE_FIN 2026-11-05T13:14:28-03:00 exit=0
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 PG_DUMP_INICIO 2026-11-05T13:14:28-03:00
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 PG_DUMP_FIN 2026-11-05T13:14:28-03:00 exit=0
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 tamaño: 26546 bytes
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 pg_restore --list: archivo legible
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 RESULTADO=OK archivo=<RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump linea_base=<RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.baseline
+2026-11-05T13:14:28-03:00 [INFO] run=20261105_131427 la legibilidad no reemplaza una restauración de prueba
+exit=0
+
+--- Fuente: <RUN>/02_respaldo/2_comprobaciones.txt
+--- baseline
+# Línea base de backup_foodstore.sh: conteos y controles capturados antes de pg_dump.
+run=20261105_131427
+contenedor=foodstore-u6-lab
+base=u6_ensayo_origen
+usuario=postgres
+archivo_respaldo=u6_ensayo_origen_20261105_131427.dump
+sha256_respaldo=13211d6b77aab945ccaf89fa92e265c76471f26d6b21ab8a5eaa018e76815b4b
+linea_base_inicio=2026-11-05T13:14:28-03:00
+linea_base_fin=2026-11-05T13:14:28-03:00
+pg_dump_inicio=2026-11-05T13:14:28-03:00
+pg_dump_fin=2026-11-05T13:14:28-03:00
+[validaciones]
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+--- sha256 dump (calculado)
+13211d6b77aab945ccaf89fa92e265c76471f26d6b21ab8a5eaa018e76815b4b  -
+--- correspondencia
+base=u6_ensayo_origen
+archivo_respaldo=u6_ensayo_origen_20261105_131427.dump
+sha256_respaldo=13211d6b77aab945ccaf89fa92e265c76471f26d6b21ab8a5eaa018e76815b4b
+SHA256 coincide
+archivo_respaldo coincide
+--- claves
+12
+linea base == validaciones del origen tras instalacion
+--- stat
+-rw------- 26546 bytes mtime=2026-11-05 13:14:28.217734453 -0300 <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump
+-rw------- 759 bytes mtime=2026-11-05 13:14:28.300733729 -0300 <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.baseline
+--- cabecera
+0000000   P   G   D   M   P
+--- residuos .partial
+0
+--- log (stderr de herramientas o lineas no INFO)
+(ninguna)
+
+--- Fuente: <RUN>/02_respaldo/3_pg_restore_list.txt
+;     dbname: u6_ensayo_origen
+;     TOC Entries: 54
+;     Format: CUSTOM
+;     Dumped from database version: 17.11 (Debian 17.11-1.pgdg13+2)
+;     Dumped by pg_dump version: 17.11 (Debian 17.11-1.pgdg13+2)
+exit=0
+
+[6] Restauración (modo sin-propietarios)
+
+--- Fuente: <RUN>/03_restauracion/1_restore_consola.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -s u6_ensayo_origen -d u6_ensayo_restauracion -f <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump -b <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.baseline -m sin-propietarios -o <RUN>/03_restauracion/resultados
+2026-11-05T13:14:54-03:00 [INFO] run=20261105_131454 MODO=sin-propietarios; ALCANCE=Solo validación de datos: propietarios, ACL y seguridad de U5 NO recuperados. Con --no-owner los objetos pertenecen al rol restaurador, lo que cambia los privilegios efectivos de funciones SECURITY DEFINER. No se restauran roles globales.
+2026-11-05T13:14:54-03:00 [INFO] run=20261105_131454 argumentos exactos de restauración: docker exec -i foodstore-u6-lab pg_restore -w --username=postgres --dbname=u6_ensayo_restauracion --exit-on-error --single-transaction --no-owner --no-privileges ; entrada=<RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump
+2026-11-05T13:14:54-03:00 [INFO] run=20261105_131454 ANTIGUEDAD_RESPALDO_SEGUNDOS=26 PG_DUMP_INICIO=2026-11-05T13:14:28-03:00
+2026-11-05T13:14:54-03:00 [INFO] run=20261105_131454 RTO_INICIO=2026-11-05T13:14:54-03:00 (medición inmediatamente antes de createdb)
+2026-11-05T13:14:54-03:00 [INFO] run=20261105_131454 RTO_FIN=2026-11-05T13:14:54-03:00 RTO_OBSERVADO_SEGUNDOS=0.312
+2026-11-05T13:14:54-03:00 [INFO] run=20261105_131454 RESULTADO=RESTAURACION_VALIDADA resumen=<RUN>/03_restauracion/resultados/restore_u6_ensayo_restauracion_20261105_131454/resumen.txt
+exit=0
+
+--- Fuente: <RUN>/03_restauracion/resultados/restore_u6_ensayo_restauracion_20261105_131454/resumen.txt
+RESULTADO=RESTAURACION_VALIDADA
+MODO=sin-propietarios
+ALCANCE=Solo validación de datos: propietarios, ACL y seguridad de U5 NO recuperados. Con --no-owner los objetos pertenecen al rol restaurador, lo que cambia los privilegios efectivos de funciones SECURITY DEFINER. No se restauran roles globales.
+CONTENEDOR=foodstore-u6-lab
+USUARIO=postgres
+ORIGEN=u6_ensayo_origen
+DESTINO=u6_ensayo_restauracion
+ANTIGUEDAD_RESPALDO_SEGUNDOS=26
+PG_DUMP_INICIO=2026-11-05T13:14:28-03:00
+RTO_INICIO=2026-11-05T13:14:54-03:00
+RTO_FIN=2026-11-05T13:14:54-03:00
+RTO_OBSERVADO_SEGUNDOS=0.312
+RESPALDO=<RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump
+LINEA_BASE=<RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.baseline
+SHA256_RESPALDO=13211d6b77aab945ccaf89fa92e265c76471f26d6b21ab8a5eaa018e76815b4b
+COMANDO_RESTAURACION=docker exec -i foodstore-u6-lab pg_restore -w --username=postgres --dbname=u6_ensayo_restauracion --exit-on-error --single-transaction --no-owner --no-privileges
+ARCHIVOS=restore_test.log, pg_restore_list.txt, pg_restore_stdout.txt, pg_restore_stderr.txt, validaciones_linea_base.txt, validaciones_destino.txt, comparacion.diff, resumen.txt
+DESTINO_CREADO_POR_ESTA_EJECUCION=1
+CONSERVACION=Se conserva el destino.
+METAS=RPO/RTO pendientes de aprobación; no se evalúa cumplimiento.
+
+Resultado de comparación (<RUN>/03_restauracion/resultados/restore_u6_ensayo_restauracion_20261105_131454/comparacion.diff): tamaño 0 bytes
+
+--- Fuente: <RUN>/03_restauracion/resultados/restore_u6_ensayo_restauracion_20261105_131454/validaciones_destino.txt
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+
+--- Fuente: <RUN>/03_restauracion/2_validaciones_origen_post.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_ensayo_origen\ -v\ ON_ERROR_STOP=1\ -f\ -\ \<\ unidades/unidad-6/validaciones.sql
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+exit=0
+
+Resultado de comparación (<RUN>/03_restauracion/3_huella_origen.txt y 3_huella_destino.txt): huellas md5 por tabla idénticas en las 5 tablas
+Resultado de comparación (<RUN>/03_restauracion/4b_inventario_diff_ordenado.txt): tamaño 0 bytes; inventario ordenado de origen y destino sin diferencias
+
+[7] Pruebas negativas
+
+--- Fuente: <RUN>/04_negativas/A/consola.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -s u6_ensayo_origen -d u6_ensayo_restauracion -f <dump> -b <baseline> -m sin-propietarios -o <RUN>/04_negativas/A/resultados
+2026-11-05T13:16:03-03:00 [ERROR] run=20261105_131603 el destino ya existe; no se borra ni se sobrescribe
+2026-11-05T13:16:03-03:00 [ERROR] run=20261105_131603 RESULTADO=FALLO etapa=ausencia_destino exit=2
+2026-11-05T13:16:03-03:00 [ERROR] run=20261105_131603 DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+exit=2
+
+Resultado de comparación (<RUN>/04_negativas/A/huella_{antes,despues}.txt, oid_{antes,despues}.txt): huella del destino igual; OID de la base igual
+
+--- Fuente: <RUN>/04_negativas/B/consola.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -s u6_ensayo_origen -d u6_ensayo_origen -f <dump> -b <baseline> -m sin-propietarios -o <RUN>/04_negativas/B/resultados
+[ERROR] el destino no puede ser igual al origen
+[ERROR] RESULTADO=FALLO etapa=parametros exit=2
+[ERROR] DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+exit=2
+
+Resultado de comparación (<RUN>/04_negativas/A/huella_origen_antes.txt y B/huella_origen_despues.txt): huella del origen igual; directorio B/resultados no creado
+
+--- Fuente: <RUN>/04_negativas/C/alteracion.txt
+copia: offset 2000 byte original=0x3d nuevo=0xff
+bytes distintos: 1
+13211d6b77aab945ccaf89fa92e265c76471f26d6b21ab8a5eaa018e76815b4b  <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump
+b85491c991e1115996b0a181604a28ff6d93365d94bb0c7f3f0e93b949249c49  <RUN>/04_negativas/C/copia/u6_ensayo_origen_20261105_131427.dump
+
+--- Fuente: <RUN>/04_negativas/C/rechazo_antes.txt
+rechazo ausente antes: 0
+
+--- Fuente: <RUN>/04_negativas/C/consola.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -s u6_ensayo_origen -d u6_ensayo_rechazo -f <RUN>/04_negativas/C/copia/u6_ensayo_origen_20261105_131427.dump -b <baseline original> -m sin-propietarios -o <RUN>/04_negativas/C/resultados
+[ERROR] SHA256 del respaldo distinto de la línea base
+[ERROR] RESULTADO=FALLO etapa=linea_base exit=2
+[ERROR] DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+exit=2
+
+--- Fuente: <RUN>/04_negativas/C/rechazo_despues.txt
+rechazo ausente despues: 0
+
+--- Fuente: <RUN>/04_negativas/C/atribucion_conexiones.txt
+# Conexiones autorizadas en el segundo 16:16:03 UTC (ventana usada por el conteo de C, granularidad de 1 s).
+# Marcas locales (-03:00): rechazo_antes.txt 13:16:03.554, consola.txt de C 13:16:03.568, rechazo_despues.txt 13:16:03.642.
+# Conclusión: entre 16:16:03.554 y 16:16:03.568 UTC no hay conexiones; la ejecución C no se conectó a PostgreSQL.
+# Las 8 del conteo pertenecen a A, B y a las consultas de comprobación de C antes y después.
+
+--- Fuente: <RUN>/04_negativas/0_sha_originales_antes.txt
+13211d6b77aab945ccaf89fa92e265c76471f26d6b21ab8a5eaa018e76815b4b  <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump
+abdfb122c0930c331b7d6237b28a9279c3e32ed8e6a7d079ac94ced3a287ab1e  <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.baseline
+
+--- Fuente: <RUN>/04_negativas/0_sha_originales_despues.txt
+13211d6b77aab945ccaf89fa92e265c76471f26d6b21ab8a5eaa018e76815b4b  <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.dump
+abdfb122c0930c331b7d6237b28a9279c3e32ed8e6a7d079ac94ced3a287ab1e  <RUN>/02_respaldo/backups/u6_ensayo_origen_20261105_131427.baseline
+
+[8] Salud y mantenimiento
+
+--- Fuente: <RUN>/05_salud_mantenimiento/1_health_origen.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -v\ ON_ERROR_STOP=1\ -U\ postgres\ -d\ u6_ensayo_origen\ -P\ pager=off\ -f\ -\ \<\ unidades/unidad-6/health_check.sql
+ 1_tamano | u6_ensayo_origen |      8206003 | 8014 kB | 2026-11-05 16:16:54.318356+00
+ 2b_sesiones_por_estado | active |        1
+ 3a_configuracion | on           | on
+(5 rows)
+(0 rows)
+exit=0
+
+--- Fuente: <RUN>/05_salud_mantenimiento/2_health_restauracion.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -v\ ON_ERROR_STOP=1\ -U\ postgres\ -d\ u6_ensayo_restauracion\ -P\ pager=off\ -f\ -\ \<\ unidades/unidad-6/health_check.sql
+ 1_tamano | u6_ensayo_restauracion |      8132275 | 7942 kB | 2026-11-05 16:16:54.401202+00
+ 2b_sesiones_por_estado | active |        1
+ 3a_configuracion | on           | on
+(5 rows)
+(0 rows)
+exit=0
+Nota: en health_check.sql, "(5 rows)" corresponde al control 3b (tablas) y "(0 rows)" al control 4 (sesiones fuera de idle, sin la propia).
+
+--- Fuente: <RUN>/05_salud_mantenimiento/3_maintenance_diagnostico_restauracion.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_ensayo_restauracion\ -P\ pager=off\ -f\ -\ \<\ unidades/unidad-6/maintenance.sql
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   7 |                  7 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+solo diagnóstico; no se ejecutó ninguna acción
+exit=0
+
+--- Fuente: <RUN>/05_salud_mantenimiento/5_maintenance_analyze_detalle_pedido.txt
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   7 |                  7 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+ detalle_pedido     | Diagnostico previo en u6_ensayo_restauracion: detalle_pedido con last_analyze y last_autoanalyze NULL, analyze_count 0 y n_mod_since_analyze 7 igual a sus filas vivas estimadas; con autovacuum_analyze_threshold 50 y scale_factor 0.1 el autoanalyze no alcanza el umbral, por lo que la tabla restaurada no tendria estadisticas del planificador. | 2026-11-05 16:17:24.716716+00 | postgres | u6_ensayo_restauracion
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   7 |                  7 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+psql:<stdin>:159: INFO:  analyzing "public.detalle_pedido"
+psql:<stdin>:159: INFO:  "detalle_pedido": scanned 1 of 1 pages, containing 7 live rows and 0 dead rows; 7 rows in sample, 7 estimated total rows
+ANALYZE
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   0 |                  7 |             |                 |            0 |                0 | 2026-11-05 16:17:24.718125+00 |                  |             1 |                 0 |
+exit=0
+Nota: en 5_maintenance_analyze_detalle_pedido.txt hay tres filas "public | detalle_pedido", en orden: el diagnóstico de la parte 1, el estado previo registrado antes de la acción y la comprobación posterior. La tercera tiene n_mod_since_analyze 0, last_analyze 2026-11-05 16:17:24.718125+00 y analyze_count 1. Las columnas son, en orden: esquema, tabla, filas vivas estimadas, filas muertas estimadas, porcentaje de muertas estimado, n_mod_since_analyze, n_ins_since_vacuum, last_vacuum, last_autovacuum, vacuum_count, autovacuum_count, last_analyze, last_autoanalyze, analyze_count, autoanalyze_count y reloptions.
+
+--- Fuente: <RUN>/05_salud_mantenimiento/7_validaciones_restauracion_post.txt
+$ validaciones.sql sobre u6_ensayo_restauracion tras ANALYZE
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+exit=0
+
+--- Fuente: <RUN>/05_salud_mantenimiento/9_pg_stats_por_tabla.txt
+$ pg_stats otras tablas (conteo de columnas con estadísticas)
+detalle_pedido|8
+exit=0
+
+Resultado de comparación (<RUN>/05_salud_mantenimiento/4_huella_restauracion_antes.txt y 6_huella_restauracion_despues.txt): huella del destino antes/después de ANALYZE igual
+
+[9] Estado al terminar la corrida
+
+--- Fuente: <RUN>/06_estado_final/estado.txt
+state=running started=2026-11-05T16:13:33.685649729Z restarts=0 net=none ports={}
+postgres|7510 kB
+template0|7353 kB
+template1|7582 kB
+u6_ensayo_origen|8014 kB
+u6_ensayo_restauracion|7942 kB
+volume=foodstore_u6_lab_data
