@@ -74,9 +74,11 @@ estaban escritos y se ejecutaron en orden, cada uno precedido por P0.
   demuestra que exista una frecuencia diaria de respaldos: no hay programación de
   tareas.
 - La antigüedad no representa una pérdida efectiva de datos.
-- `restore_test.sh` sigue registrando «metas RPO/RTO pendientes de aprobación; no se
-  evalúa cumplimiento», porque es anterior a la decisión y no se modificó. La
-  comparación con las metas se hace en este documento y en el informe.
+- En esta corrida, `restore_test.sh` (`68031b1f…`) registró «metas RPO/RTO
+  pendientes de aprobación; no se evalúa cumplimiento», porque era anterior a la
+  decisión. Después se reemplazó solo esa frase (`973223df…`); ver la
+  verificación posterior. La comparación con las metas se hace en este documento
+  y en el informe.
 
 ## Incidencia de la guía y corrección
 

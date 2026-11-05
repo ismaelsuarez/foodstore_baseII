@@ -4,7 +4,8 @@
 
 ## Mantenimiento, respaldo y recuperación
 
-**Estado:** entrega preparada para evaluación independiente.
+**Estado:** entrega U6 preparada para evaluación, con ensayos manuales documentados
+y limitaciones declaradas.
 
 - **Para evaluar:** [EVALUACION.md](EVALUACION.md).
 - **Corrida desde esa guía:** [ensayo de evaluación](docs/ensayo_evaluacion.md),
