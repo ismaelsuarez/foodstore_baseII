@@ -19,6 +19,12 @@ roles (CD-3), y metas RPO/RTO (EA-1).
 
 **Dependencias:** ninguna.
 
+**Estado:** el equipo adoptó el 2026-11-05 los nombres `foodstore`,
+`foodstore_restore_test` y `postgres` (administrativa), `usuario`, el modo
+`sin-propietarios` y las metas RPO 24 h / RTO 20 min; están en la
+[guía de evaluación](../EVALUACION.md#decisiones-del-equipo-2026-11-05). Falta
+la confirmación docente, y CD-3 (roles del ZIP) sigue abierto.
+
 ## T2 — Preparar el laboratorio cuando se autorice
 
 **Resultado esperado:** contenedor descartable con `postgres:17` corriendo, base
@@ -141,12 +147,22 @@ la seguridad de U5. La prueba de infraestructura de
 - El modo `conservar-propietarios`.
 - Las mediciones con las identidades y los nombres definitivos.
 
-RPO 24 h y RTO 20 min siguen como propuestas pendientes de aprobación (EA-1); no
-se declaran metas cumplidas. También siguen pendientes:
+En esa etapa, RPO 24 h y RTO 20 min eran propuestas pendientes (EA-1).
 
-- Los nombres de las bases y el procedimiento de comprobación docente (CD-1).
-- Las identidades definitivas de cada tarea (EP-4).
-- La decisión de propietarios y permisos de la restauración (CD-3, EA-4).
+**Ensayo de evaluación (2026-11-05):** se ejecutó con las decisiones adoptadas
+por el equipo antes de la corrida, siguiendo [EVALUACION.md](../EVALUACION.md); ver
+el [ensayo de evaluación](../docs/ensayo_evaluacion.md).
+
+- Bases `foodstore` y `foodstore_restore_test`.
+- Restauración validada en 0,264 s, con 1 s de antigüedad: dentro de las metas
+  del equipo (RTO 20 min, RPO 24 h).
+
+Siguen abiertos:
+
+- La comprobación docente (CD-1, CD-2, CD-4).
+- Roles y propietarios de U5 (CD-3, EA-4).
+- Los roles operativos fuera del laboratorio (EP-4).
+- La programación diaria.
 
 ## T7 — Preparar el informe y revisar la entrega
 
@@ -156,3 +172,9 @@ propuesta, y verificación del trabajo asistido con IA. Revisión final de
 entregables contra la consigna.
 
 **Dependencias:** T6.
+
+**Estado:** `informe_u6.pdf`, de una página, y su fuente `informe_u6.html` se
+generaron con los datos del ensayo de evaluación. Después se verificaron los
+bloques finales P7 y P9 de la guía: códigos 0/0, 1/1, 0/0 y 2/2 (ver el
+[ensayo de evaluación](../docs/ensayo_evaluacion.md)). La revisión docente está
+pendiente.

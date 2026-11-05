@@ -31,7 +31,7 @@
 # El destino debe ser nuevo y distinto del origen y de las bases protegidas.
 # Nunca se elimina automáticamente, ni siquiera ante un fallo o interrupción.
 # No se ejecutan dropdb, DROP, ALTER SYSTEM, CREATE ROLE, pg_dumpall ni --globals.
-# Solo se registran medidas; las metas RPO/RTO siguen pendientes de aprobación.
+# El script registra las mediciones; su comparación con los objetivos se documenta en el informe y en SPEC_U6.md.
 # Códigos: 0 restauración validada; 1 fallo desde el intento de creación o durante
 # restauración/validación; 2 error de uso/entorno antes de escribir en PostgreSQL.
 # Antes de disponer de un directorio de ejecución propio, el diagnóstico se emite
@@ -86,7 +86,7 @@ on_exit() {
       printf 'MODO=%s\nALCANCE=%s\n' "$mode" "$scope_text"
       printf 'ANTIGUEDAD_RESPALDO_SEGUNDOS=%s\nPG_DUMP_INICIO=%s\n' "$backup_age" "$dump_start"
       printf 'RESPALDO=%s\nLINEA_BASE=%s\nLOG=%s\n' "$dump_file" "$baseline_file" "$log_file"
-      printf 'METAS=RPO/RTO pendientes de aprobación; no se evalúa cumplimiento.\n'
+      printf 'METAS=El script registra las mediciones; su comparación con los objetivos se documenta en el informe y en SPEC_U6.md.\n'
     } >"$run_dir/resumen.txt"
   fi
   exit "$status"
@@ -240,7 +240,7 @@ log INFO "argumentos exactos de restauración: $restore_command; entrada=$dump_f
 test_start_epoch="$(date +%s)"
 backup_age=$((test_start_epoch - dump_start_epoch))
 log INFO "ANTIGUEDAD_RESPALDO_SEGUNDOS=$backup_age PG_DUMP_INICIO=$dump_start"
-log INFO "metas RPO/RTO pendientes de aprobación; no se evalúa cumplimiento"
+log INFO "El script registra las mediciones; su comparación con los objetivos se documenta en el informe y en SPEC_U6.md."
 
 stage="contenedor"
 # Se consulta solo State.Running, nunca variables de entorno del contenedor.
@@ -314,7 +314,7 @@ log INFO "RTO_FIN=$rto_end_iso RTO_OBSERVADO_SEGUNDOS=$rto"
   printf 'COMANDO_RESTAURACION=%s\n' "$restore_command"
   printf 'ARCHIVOS=restore_test.log, pg_restore_list.txt, pg_restore_stdout.txt, pg_restore_stderr.txt, validaciones_linea_base.txt, validaciones_destino.txt, comparacion.diff, resumen.txt\n'
   printf 'DESTINO_CREADO_POR_ESTA_EJECUCION=1\nCONSERVACION=Se conserva el destino.\n'
-  printf 'METAS=RPO/RTO pendientes de aprobación; no se evalúa cumplimiento.\n'
+  printf 'METAS=El script registra las mediciones; su comparación con los objetivos se documenta en el informe y en SPEC_U6.md.\n'
 } >"$run_dir/resumen.txt"
 log INFO "RESULTADO=RESTAURACION_VALIDADA resumen=$run_dir/resumen.txt"
 completed=1

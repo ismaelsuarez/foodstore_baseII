@@ -101,6 +101,20 @@ de esos cierres, previo a su reparación canónica. No prevalecen sobre el schem
 actual. El seed mínimo tampoco reproduce sus cargas masivas de laboratorio.
 No editar esos documentos protegidos para eliminar la cronología sin autorización.
 
+## Unidad 6
+
+- **Entrada:** [EVALUACION.md](unidades/unidad-6/EVALUACION.md). Es la guía
+  operativa para preparar una instancia aislada, conectar, respaldar, restaurar y
+  evaluar el núcleo canónico.
+- **Decisiones:** los nombres `foodstore` y `foodstore_restore_test`, el modo
+  `sin-propietarios` y las metas RPO/RTO son decisiones del equipo, no
+  confirmaciones del docente.
+- **Qué no hacer:**
+  - Crear `cliente` ni aliases.
+  - Ejecutar los scripts del ZIP docente sin revisar su alcance.
+  - Afirmar que se recuperan los propietarios o permisos de U5.
+- **Evidencia:** las ejecuciones previas del equipo son antecedentes, no aprobación.
+
 ## Validación y límites
 
 - Motor exclusivo: PostgreSQL; validación registrada con **17.11**.

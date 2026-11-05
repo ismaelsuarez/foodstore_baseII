@@ -21,6 +21,7 @@ no reemplazan sus contratos.
 | [SQL TPI](tpi/sql/) y [pruebas](tpi/pruebas/) | Implementación y verificación del comportamiento |
 | Evidencias [oficial](tpi/evidencia_modelo_oficial.md), [TPI-A](tpi/evidencia_cierre_objetivos_3_5.md) y [TPI-B](tpi/evidencia_cierre_objetivo_8.md) | Resultados reales y alcance de cada ensayo |
 | [Unidades](unidades/) | Trabajos evaluados, evidencia histórica y laboratorios específicos; no migraciones automáticas |
+| [Unidad 6 — evaluación](unidades/unidad-6/EVALUACION.md) | Mantenimiento, respaldo y recuperación: guía reproducible, matriz de requisitos y diferencias PDF/ZIP abiertas |
 
 ## Integrantes
 

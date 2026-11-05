@@ -1,0 +1,200 @@
+Extracto de evidencia — verificación posterior de los bloques P7 y P9 de EVALUACION.md (2026-11-05)
+=====================================================================================================
+Copia líneas literales de la evidencia original; cada bloque indica su archivo de procedencia.
+Transformaciones: rutas del host sustituidas por <VERIFICACION> (carpeta de esta verificación),
+<U6_PRIV> y <HOME>; espacios finales eliminados. Las líneas "Anotación" no son salidas de herramientas.
+"BLOQUE_EXIT" es el código que recibió el proceso que invocó el bloque; "… exit=N" es texto del bloque.
+Complementa la corrida de entrega (0,264 s; 1 s): no la reemplaza ni repite P0–P13.
+No incluye contraseñas, contenido de auth/, filas de usuario, dumps ni logs completos.
+
+--- Fuente: <VERIFICACION>/consola/huellas_antes.txt
+# huellas antes de las comprobaciones 2026-11-05T17:04:09-03:00
+490f1be1abfdc3ca25754058167741356a318b509a32037f11a004b9dd908426  unidades/unidad-6/EVALUACION.md
+3b8e39c80b6bdfdd96da620a42f820230d79a6ace3ba3a076fa4be5123a44b52  unidades/unidad-6/backup_foodstore.sh
+973223df6fa0321642e8ac545becc6207ecb7fb4ae5b7c63c11e995bf51b8f64  unidades/unidad-6/restore_test.sh
+ed2644efc13b06b6dacddc9a7f784331a6877bd4fca3fe5ff84c9a63a26ec3c7  unidades/unidad-6/health_check.sql
+f5e6bd2a07512bf318631401bc7bcc781da55381b49c1b2c4085f6595db0bbcd  unidades/unidad-6/maintenance.sql
+e4afea968f84dc721ecd7bf084630fe73de632d7c0b54e555c82548e28112eba  unidades/unidad-6/validaciones.sql
+d5cbb990c76ecc085c44736e877d3fc9d993a734ecc137120679ff3706e8a108  schema.sql
+ab983fbe7547793bc9fa5483c6254cee0d7c4b1363ba12f8b67ad3577327565f  datos_iniciales.sql
+9696a32e8edf56a5bdf23a30eda3bd589cedb0a1b00a382e63969bf3386aa6c4  tpi/sql/objetos_programables.sql
+29be6358eb91698d5afacfa556c753c062939f2c96cb0364da33b7d86720a280  <VR>/bloques/P0.sh
+30890144c0aa67883dde101533b88f48e16522eb8e73f8bf9089c4996df7251b  <VR>/bloques/P7.sh
+1fef49ce78636a3f060b4e14a3c39e524c147427aa503128a3d511db98b5e8eb  <VR>/bloques/P8.sh
+7f495aafb0b7a2638de215c896693753748252f00a0fd6592885808d5c59e7e8  <VR>/bloques/P9.sh
+
+--- Fuente: <VERIFICACION>/consola/previas.txt
+id=e46713bd8004f4e004c78fd696f4c9a1e5205ebe5d993072519951ee1bb4eb8c state=running net=none ports={} privileged=false
+u6_guia_restore_test|false
+u6_guia_inexistente|false
+foodstore|true
+foodstore_restore_test|true
+foodstore_restore_test|16506
+foodstore|16384
+
+--- Fuente: <VERIFICACION>/consola/A_P7_exitoso.txt
+### caso A_P7_exitoso: bloque P7 de EVALUACION.md (490f1be1…) sin cambios; 2026-11-05T17:04:50-03:00
+### variables: U6_ORIGEN=foodstore U6_DESTINO=u6_guia_restore_test
+sesiones_en_origen=0
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 LINEA_BASE_INICIO 2026-11-05T17:04:50-03:00
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 LINEA_BASE_FIN 2026-11-05T17:04:50-03:00 exit=0
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 PG_DUMP_INICIO 2026-11-05T17:04:50-03:00
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 PG_DUMP_FIN 2026-11-05T17:04:50-03:00 exit=0
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 tamaño: 26518 bytes
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 RESULTADO=OK archivo=<VR>/resultados/respaldos/foodstore_20261105_170450.dump linea_base=<VR>/resultados/respaldos/foodstore_20261105_170450.baseline
+backup_foodstore.sh exit=0
+
+--- Fuente: <VERIFICACION>/consola/A2_P8_seleccion.txt
+### caso A2_P8_seleccion: bloque P8 de EVALUACION.md (490f1be1…) sin cambios; 2026-11-05T17:04:50-03:00
+### variables: U6_ORIGEN=foodstore U6_DESTINO=u6_guia_restore_test
+base=foodstore
+archivo_respaldo=foodstore_20261105_170450.dump
+sha256_respaldo=324848d2fca99a7c6a514ea8bf1073e7aace7a97f4112354dcc7d9d6e9f28480
+pg_dump_inicio=2026-11-05T17:04:50-03:00
+324848d2fca99a7c6a514ea8bf1073e7aace7a97f4112354dcc7d9d6e9f28480  <VR>/resultados/respaldos/foodstore_20261105_170450.dump
+BLOQUE_EXIT=0
+
+--- Fuente: <VERIFICACION>/consola/B_P7_fallido.txt
+### caso B_P7_fallido: bloque P7 de EVALUACION.md (490f1be1…) sin cambios; 2026-11-05T17:04:50-03:00
+### variables: U6_ORIGEN=u6_guia_inexistente U6_DESTINO=u6_guia_restore_test
+sesiones_en_origen=0
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 inicio de ejecución: contenedor=foodstore-u6-evaluacion base=u6_guia_inexistente usuario=postgres
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 destino: <VR>/resultados/respaldos/u6_guia_inexistente_20261105_170450.dump
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 herramienta: pg_dump (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 LINEA_BASE_INICIO 2026-11-05T17:04:50-03:00
+2026-11-05T17:04:50-03:00 [INFO] run=20261105_170450 LINEA_BASE_FIN 2026-11-05T17:04:50-03:00 exit=2
+2026-11-05T17:04:50-03:00 [ERROR] run=20261105_170450 falló la captura de la línea base (detalle en el log)
+2026-11-05T17:04:50-03:00 [ERROR] run=20261105_170450 archivo temporal eliminado: <VR>/resultados/respaldos/u6_guia_inexistente_20261105_170450.dump.partial
+2026-11-05T17:04:50-03:00 [ERROR] run=20261105_170450 RESULTADO=FALLO exit=1
+backup_foodstore.sh exit=1
+BLOQUE_EXIT=1
+
+--- Fuente: <VERIFICACION>/consola/B_comprobaciones.txt
+--- respaldos de la prueba B
+(ningún archivo u6_guia_inexistente_* en respaldos)
+u6_guia_inexistente: ausente
+
+--- Fuente: <VERIFICACION>/consola/C_P9_exitoso.txt
+### caso C_P9_exitoso: bloque P9 de EVALUACION.md (490f1be1…) sin cambios; 2026-11-05T17:04:51-03:00
+### variables: U6_ORIGEN=foodstore U6_DESTINO=u6_guia_restore_test
+2026-11-05T17:04:51-03:00 [INFO] run=20261105_170451 inicio: contenedor=foodstore-u6-evaluacion usuario=postgres base_administrativa=postgres origen=foodstore destino=u6_guia_restore_test
+2026-11-05T17:04:51-03:00 [INFO] run=20261105_170451 ANTIGUEDAD_RESPALDO_SEGUNDOS=1 PG_DUMP_INICIO=2026-11-05T17:04:50-03:00
+2026-11-05T17:04:51-03:00 [INFO] run=20261105_170451 RTO_INICIO=2026-11-05T17:04:51-03:00 (medición inmediatamente antes de createdb)
+2026-11-05T17:04:51-03:00 [INFO] run=20261105_170451 RTO_FIN=2026-11-05T17:04:51-03:00 RTO_OBSERVADO_SEGUNDOS=0.262
+2026-11-05T17:04:51-03:00 [INFO] run=20261105_170451 RESULTADO=RESTAURACION_VALIDADA resumen=<VR>/resultados/restauracion/restore_u6_guia_restore_test_20261105_170451/resumen.txt
+restore_test.sh exit=0
+RESULTADO=RESTAURACION_VALIDADA
+MODO=sin-propietarios
+BASE_ADMINISTRATIVA=postgres
+ORIGEN=foodstore
+DESTINO=u6_guia_restore_test
+ANTIGUEDAD_RESPALDO_SEGUNDOS=1
+RTO_INICIO=2026-11-05T17:04:51-03:00
+RTO_FIN=2026-11-05T17:04:51-03:00
+RTO_OBSERVADO_SEGUNDOS=0.262
+SHA256_RESPALDO=324848d2fca99a7c6a514ea8bf1073e7aace7a97f4112354dcc7d9d6e9f28480
+METAS=El script registra las mediciones; su comparación con los objetivos se documenta en el informe y en SPEC_U6.md.
+BLOQUE_EXIT=0
+
+Anotación: comparacion.diff de C = 0 bytes; validaciones_destino.txt idéntico a validaciones_linea_base.txt: si (fuente: <VERIFICACION>/resultados/restauracion/restore_u6_guia_restore_test_20261105_170451/)
+
+--- Fuente: <VERIFICACION>/resultados/restauracion/restore_u6_guia_restore_test_20261105_170451/validaciones_destino.txt
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+
+--- Fuente: <VERIFICACION>/consola/D_P9_destino_existente.txt
+### caso D_P9_destino_existente: bloque P9 de EVALUACION.md (490f1be1…) sin cambios; 2026-11-05T17:04:51-03:00
+### variables: U6_ORIGEN=foodstore U6_DESTINO=u6_guia_restore_test
+mkdir: <VR>/resultados/restauracion/restore_u6_guia_restore_test_20261105_170451: El archivo existe
+[ERROR] el directorio de ejecución existe o no puede crearse; no se sobrescribe
+[ERROR] RESULTADO=FALLO etapa=directorio_resultados exit=2
+[ERROR] DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+restore_test.sh exit=2
+sin resumen propio de esta ejecución (falló antes de crear su directorio)
+BLOQUE_EXIT=2
+
+--- Fuente: <VERIFICACION>/consola/D_anotacion.txt
+# Anotación (agregada después): C terminó a las 17:04:51 y D se lanzó en el mismo segundo. El directorio de D, restore_u6_guia_restore_test_20261105_170451, ya existía (el de C), así que restore_test.sh rechazó con exit 2 en la etapa directorio_resultados, antes de comprobar el destino. D no ejerció la ruta de destino existente; se repitió como D2.
+
+--- Fuente: <VERIFICACION>/consola/D_comparacion.txt
+D: OID 16632 -> 16632; huella igual: si
+
+--- Fuente: <VERIFICACION>/consola/D2_P9_destino_existente.txt
+### caso D2: repetición de D (bloque P9 de EVALUACION.md 490f1be1… sin cambios) tras esperar 2 s; 2026-11-05T17:05:37-03:00
+### variables: U6_ORIGEN=foodstore U6_DESTINO=u6_guia_restore_test
+2026-11-05T17:05:37-03:00 [ERROR] run=20261105_170537 el destino ya existe; no se borra ni se sobrescribe
+2026-11-05T17:05:37-03:00 [ERROR] run=20261105_170537 RESULTADO=FALLO etapa=ausencia_destino exit=2
+2026-11-05T17:05:37-03:00 [ERROR] run=20261105_170537 DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+restore_test.sh exit=2
+RESULTADO=FALLO
+ETAPA=ausencia_destino
+DESTINO=u6_guia_restore_test
+DESTINO_CREADO_POR_ESTA_EJECUCION=0
+BLOQUE_EXIT=2
+
+--- Fuente: <VERIFICACION>/consola/D2_comparacion.txt
+D2: OID 16632 -> 16632; huella igual: si
+
+--- Fuente: <VERIFICACION>/consola/bases_entrega_comparacion.txt
+foodstore sin cambios: si; foodstore_restore_test sin cambios: si
+
+--- Fuente: <VERIFICACION>/consola/bases_finales.txt
+foodstore_restore_test|16506
+foodstore|16384
+postgres|5
+template0|4
+template1|1
+u6_guia_restore_test|16632
+
+--- Fuente: <VERIFICACION>/consola/huellas_despues.txt
+# huellas al terminar las comprobaciones 2026-11-05T17:06:07-03:00
+490f1be1abfdc3ca25754058167741356a318b509a32037f11a004b9dd908426  unidades/unidad-6/EVALUACION.md
+3b8e39c80b6bdfdd96da620a42f820230d79a6ace3ba3a076fa4be5123a44b52  unidades/unidad-6/backup_foodstore.sh
+973223df6fa0321642e8ac545becc6207ecb7fb4ae5b7c63c11e995bf51b8f64  unidades/unidad-6/restore_test.sh
+ed2644efc13b06b6dacddc9a7f784331a6877bd4fca3fe5ff84c9a63a26ec3c7  unidades/unidad-6/health_check.sql
+f5e6bd2a07512bf318631401bc7bcc781da55381b49c1b2c4085f6595db0bbcd  unidades/unidad-6/maintenance.sql
+e4afea968f84dc721ecd7bf084630fe73de632d7c0b54e555c82548e28112eba  unidades/unidad-6/validaciones.sql
+d5cbb990c76ecc085c44736e877d3fc9d993a734ecc137120679ff3706e8a108  schema.sql
+ab983fbe7547793bc9fa5483c6254cee0d7c4b1363ba12f8b67ad3577327565f  datos_iniciales.sql
+9696a32e8edf56a5bdf23a30eda3bd589cedb0a1b00a382e63969bf3386aa6c4  tpi/sql/objetos_programables.sql
+29be6358eb91698d5afacfa556c753c062939f2c96cb0364da33b7d86720a280  <VR>/bloques/P0.sh
+30890144c0aa67883dde101533b88f48e16522eb8e73f8bf9089c4996df7251b  <VR>/bloques/P7.sh
+1fef49ce78636a3f060b4e14a3c39e524c147427aa503128a3d511db98b5e8eb  <VR>/bloques/P8.sh
+7f495aafb0b7a2638de215c896693753748252f00a0fd6592885808d5c59e7e8  <VR>/bloques/P9.sh
+
+Anotación: tras A–D2 se corrigió P9 (comm y cat informativos no fatales); la guía pasó a 93b4b9fb… y se repitió solo el caso de destino existente (D3).
+
+--- Fuente: <VERIFICACION>/consola/huella_guia_v2.txt
+93b4b9fb288e17e72747ea886647ac5753001fa99d2ae200d49fa3f501f97584  unidades/unidad-6/EVALUACION.md (v2: comm y cat de P9 no fatales)
+
+--- Fuente: <VERIFICACION>/consola/P9_v1_v2.diff
+8,9c8,9
+< nuevo="$(comm -13 <(printf '%s\n' "$antes") <( { ls -1d "$U6_RES"/restauracion/restore_"$U6_DESTINO"_* 2>/dev/null || true; } | sort))"
+< if [ -n "$nuevo" ] && [ -f "$nuevo/resumen.txt" ]; then cat "$nuevo/resumen.txt"; else echo "sin resumen propio de esta ejecución (falló antes de crear su directorio)"; fi
+---
+> nuevo="$(comm -13 <(printf '%s\n' "$antes") <( { ls -1d "$U6_RES"/restauracion/restore_"$U6_DESTINO"_* 2>/dev/null || true; } | sort) || true)"
+> if [ -n "$nuevo" ] && [ -f "$nuevo/resumen.txt" ]; then cat "$nuevo/resumen.txt" || true; else echo "sin resumen propio de esta ejecución (falló antes de crear su directorio)"; fi
+
+--- Fuente: <VERIFICACION>/consola/D3_P9v2_destino_existente.txt
+### caso D3: P9 de EVALUACION.md v2 (93b4b9fb288e17e72747ea886647ac5753001fa99d2ae200d49fa3f501f97584) sin cambios, destino existente; 2026-11-05T17:13:18-03:00
+### variables: U6_ORIGEN=foodstore U6_DESTINO=u6_guia_restore_test
+2026-11-05T17:13:18-03:00 [ERROR] run=20261105_171318 el destino ya existe; no se borra ni se sobrescribe
+2026-11-05T17:13:18-03:00 [ERROR] run=20261105_171318 RESULTADO=FALLO etapa=ausencia_destino exit=2
+2026-11-05T17:13:18-03:00 [ERROR] run=20261105_171318 DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+restore_test.sh exit=2
+RESULTADO=FALLO
+ETAPA=ausencia_destino
+BLOQUE_EXIT=2
+
+--- Fuente: <VERIFICACION>/consola/D3_comparacion.txt
+D3: OID 16632 -> 16632; huella igual: si

@@ -1,0 +1,238 @@
+Extracto de evidencia — ensayo de evaluación U6 desde EVALUACION.md (2026-11-05)
+==============================================================================
+Copia líneas literales de la evidencia original; cada bloque indica su archivo de procedencia.
+Transformaciones: rutas del host sustituidas por <U6_PRIV> (directorio privado de la guía),
+<CONSOLA> (salidas de cada bloque) y <HOME>; espacios finales eliminados. Las líneas
+"Anotación:" son comentarios del extracto, no salidas de herramientas.
+Zonas horarias: -03:00 en los scripts; UTC (+00) en el servidor.
+No incluye contraseñas, contenido de auth/, filas de usuario, dumps ni logs completos.
+Decisiones del equipo vigentes en esta corrida (no confirmadas por el docente): foodstore,
+foodstore_restore_test, administrativa postgres, usuario, sin-propietarios, RPO 24 h, RTO 20 min.
+
+--- Fuente: <U6_PRIV>-consola/huella_guia.txt
+1ecce5a299aa64be8dd1b767f58bbdb6f76e14b69a298f03c2f926cd38fbc354  unidades/unidad-6/EVALUACION.md
+1ecce5a299aa64be8dd1b767f58bbdb6f76e14b69a298f03c2f926cd38fbc354  unidades/unidad-6/EVALUACION.md
+93a29a4cb68a2f4e20dbaa3db0ad3060abcdfa069425bb0b89c356c40a0a3b4b  unidades/unidad-6/EVALUACION.md  (v3, tras corregir P7 y P9)
+Anotación: 1ecce5a2 = guía usada en P0-P13; la segunda línea repite la huella (extracción descartada); 93a29a4c = guía tras corregir P7/P9.
+
+--- Fuente: <U6_PRIV>-consola/P1.txt
+### bloque P1 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:34-03:00
+imagen=sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P2.txt
+### bloque P2 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:34-03:00
+-rw------- 49 bytes <U6_PRIV>/auth/postgres_password
+-rw------- 75 bytes <U6_PRIV>/auth/pgpass
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P3.txt
+### bloque P3 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:34-03:00
+foodstore_u6_evaluacion_data
+e46713bd8004f4e004c78fd696f4c9a1e5205ebe5d993072519951ee1bb4eb8c
+foodstore-u6-evaluacion
+127.0.0.1:5432 - accepting connections
+red=none puertos={} privilegiado=false
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P4.txt
+### bloque P4 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:36-03:00
+PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+postgres|postgres|127.0.0.1/32
+0 reglas trust de 7
+OK: conexión sin contraseña rechazada
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P5.txt
+### bloque P5 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:36-03:00
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P6.txt
+### bloque P6 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:36-03:00
+3b8e39c80b6bdfdd96da620a42f820230d79a6ace3ba3a076fa4be5123a44b52  unidades/unidad-6/backup_foodstore.sh
+68031b1f0d5e07048d5547897b7fe81a4185921562524f74449ac76fd42f9938  unidades/unidad-6/restore_test.sh
+ed2644efc13b06b6dacddc9a7f784331a6877bd4fca3fe5ff84c9a63a26ec3c7  unidades/unidad-6/health_check.sql
+f5e6bd2a07512bf318631401bc7bcc781da55381b49c1b2c4085f6595db0bbcd  unidades/unidad-6/maintenance.sql
+e4afea968f84dc721ecd7bf084630fe73de632d7c0b54e555c82548e28112eba  unidades/unidad-6/validaciones.sql
+d5cbb990c76ecc085c44736e877d3fc9d993a734ecc137120679ff3706e8a108  schema.sql
+ab983fbe7547793bc9fa5483c6254cee0d7c4b1363ba12f8b67ad3577327565f  datos_iniciales.sql
+9696a32e8edf56a5bdf23a30eda3bd589cedb0a1b00a382e63969bf3386aa6c4  tpi/sql/objetos_programables.sql
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P7.txt
+### bloque P7 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:36-03:00
+sesiones_en_origen=0
+2026-11-05T15:58:36-03:00 [INFO] run=20261105_155836 inicio de ejecución: contenedor=foodstore-u6-evaluacion base=foodstore usuario=postgres
+2026-11-05T15:58:36-03:00 [INFO] run=20261105_155836 destino: <U6_PRIV>/resultados/respaldos/foodstore_20261105_155836.dump
+2026-11-05T15:58:36-03:00 [INFO] run=20261105_155836 herramienta: pg_dump (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+2026-11-05T15:58:36-03:00 [INFO] run=20261105_155836 LINEA_BASE_INICIO 2026-11-05T15:58:36-03:00
+2026-11-05T15:58:36-03:00 [INFO] run=20261105_155836 LINEA_BASE_FIN 2026-11-05T15:58:36-03:00 exit=0
+2026-11-05T15:58:36-03:00 [INFO] run=20261105_155836 PG_DUMP_INICIO 2026-11-05T15:58:36-03:00
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155836 PG_DUMP_FIN 2026-11-05T15:58:37-03:00 exit=0
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155836 tamaño: 26518 bytes
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155836 pg_restore --list: archivo legible
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155836 RESULTADO=OK archivo=<U6_PRIV>/resultados/respaldos/foodstore_20261105_155836.dump linea_base=<U6_PRIV>/resultados/respaldos/foodstore_20261105_155836.baseline
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155836 la legibilidad no reemplaza una restauración de prueba
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P8.txt
+### bloque P8 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:37-03:00
+base=foodstore
+archivo_respaldo=foodstore_20261105_155836.dump
+sha256_respaldo=ca4912757995df20ab803ef7317d67eaf3d8f43d55d8f0447b6b9f9f98b84f89
+pg_dump_inicio=2026-11-05T15:58:36-03:00
+ca4912757995df20ab803ef7317d67eaf3d8f43d55d8f0447b6b9f9f98b84f89  <U6_PRIV>/resultados/respaldos/foodstore_20261105_155836.dump
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P9.txt
+### bloque P9 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:37-03:00
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155837 inicio: contenedor=foodstore-u6-evaluacion usuario=postgres base_administrativa=postgres origen=foodstore destino=foodstore_restore_test
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155837 ANTIGUEDAD_RESPALDO_SEGUNDOS=1 PG_DUMP_INICIO=2026-11-05T15:58:36-03:00
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155837 RTO_INICIO=2026-11-05T15:58:37-03:00 (medición inmediatamente antes de createdb)
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155837 RTO_FIN=2026-11-05T15:58:37-03:00 RTO_OBSERVADO_SEGUNDOS=0.264
+2026-11-05T15:58:37-03:00 [INFO] run=20261105_155837 RESULTADO=RESTAURACION_VALIDADA resumen=<U6_PRIV>/resultados/restauracion/restore_foodstore_restore_test_20261105_155837/resumen.txt
+RESULTADO=RESTAURACION_VALIDADA
+MODO=sin-propietarios
+BASE_ADMINISTRATIVA=postgres
+ORIGEN=foodstore
+DESTINO=foodstore_restore_test
+ANTIGUEDAD_RESPALDO_SEGUNDOS=1
+RTO_INICIO=2026-11-05T15:58:37-03:00
+RTO_FIN=2026-11-05T15:58:37-03:00
+RTO_OBSERVADO_SEGUNDOS=0.264
+SHA256_RESPALDO=ca4912757995df20ab803ef7317d67eaf3d8f43d55d8f0447b6b9f9f98b84f89
+COMANDO_RESTAURACION=docker exec -i foodstore-u6-evaluacion pg_restore -w --username=postgres --dbname=foodstore_restore_test --exit-on-error --single-transaction --no-owner --no-privileges
+exit=0
+
+Anotación: comparacion.diff = 0 bytes; pg_restore_stderr.txt = 0 bytes (fuente: <U6_PRIV>/resultados/restauracion/restore_foodstore_restore_test_20261105_155837/)
+
+--- Fuente: <U6_PRIV>/resultados/restauracion/restore_foodstore_restore_test_20261105_155837/validaciones_destino.txt
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+
+--- Fuente: <U6_PRIV>-consola/P10.txt
+### bloque P10 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:37-03:00
+ 1_tamano | foodstore |      8132275 | 7942 kB | 2026-11-05 18:58:37.671455+00
+ 2b_sesiones_por_estado | active |        1
+ 3a_configuracion | on           | on
+ 3b_tablas | public  | pedido         |                     5 |                       5 |                50.00 |                           10 |             |                 |                0 |              |                  |                 0 | 40 kB
+(5 rows)
+(0 rows)
+ 1_tamano | foodstore_restore_test |      8132275 | 7942 kB | 2026-11-05 18:58:37.752704+00
+ 2b_sesiones_por_estado | active |        1
+ 3a_configuracion | on           | on
+ 3b_tablas | public  | pedido         |                     5 |                       0 |                 0.00 |                            5 |             |                 |                0 |              |                  |                 0 | 40 kB
+(5 rows)
+(0 rows)
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P11.txt
+### bloque P11 de EVALUACION.md, ejecutado sin cambios 2026-11-05T15:58:37-03:00
+ public  | categoria      |                     2 |                       0 |                 0.00 |                   2 |                  2 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   7 |                  7 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+ public  | pedido         |                     5 |                       0 |                 0.00 |                   5 |                  5 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+ public  | producto       |                     3 |                       0 |                 0.00 |                   3 |                  3 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+ public  | usuario        |                     3 |                       0 |                 0.00 |                   3 |                  3 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+ on         | on           | 50                           | 0.1                             | 50                          | 0.2
+solo diagnóstico; no se ejecutó ninguna acción
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P12_sustitucion.diff
+3,4c3,4
+<   -v tabla_mantenimiento=TABLA -v confirmar_analyze=on \
+<   -v justificacion='OBSERVACION REAL DE P11' -f - < unidades/unidad-6/maintenance.sql
+---
+>   -v tabla_mantenimiento=detalle_pedido -v confirmar_analyze=on \
+>   -v justificacion="$U6_JUSTIFICACION" -f - < unidades/unidad-6/maintenance.sql
+
+--- Fuente: <U6_PRIV>-consola/P12.txt
+### P12 con marcadores sustituidos (ver P12_sustitucion.diff) 2026-11-05T15:59:19-03:00
+U6_JUSTIFICACION=P11 en foodstore_restore_test: detalle_pedido con last_analyze y last_autoanalyze NULL, n_mod_since_analyze 7 igual a sus filas vivas estimadas; autovacuum_analyze_threshold 50 y scale_factor 0.1, el autoanalyze no alcanza el umbral y la tabla restaurada no tendria estadisticas del planificador.
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   7 |                  7 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   7 |                  7 |             |                 |            0 |                0 |              |                  |             0 |                 0 |
+psql:<stdin>:159: INFO:  analyzing "public.detalle_pedido"
+psql:<stdin>:159: INFO:  "detalle_pedido": scanned 1 of 1 pages, containing 7 live rows and 0 dead rows; 7 rows in sample, 7 estimated total rows
+ANALYZE
+ public  | detalle_pedido |                     7 |                       0 |                 0.00 |                   0 |                  7 |             |                 |            0 |                0 | 2026-11-05 18:59:19.162543+00 |                  |             1 |                 0 |
+exit=0
+Anotación: en P12 hay tres filas "public | detalle_pedido". Las dos primeras son previas a la acción (diagnóstico de la parte 1 y registro de la decisión) y la tercera es la comprobación posterior (n_mod_since_analyze 7 -> 0).
+
+--- Fuente: <U6_PRIV>-consola/P12b_validaciones_post.txt
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/P13.txt
+### bloque P13 2026-11-05T15:59:19-03:00
+huellas sin cambios
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/N_repetir_P9.txt
+### F: repetir P9 contra destino existente 2026-11-05T15:59:19-03:00
+2026-11-05T15:59:19-03:00 [ERROR] run=20261105_155919 el destino ya existe; no se borra ni se sobrescribe
+2026-11-05T15:59:19-03:00 [ERROR] run=20261105_155919 RESULTADO=FALLO etapa=ausencia_destino exit=2
+exit=0
+
+--- Fuente: <U6_PRIV>-consola/N_oid_antes.txt
+16506
+
+--- Fuente: <U6_PRIV>-consola/N_oid_despues.txt
+16506
+
+--- Fuente: <U6_PRIV>-consola/P9_v1_v3.diff
+3c3
+< bash unidades/unidad-6/restore_test.sh -c "$U6_C" -U postgres -a postgres \
+---
+> rc=0; bash unidades/unidad-6/restore_test.sh -c "$U6_C" -U postgres -a postgres \
+5,6c5,8
+<   -m sin-propietarios -o "$U6_PRIV/resultados/restauracion"
+< cat "$U6_PRIV"/resultados/restauracion/restore_foodstore_restore_test_*/resumen.txt
+---
+>   -m sin-propietarios -o "$U6_PRIV/resultados/restauracion" || rc=$?
+> echo "restore_test.sh exit=$rc"
+> cat "$(ls -1d "$U6_PRIV"/resultados/restauracion/restore_foodstore_restore_test_* | tail -n 1)/resumen.txt"
+> [ "$rc" = 0 ]
+
+--- Fuente: <U6_PRIV>-consola/N3_repetir_P9_v3.txt
+### F con P9 v3: repetir contra destino existente 2026-11-05T15:59:56-03:00
+2026-11-05T15:59:56-03:00 [ERROR] run=20261105_155956 el destino ya existe; no se borra ni se sobrescribe
+2026-11-05T15:59:56-03:00 [ERROR] run=20261105_155956 RESULTADO=FALLO etapa=ausencia_destino exit=2
+restore_test.sh exit=2
+RESULTADO=FALLO
+ETAPA=ausencia_destino
+exit=1
+
+--- Fuente: <U6_PRIV>-consola/N3_oid_antes.txt
+16506
+
+--- Fuente: <U6_PRIV>-consola/N3_oid_despues.txt
+16506
+
+Anotación: metas del equipo — RTO 1200 s frente a 0.264 s observado; RPO 86400 s frente a 1 s de antigüedad: ambos dentro de la meta en esta corrida.

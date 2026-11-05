@@ -4,9 +4,23 @@
 
 ## Mantenimiento, respaldo y recuperación
 
-**Estado:** scripts del procedimiento implementados. Primer ensayo funcional del
-núcleo canónico satisfactorio, según las evidencias de la corrida. Pendientes la
-comprobación docente, la seguridad de U5 y la entrega. La versión y las
+**Estado:** entrega preparada para evaluación independiente.
+
+- **Para evaluar:** [EVALUACION.md](EVALUACION.md).
+- **Corrida desde esa guía:** [ensayo de evaluación](docs/ensayo_evaluacion.md),
+  con bases `foodstore` y `foodstore_restore_test`; restauración validada en
+  0,264 s con 1 s de antigüedad, dentro de las metas del equipo.
+- **Verificación posterior de P7 y P9:** con la guía corregida; el código de cada
+  bloque coincide con el del script en los casos de éxito, fallo y destino
+  existente. Ver la sección correspondiente del ensayo de evaluación.
+- **Informe:** [informe_u6.pdf](informe_u6.pdf), con fuente editable en
+  [informe_u6.html](informe_u6.html).
+- **Sin aprobación docente:** la evaluación docente, la seguridad de U5, las
+  diferencias PDF/ZIP y la programación diaria, que no se instaló ni se probó,
+  siguen abiertas.
+
+Primer ensayo funcional del núcleo canónico satisfactorio, según las evidencias de
+la corrida. La versión y las
 herramientas del laboratorio (PostgreSQL 17.11) se comprobaron en la etapa de
 [infraestructura](docs/laboratorio.md), que usó una versión anterior de
 `backup_foodstore.sh`.
@@ -15,9 +29,11 @@ El 2026-11-05 se realizó un [ensayo funcional](docs/ensayo_funcional.md) con el
 núcleo canónico (schema, seed y objetos TPI) en bases exclusivas del ensayo.
 Incluyó respaldo con línea base, restauración `sin-propietarios` validada, tres
 pruebas negativas rechazadas, salud en ambas bases y un `ANALYZE` puntual en la
-copia restaurada. Es un ensayo técnico: no es la comprobación docente, no
-recupera la seguridad de U5 ni evalúa las metas RPO/RTO. U6 no está terminada;
-quedan pendientes las decisiones de la comprobación docente y `informe_u6.pdf`.
+copia restaurada. Fue un ensayo técnico: no es la comprobación docente, no
+recupera la seguridad de U5 y en ese momento no evaluaba metas, porque todavía no
+estaban adoptadas. Después se agregó la
+[corrección de la restauración](docs/correccion_restauracion.md) y se hizo el
+[ensayo de evaluación](docs/ensayo_evaluacion.md).
 Hay un extracto sin secretos en
 [evidencias/ensayo_canonico_20261105.txt](evidencias/ensayo_canonico_20261105.txt).
 
@@ -43,6 +59,7 @@ unidades. Las unidades 7 y 8 se desarrollarán después en un segundo repositori
 
 ## Ruta de lectura
 
+0. [EVALUACION.md](EVALUACION.md): guía operativa para la evaluación independiente.
 1. [SPEC_U6.md](SPEC_U6.md): especificación de requisitos (una página).
 2. [Compatibilidad docente](docs/compatibilidad_docente.md): análisis de
    compatibilidad entre la consigna, los scripts del docente y el esquema vigente.
@@ -52,6 +69,10 @@ unidades. Las unidades 7 y 8 se desarrollarán después en un segundo repositori
    infraestructura y límites de la evidencia.
 6. [Ensayo funcional](docs/ensayo_funcional.md): ensayo técnico con el núcleo
    canónico, pruebas negativas, mantenimiento y aspectos no probados.
+7. [Corrección de la restauración](docs/correccion_restauracion.md): `-a` y prueba
+   con el nombre de origen ausente.
+8. [Ensayo de evaluación](docs/ensayo_evaluacion.md): corrida desde
+   `EVALUACION.md` con las decisiones del equipo, y comparación con las metas.
 
 ## Entregables que exige la consigna
 
@@ -61,7 +82,7 @@ unidades. Las unidades 7 y 8 se desarrollarán después en un segundo repositori
 | [`backup_foodstore.sh`](backup_foodstore.sh) | Implementado; ensayado con el núcleo canónico (exit 0 y fallo controlado previo); pendiente la comprobación docente |
 | [`health_check.sql`](health_check.sql) | Implementado; ensayado en el origen y la restauración (exit 0) |
 | [`maintenance.sql`](maintenance.sql) | Implementado; diagnóstico y un `ANALYZE` puntual ensayados en la copia restaurada |
-| `informe_u6.pdf` | Pendiente |
+| [`informe_u6.pdf`](informe_u6.pdf) | Una página con los datos del [ensayo de evaluación](docs/ensayo_evaluacion.md); fuente editable en [`informe_u6.html`](informe_u6.html) |
 | [`restore_test.sh`](restore_test.sh) (opcional) | Implementado; modo `sin-propietarios` y tres rechazos ensayados; `conservar-propietarios` sin probar |
 
 Apoyo: [`validaciones.sql`](validaciones.sql), consultas de conteos y controles que
@@ -188,14 +209,25 @@ guardados en este directorio. Las tareas están listadas en
 [specs/tasks.md](specs/tasks.md). Cada tarea indica su resultado esperado y sus
 dependencias. La ejecución de pruebas requiere autorización explícita del equipo.
 
-## Decisiones pendientes que condicionan implementación o ejecución
+## Decisiones del equipo y temas abiertos
 
-| Decisión | Referencia |
+El 2026-11-05, antes de la corrida de evaluación, el equipo adoptó:
+
+- **Bases:** `foodstore` (origen), `foodstore_restore_test` (restauración) y
+  `postgres` (administrativa).
+- **Modelo:** `usuario`, sin `cliente` ni aliases.
+- **Alcance:** núcleo canónico.
+- **Restauración:** modo `sin-propietarios`.
+- **Rol:** `postgres`, solo en el laboratorio aislado.
+- **Metas:** RPO 24 h y RTO 20 min.
+
+Ver [EVALUACION.md](EVALUACION.md#decisiones-del-equipo-2026-11-05). Son
+decisiones del equipo, **no confirmaciones del profesor**.
+
+| Tema que sigue abierto | Referencia |
 |---|---|
-| Nombre de la base principal y de restauración | CD-1 en [compatibilidad](docs/compatibilidad_docente.md) |
-| Tabla de validación: `cliente` (PDF) o `usuario` (schema) | CD-2 en [compatibilidad](docs/compatibilidad_docente.md) |
-| `00_roles_unidad5_base.sql` del ZIP vs roles reales de U5 | CD-3 en [compatibilidad](docs/compatibilidad_docente.md) |
-| RPO 24 h y RTO 20 min como metas de laboratorio | EA-1 en [compatibilidad](docs/compatibilidad_docente.md) |
-| Procedimiento de comprobación docente (nombres CD-1, scripts del ZIP) | CD-1/CD-4 en [compatibilidad](docs/compatibilidad_docente.md) |
-| Entorno para Food Store e identidades definitivas de cada tarea (infraestructura ya creada y probada) | EP-2/EP-4 en [diseño](specs/design.md); antecedente VE-5/VE-6 en [compatibilidad](docs/compatibilidad_docente.md) |
-| Disponibilidad de `pg_cron` | VE-2 en [compatibilidad](docs/compatibilidad_docente.md) |
+| Comprobación docente: nombres del PDF frente al ZIP, y `cliente` frente a `usuario` | CD-1/CD-2/CD-4 en [compatibilidad](docs/compatibilidad_docente.md) |
+| `00_roles_unidad5_base.sql` del ZIP frente a los roles reales de U5 | CD-3 en [compatibilidad](docs/compatibilidad_docente.md) |
+| Propietarios y permisos de U5 en la restauración (`conservar-propietarios` sin probar) | EA-4 en [compatibilidad](docs/compatibilidad_docente.md) |
+| Roles operativos definitivos fuera del laboratorio | EP-4 en [diseño](specs/design.md) |
+| Disponibilidad de `pg_cron` y programación diaria | VE-2 en [compatibilidad](docs/compatibilidad_docente.md) |

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Informe U6 — Food Store</title>
+<style>
+  @page { size: A4; margin: 11mm 13mm; }
+  body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 8.6pt; line-height: 1.3; color: #111; margin: 0; }
+  h1 { font-size: 12.5pt; margin: 0 0 2pt; }
+  h2 { font-size: 9.4pt; margin: 6pt 0 2pt; border-bottom: 1px solid #999; }
+  p, ul { margin: 2pt 0; }
+  ul { padding-left: 13pt; }
+  li { margin: 0.5pt 0; }
+  table { border-collapse: collapse; width: 100%; margin: 2pt 0; }
+  th, td { border: 1px solid #aaa; padding: 1.5pt 3pt; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  code { font-family: "DejaVu Sans Mono", monospace; font-size: 7.8pt; }
+  .meta { color: #333; }
+  .cols { display: flex; gap: 10pt; }
+  .cols > div { flex: 1; }
+</style>
+</head>
+<body>
+<h1>Informe U6 — Mantenimiento, respaldo y recuperación de Food Store</h1>
+<p class="meta"><b>Integrantes:</b> Avalos Pablo, Blangetti Sofia, Suarez Ismael. Base de Datos II — UTN.
+<b>Consigna:</b> <code>TPUnidad_6_Mantenimiento_FoodStore.pdf</code>. <b>Corrida:</b> 2026-11-05, siguiendo
+<code>unidades/unidad-6/EVALUACION.md</code>.</p>
+
+<div class="cols">
+<div>
+<h2>Entorno y versión</h2>
+<ul>
+  <li>Contenedor nuevo <code>foodstore-u6-evaluacion</code> (imagen local <code>postgres:17</code>): sin red, sin puertos publicados, no privilegiado.</li>
+  <li>PostgreSQL 17.11 y clientes 17.11 dentro del contenedor. SCRAM por TCP 127.0.0.1 con <code>PGPASSFILE</code>; 0 de 7 reglas <code>trust</code>; credenciales propias fuera del repositorio.</li>
+  <li>Rol <code>postgres</code>, usado solo en este laboratorio académico aislado.</li>
+</ul>
+</div>
+<div>
+<h2>Decisiones del equipo (no confirmadas por el docente)</h2>
+<ul>
+  <li>Origen <code>foodstore</code>, destino <code>foodstore_restore_test</code>, administrativa <code>postgres</code>.</li>
+  <li>Modelo <code>schema.sql</code> con <code>usuario</code>: no se crea <code>cliente</code>. El PDF usa <code>cliente</code> y el ZIP, <code>food_store</code>; ambas diferencias siguen abiertas.</li>
+  <li>Restauración <code>sin-propietarios</code>. Metas: RPO 24 h, RTO 20 min.</li>
+</ul>
+</div>
+</div>
+
+<h2>Respaldo y datos observados</h2>
+<p>Respaldo <code>foodstore_20261105_155836.dump</code> (26518 B, SHA-256 <code>ca491275…4f89</code>). Inicio de <code>pg_dump</code>: <b>2026-11-05 15:58:36 (-03:00)</b>.
+La línea base se capturó antes de <code>pg_dump</code>, con 0 sesiones en el origen.</p>
+<table>
+<tr><th>categoria</th><th>usuario</th><th>producto</th><th>pedido</th><th>detalle_pedido</th><th>bajas lógicas</th><th>productos inválidos</th><th>detalles inválidos</th></tr>
+<tr><td>2</td><td>3</td><td>3</td><td>5</td><td>7</td><td>0 en las 5 tablas</td><td>0</td><td>0</td></tr>
+</table>
+<p>La restauración (<code>restore_test.sh -a postgres … -m sin-propietarios</code>) dio <b>RESTAURACION_VALIDADA</b>: las 12 validaciones del destino coinciden con la línea base (diff vacío) y los controles están en 0. Un nuevo intento hacia el destino existente se rechazó con código 2, sin modificarlo.</p>
+
+<h2>RPO / RTO</h2>
+<table>
+<tr><th>Objetivo</th><th>Meta del equipo</th><th>Observado en la corrida de entrega</th><th>Medición</th></tr>
+<tr><td>RTO</td><td>20 min</td><td>Recuperación en <b>0,264 s</b> (dentro de la meta)</td><td>Desde inmediatamente antes de <code>createdb</code> hasta el fin de las validaciones</td></tr>
+<tr><td>RPO</td><td>24 h (máxima antigüedad tolerada)</td><td>Antigüedad del respaldo: <b>1 s</b>, menor que el objetivo. No es el RPO ni una pérdida efectiva</td><td>Desde el inicio de <code>pg_dump</code> hasta el inicio de la restauración. La programación diaria <b>no fue instalada ni probada</b>, así que no está demostrado que el RPO se sostenga en el tiempo</td></tr>
+</table>
+
+<div class="cols">
+<div>
+<h2>Salud y mantenimiento</h2>
+<ul>
+  <li><code>health_check.sql</code> terminó con código 0 en ambas bases (7942 kB, 1 sesión). Registra métricas, sin semáforo. En el origen, <code>pedido</code> tiene 5 filas muertas estimadas (50 %).</li>
+  <li>En el diagnóstico, la copia restaurada no tenía estadísticas y no alcanzaba el umbral de autoanalyze (50 + 0,1·n). Se ejecutó un <code>ANALYZE</code> puntual sobre <code>detalle_pedido</code>, con la justificación registrada; los conteos se conservaron. Sin <code>VACUUM FULL</code>.</li>
+</ul>
+</div>
+<div>
+<h2>Problema real y corrección</h2>
+<ul>
+  <li><code>restore_test.sh</code> se conectaba a la base de origen para comprobar el destino y para <code>createdb</code>, así que no podía restaurar si el origen ya no existía. Se agregó el parámetro obligatorio <code>-a BASE_ADMINISTRATIVA</code> y se probó con el nombre de origen ausente (<code>docs/correccion_restauracion.md</code>).</li>
+  <li>La guía de evaluación ocultaba el código de salida del script en P7 y P9. Se corrigió y luego se verificaron los bloques finales con una base de destino propia: respaldo correcto (0) y fallido (1), restauración (0) y destino existente (2). En todos los casos el bloque devolvió el mismo código que el script (<code>docs/ensayo_evaluacion.md</code>).</li>
+</ul>
+</div>
+</div>
+
+<div class="cols">
+<div>
+<h2>Mejora concreta</h2>
+<p>Exportar una instantánea (<code>pg_export_snapshot()</code>) y usarla tanto para la línea base como para <code>pg_dump --snapshot</code>. Así ambas reflejarían el mismo estado, sin depender de una ventana sin escrituras.</p>
+</div>
+<div>
+<h2>Uso de IA y revisión humana</h2>
+<p>Kiro redactó la especificación y el diseño; Claude implementó los scripts, ejecutó las corridas y documentó las evidencias. El equipo autorizó cada etapa, adoptó las decisiones y metas, y es responsable de la revisión final. Las propuestas de la IA se contrastaron con ejecuciones reales y con un verificador independiente.</p>
+</div>
+</div>
+
+<h2>Alcance y límites</h2>
+<p>Se ensayó solo el núcleo canónico: esquema, datos y objetos programables del TPI. El modo <code>sin-propietarios</code> <b>no recupera propietarios, permisos ni la seguridad de U5</b>, y <code>conservar-propietarios</code> no se probó. Tampoco se ejecutaron los scripts del ZIP docente ni <code>pg_cron</code>, ni se probó con volumen real de datos. Ninguna de las adaptaciones está aprobada por el docente.</p>
+</body>
+</html>

@@ -51,11 +51,19 @@ El PDF dice `foodstore`; los scripts del ZIP dicen `food_store`. No se pueden mo
 los scripts originales. Si se usa `foodstore`, los scripts del docente fallan; si se usa
 `food_store`, contradice el PDF. **Pendiente: confirmar con el docente.**
 
+**Decisión del equipo (2026-11-05):** se usan los nombres del PDF, `foodstore` y
+`foodstore_restore_test`. Es una decisión del equipo, no una confirmación docente,
+y los scripts del ZIP siguen esperando `food_store`.
+
 ### CD-2 — Tabla en la validación
 
 El PDF usa `cliente` (no existe en el schema). El script `prueba_restauracion.sh` del ZIP
 usa `usuario` (correcto para el schema). **Pendiente: confirmar si la comprobación docente
 usa el PDF literal o el script del ZIP.**
+
+**Decisión del equipo (2026-11-05):** se usa `usuario`, la tabla del schema
+vigente; no se crean `cliente` ni aliases. La diferencia con el PDF se mantiene
+visible.
 
 ### CD-3 — `00_roles_unidad5_base.sql` del ZIP
 
@@ -91,7 +99,8 @@ acceso a `calcular_total_pedido`.
 ### EA-1 — RPO 24 h y RTO 20 min
 
 Metas de laboratorio propuestas por el equipo. No son exigencias del docente ni
-resultados obtenidos. **Pendiente de aprobación del equipo.**
+resultados obtenidos. **Adoptadas por el equipo el 2026-11-05**, antes de la
+corrida de evaluación; no están confirmadas por el docente.
 
 ### EA-2 — Scripts que instalan objetos vs consultas de solo lectura
 

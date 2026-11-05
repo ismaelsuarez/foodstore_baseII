@@ -118,8 +118,8 @@ No se cargaron base Food Store, schema/seed, objetos TPI, roles U5, vistas U3 ni
 |---|---|
 | EP-1 | Resuelto: imagen local identificada en §2.2; servidor, psql, pg_dump, pg_restore y createdb 17.11 (Debian 17.11-1.pgdg13+2) |
 | EP-2 | Parcial: contenedor y volumen creados; bases Food Store y roles pendientes de autorización y preparación |
-| EP-3 | Nombres de bases principal y de restauración (CD-1), pendientes |
-| EP-4 | Identidades ejecutoras de cada tarea (respaldo, monitoreo, restauración) |
+| EP-3 | Nombres de bases: decisión del equipo del 2026-11-05, `foodstore` / `foodstore_restore_test` / administrativa `postgres`; sin confirmación docente (CD-1) |
+| EP-4 | Identidades ejecutoras: el equipo usa `postgres` solo en el laboratorio académico aislado; no hay roles operativos definitivos de respaldo, monitoreo ni restauración |
 | EP-5 | Configuración necesaria para reproducir la comprobación docente (roles de U5, vistas de U3, pgcrypto, objetos TPI) |
 | EP-6 | Disponibilidad de `pg_cron` en el contenedor (VE-2): no comprobada |
 
@@ -136,12 +136,16 @@ huellas SHA-256 que allí constan.
   `68031b1f…`) y esa versión se probó aparte, en la
   [corrección de la restauración](../docs/correccion_restauracion.md). Solo se
   ensayó en el modo `sin-propietarios`, y su comentario inicial ahora remite a
-  ambos documentos.
+  ambos documentos. Después se cambió solo la frase sobre las metas (`973223df…`):
+  ahora indica que la comparación con los objetivos está en el informe y en la
+  SPEC. Esa versión se usó en la verificación posterior de los bloques finales,
+  descrita en el [ensayo de evaluación](../docs/ensayo_evaluacion.md).
 - **`backup_foodstore.sh` y `maintenance.sql`:** sus comentarios iniciales todavía
   dicen que no se probaron. Se conservan sin cambios para no alterar las huellas
   ensayadas; el estado vigente es el de esta documentación.
 
-`informe_u6.pdf` sigue pendiente. El contrato y las tareas constan en
+`informe_u6.pdf` está generado, en una página, con los datos del ensayo de
+evaluación; su revisión docente está pendiente. El contrato y las tareas constan en
 [SPEC_U6.md](../SPEC_U6.md) y [tasks.md](tasks.md).
 
 ### 3.1 `backup_foodstore.sh`
@@ -270,10 +274,11 @@ el fallo como no-RTO y no borra el destino. No evalúa metas RPO/RTO.
 
 ## 4. RPO/RTO
 
-| Objetivo | Meta (propuesta, pendiente de aprobación) | Medición |
+| Objetivo | Meta (adoptada por el equipo el 2026-11-05) | Medición |
 |---|---|---|
 | RPO | 24 h | Antigüedad del respaldo: marca de inicio de `pg_dump` al momento del simulacro. No representa datos efectivamente perdidos. |
 | RTO | 20 min | Cronómetro desde inmediatamente antes de `createdb` del destino hasta fin de validaciones |
 
-Los valores medidos y el cumplimiento de las metas se registran por separado.
-No son exigencias del docente ni resultados obtenidos.
+Las metas son del equipo, no exigencias ni aprobaciones del docente. Los valores
+medidos y su comparación con las metas se registran por corrida; la primera
+comparación está en el [ensayo de evaluación](../docs/ensayo_evaluacion.md).
