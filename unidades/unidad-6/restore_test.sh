@@ -3,11 +3,18 @@
 #
 # Uso (todos los parámetros son obligatorios y no tienen valores por defecto):
 #   bash unidades/unidad-6/restore_test.sh \
-#     -c CONTENEDOR -U USUARIO -s BASE_ORIGEN -d BASE_DESTINO \
+#     -c CONTENEDOR -U USUARIO -a BASE_ADMINISTRATIVA -s BASE_ORIGEN -d BASE_DESTINO \
 #     -f RESPALDO.dump -b RESPALDO.baseline -m MODO -o DIR_RESULTADOS
 #
+# -a  base administrativa existente. Se usa solo para consultar pg_database y como
+#     --maintenance-db de createdb. Debe ser distinta del origen y del destino.
+# -s  base de origen registrada en el .baseline. Solo se usa para comprobar la
+#     procedencia, rechazar un destino igual y registrar la trazabilidad. No necesita
+#     existir y el script nunca se conecta a ella.
+#
 # Requiere la ventana sin escrituras documentada para capturar la línea base y
-# pg_dump. Este script no ha sido probado funcionalmente todavía. La autenticación
+# pg_dump. Las pruebas de cada versión constan en docs/ensayo_funcional.md (versión
+# sin -a) y docs/correccion_restauracion.md (versión con -a). La autenticación
 # debe estar preparada en el entorno; no solicita ni configura contraseñas.
 # No restaura roles globales ni ajusta privilegios por fuera del respaldo.
 #
@@ -34,7 +41,7 @@ umask 077
 export LC_ALL=C
 
 readonly EXIT_FAIL=1 EXIT_USAGE=2
-container="" db_user="" source_db="" target_db="" dump_file="" baseline_file=""
+container="" db_user="" admin_db="" source_db="" target_db="" dump_file="" baseline_file=""
 mode="" results_dir="" run_dir="" log_file="" scope_text="" run_ts=""
 stage="parametros" failure_exit="$EXIT_USAGE"
 run_dir_created=0 dest_created=0 completed=0
@@ -72,6 +79,7 @@ on_exit() {
   if [[ "$run_dir_created" -eq 1 ]]; then
     {
       printf 'RESULTADO=FALLO\nETAPA=%s\nCODIGO_SALIDA=%s\n' "$stage" "$status"
+      printf 'BASE_ADMINISTRATIVA=%s\nORIGEN=%s\n' "$admin_db" "$source_db"
       printf 'DESTINO=%s\nDESTINO_CREADO_POR_ESTA_EJECUCION=%s\n' "$target_db" "$dest_created"
       printf 'CONSERVACION=No se elimina ninguna base; si se creó el destino, se conserva.\n'
       printf 'TIEMPO_HASTA_FALLO_SEGUNDOS_NO_ES_RTO=%s\n' "$elapsed"
@@ -89,7 +97,7 @@ trap 'log ERROR "ejecución interrumpida por TERM"; exit "$failure_exit"' TERM
 
 usage() {
   printf '%s\n' \
-    'Uso: restore_test.sh -c CONTENEDOR -U USUARIO -s BASE_ORIGEN -d BASE_DESTINO' \
+    'Uso: restore_test.sh -c CONTENEDOR -U USUARIO -a BASE_ADMINISTRATIVA -s BASE_ORIGEN -d BASE_DESTINO' \
     '       -f RESPALDO.dump -b RESPALDO.baseline -m MODO -o DIR_RESULTADOS' \
     'MODO: sin-propietarios | conservar-propietarios (todos los parámetros obligatorios).' >&2
   exit "$EXIT_USAGE"
@@ -101,10 +109,11 @@ fail() {
 }
 
 # --- 1. Parámetros y entorno; todavía no se escribe en PostgreSQL ---------------
-while getopts ':c:U:s:d:f:b:m:o:h' opt; do
+while getopts ':c:U:a:s:d:f:b:m:o:h' opt; do
   case "$opt" in
     c) container="$OPTARG" ;;
     U) db_user="$OPTARG" ;;
+    a) admin_db="$OPTARG" ;;
     s) source_db="$OPTARG" ;;
     d) target_db="$OPTARG" ;;
     f) dump_file="$OPTARG" ;;
@@ -118,13 +127,15 @@ while getopts ':c:U:s:d:f:b:m:o:h' opt; do
 done
 shift $((OPTIND - 1))
 [[ $# -eq 0 ]] || fail "se recibieron argumentos inesperados"
-[[ -n "$container" && -n "$db_user" && -n "$source_db" && -n "$target_db" &&
+[[ -n "$container" && -n "$db_user" && -n "$admin_db" && -n "$source_db" && -n "$target_db" &&
    -n "$dump_file" && -n "$baseline_file" && -n "$mode" && -n "$results_dir" ]] || usage
 [[ "$container" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || fail "nombre de contenedor no válido"
-for name in "$db_user" "$source_db" "$target_db"; do
+for name in "$db_user" "$admin_db" "$source_db" "$target_db"; do
   [[ "$name" =~ ^[A-Za-z0-9_]+$ ]] || fail "usuario o base no válido: solo letras, dígitos y _"
 done
 [[ "${target_db,,}" != "${source_db,,}" ]] || fail "el destino no puede ser igual al origen"
+[[ "${admin_db,,}" != "${source_db,,}" ]] || fail "la base administrativa no puede ser igual al origen"
+[[ "${admin_db,,}" != "${target_db,,}" ]] || fail "la base administrativa no puede ser igual al destino"
 case "${target_db,,}" in
   postgres|template0|template1) fail "la base de destino está protegida" ;;
 esac
@@ -221,7 +232,8 @@ run_dir_created=1
 log_file="$run_dir/restore_test.log"
 : >"$log_file"
 printf '%s' "$baseline_section" >"$run_dir/validaciones_linea_base.txt"
-log INFO "inicio: contenedor=$container usuario=$db_user origen=$source_db destino=$target_db"
+log INFO "inicio: contenedor=$container usuario=$db_user base_administrativa=$admin_db origen=$source_db destino=$target_db"
+log INFO "el origen solo se usa para trazabilidad y para comprobar la línea base; no se abre conexión a él"
 log INFO "MODO=$mode; ALCANCE=$scope_text"
 printf -v restore_command '%q ' docker exec -i "$container" pg_restore "${restore_args[@]}"
 log INFO "argumentos exactos de restauración: $restore_command; entrada=$dump_file"
@@ -236,9 +248,10 @@ running="$(docker container inspect --format '{{.State.Running}}' "$container" 2
   || fail "el contenedor no existe o Docker no es accesible"
 [[ "$running" == true ]] || fail "el contenedor no está en ejecución"
 stage="ausencia_destino"
+# Conexión a la base administrativa, no al origen, que puede no existir.
 # -f - permite interpolar :'destino' como literal SQL; -c no lo haría.
 if ! destination_count="$(docker exec -i "$container" psql -X -w -v ON_ERROR_STOP=1 \
-    --username="$db_user" --dbname="$source_db" -At -v "destino=$target_db" -f - \
+    --username="$db_user" --dbname="$admin_db" -At -v "destino=$target_db" -f - \
     2>>"$log_file" <<'SQL'
 SELECT count(*) FROM pg_database WHERE datname = :'destino';
 SQL
@@ -258,7 +271,7 @@ rto_start_iso="$(date --iso-8601=seconds)"
 log INFO "RTO_INICIO=$rto_start_iso (medición inmediatamente antes de createdb)"
 measurement_start="$(date +%s.%N)"
 docker exec "$container" createdb -w --username="$db_user" \
-  --maintenance-db="$source_db" --template=template0 "$target_db" \
+  --maintenance-db="$admin_db" --template=template0 "$target_db" \
   >>"$log_file" 2>&1 || fail "createdb falló; no se atribuye a esta ejecución una base ajena"
 dest_created=1
 
@@ -294,7 +307,7 @@ stage="registro_resultado"
 log INFO "RTO_FIN=$rto_end_iso RTO_OBSERVADO_SEGUNDOS=$rto"
 {
   printf 'RESULTADO=RESTAURACION_VALIDADA\nMODO=%s\nALCANCE=%s\n' "$mode" "$scope_text"
-  printf 'CONTENEDOR=%s\nUSUARIO=%s\nORIGEN=%s\nDESTINO=%s\n' "$container" "$db_user" "$source_db" "$target_db"
+  printf 'CONTENEDOR=%s\nUSUARIO=%s\nBASE_ADMINISTRATIVA=%s\nORIGEN=%s\nDESTINO=%s\n' "$container" "$db_user" "$admin_db" "$source_db" "$target_db"
   printf 'ANTIGUEDAD_RESPALDO_SEGUNDOS=%s\nPG_DUMP_INICIO=%s\n' "$backup_age" "$dump_start"
   printf 'RTO_INICIO=%s\nRTO_FIN=%s\nRTO_OBSERVADO_SEGUNDOS=%s\n' "$rto_start_iso" "$rto_end_iso" "$rto"
   printf 'RESPALDO=%s\nLINEA_BASE=%s\nSHA256_RESPALDO=%s\n' "$dump_file" "$baseline_file" "${checksum%% *}"

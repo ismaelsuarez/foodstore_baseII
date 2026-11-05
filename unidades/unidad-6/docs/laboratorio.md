@@ -48,9 +48,9 @@ no se comprobó.
 El entorno del contenedor establece `PGHOST=127.0.0.1` y
 `PGPASSFILE=/run/foodstore-u6-auth/pgpass`. Así, incluso
 `backup_foodstore.sh`, que no tiene opción `-h` y no fue modificado, conecta por
-TCP a 127.0.0.1:5432. No utiliza el `~/.pgpass` del host. La SPEC menciona
-`~/.pgpass`: el laboratorio usa el mismo formato pgpass, seleccionado por
-`PGPASSFILE`.
+TCP a 127.0.0.1:5432. No utiliza el `~/.pgpass` del host. En la fecha de este
+registro, la SPEC mencionaba `~/.pgpass`; el laboratorio usa el mismo formato
+pgpass, seleccionado por `PGPASSFILE`, que es lo que hoy describe la SPEC.
 
 ### Archivos privados e inicialización
 
@@ -299,8 +299,9 @@ El comando D terminó con **exit 0**. El log del servidor confirmó TCP + SCRAM.
 
 Estos valores son una observación puntual de una base auxiliar sin datos de
 Food Store. `health_check.sql` **no implementa semáforo VERDE/AMARILLO/ROJO ni
-umbrales**; la SPEC menciona AMARILLO/ROJO pero ningún documento define sus
-umbrales. La interpretación se registra aparte; su definición sigue pendiente.
+umbrales**. En la fecha de este registro, la SPEC mencionaba AMARILLO/ROJO sin
+que ningún documento definiera sus umbrales; hoy describe el chequeo como registro
+de métricas sin semáforo. La interpretación se registra aparte; su definición sigue pendiente.
 
 `START TRANSACTION READ ONLY` … `ROLLBACK` es una protección, no una garantía
 absoluta. PostgreSQL rechaza INSERT/UPDATE/DELETE/MERGE/COPY FROM sobre tablas no
@@ -391,8 +392,10 @@ base. Después de la prueba:
   como protección complementaria a la revisión del SQL. Ninguna consulta cambió,
   pero el archivo ya no es idéntico byte a byte al ejecutado en D.
 
-Los scripts Bash nuevos o modificados pasaron `bash -n` y revisión estática, que
-no son pruebas funcionales. La versión y las herramientas del laboratorio
+En esa etapa, los scripts Bash nuevos o modificados solo habían pasado `bash -n` y
+una revisión estática, que no son pruebas funcionales. Las pruebas funcionales
+posteriores constan en el [ensayo funcional](ensayo_funcional.md) y en la
+[corrección de la restauración](correccion_restauracion.md). La versión y las herramientas del laboratorio
 (PostgreSQL 17.11) siguen comprobadas según las pruebas A anteriores.
 
 ## Límites y pendientes

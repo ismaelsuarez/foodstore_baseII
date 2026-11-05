@@ -46,6 +46,12 @@ Los comentarios iniciales de `backup_foodstore.sh`, `restore_test.sh` y
 sin cambios para no alterar las huellas ensayadas; el estado vigente es el que
 consta en este documento.
 
+> **Nota posterior:** este ensayo corresponde a `restore_test.sh` `fd7dde44…`, que
+> todavía no tenía `-a`. Después se corrigió su dependencia de la base de origen
+> (`68031b1f…`). Esa versión se probó en otra corrida, documentada en la
+> [corrección de la restauración](correccion_restauracion.md). Las huellas, los
+> resultados y los tiempos de este documento no cambian.
+
 ## Comprobaciones previas
 
 - Rama `feat/u6-mantenimiento`, HEAD `f4207d7`; cambios de U6 sin versionar.

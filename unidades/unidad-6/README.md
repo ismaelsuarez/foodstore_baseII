@@ -31,9 +31,14 @@ Hay un extracto sin secretos en
 
 Construir un procedimiento de mantenimiento para Food Store que genere respaldos
 lógicos, monitoree la salud de la base, ejecute mantenimiento preventivo y pruebe
-la restauración en un entorno descartable. El trabajo se basa en la
-[consigna oficial](../../tpi/) y en los scripts de mantenimiento proporcionados por
-el docente. Las unidades 1 a 5 están cerradas; este repositorio conserva las seis
+la restauración en un entorno descartable. El trabajo se basa en la consigna de la
+unidad y en los scripts de mantenimiento proporcionados por el docente.
+
+Consigna de referencia: `TPUnidad_6_Mantenimiento_FoodStore.pdf` —
+«Trabajo Práctico — Unidad 6: Mantenimiento, respaldo y recuperación».
+Material de la cátedra, actividad de laboratorio de la Semana 10,
+no incorporado al repositorio.
+ Las unidades 1 a 5 están cerradas; este repositorio conserva las seis
 unidades. Las unidades 7 y 8 se desarrollarán después en un segundo repositorio.
 
 ## Ruta de lectura
@@ -66,9 +71,17 @@ En la etapa anterior se obtuvo un respaldo legible de la base auxiliar `postgres
 se ejecutó el chequeo de salud y se comprobó el fallo ante una base inexistente;
 véase [laboratorio](docs/laboratorio.md). Esa prueba es de infraestructura y
 corresponde a la versión anterior del respaldo. **No constituye la validación del
-TP6 ni demuestra que Food Store pueda restaurarse.** Los scripts nuevos o
-modificados solo pasaron revisión estática y `bash -n`, que no es una prueba
-funcional.
+TP6 ni demuestra que Food Store pueda restaurarse.**
+
+Etapas de comprobación, en orden:
+
+1. Revisión estática y `bash -n` de los scripts nuevos.
+2. [Ensayo funcional](docs/ensayo_funcional.md) con el núcleo canónico, sobre la
+   versión de `restore_test.sh` sin `-a`.
+3. [Corrección de la restauración](docs/correccion_restauracion.md): agrega `-a` y
+   la prueba con el nombre de origen ausente.
+
+Cada etapa registra sus propias huellas y mediciones.
 
 ## Uso previsto de los scripts implementados
 
@@ -82,8 +95,8 @@ de infraestructura; no queda aprobado como rol definitivo de respaldo de Food St
 
 `PGHOST=127.0.0.1` y `PGPASSFILE=/run/foodstore-u6-auth/pgpass` hacen que los
 clientes, incluido el respaldo sin opción `-h`, usen TCP al puerto 5432 y un
-archivo de formato pgpass, no el `~/.pgpass` del host. La SPEC menciona
-`~/.pgpass`; el laboratorio selecciona el mismo formato mediante `PGPASSFILE`.
+archivo de formato pgpass, no el `~/.pgpass` del host. La autenticación vigente
+usa ese archivo seleccionado por `PGPASSFILE` dentro del contenedor.
 El directorio privado externo al repositorio se monta en solo lectura; véanse
 [autenticación y comprobaciones SCRAM](docs/laboratorio.md#autenticación).
 
@@ -101,10 +114,16 @@ docker exec -i CONTENEDOR psql -X -w -U USUARIO -d BASE \
 
 # MODO: sin-propietarios o conservar-propietarios (sin valor por defecto).
 bash unidades/unidad-6/restore_test.sh \
-  -c CONTENEDOR -U USUARIO -s BASE_ORIGEN -d BASE_DESTINO \
+  -c CONTENEDOR -U USUARIO -a BASE_ADMINISTRATIVA \
+  -s BASE_ORIGEN -d BASE_DESTINO \
   -f RESPALDO.dump -b RESPALDO.baseline \
   -m MODO -o DIR_RESULTADOS
 ```
+
+`-a` es obligatorio y no tiene valor por defecto. Es una base existente, distinta
+del origen y del destino, y se usa solo para consultar `pg_database` y como
+`--maintenance-db` de `createdb`. El origen (`-s`) se compara con el `.baseline` y
+queda registrado, pero no necesita existir: el script nunca se conecta a él.
 
 - `backup_foodstore.sh`: antes de `pg_dump` ejecuta `validaciones.sql` y exige
   sus 12 líneas con los controles en cero; si la captura o los controles fallan,
@@ -152,8 +171,8 @@ bash unidades/unidad-6/restore_test.sh \
   de funciones fuera de la transacción; la garantía real depende de revisar el
   contenido del archivo. No selecciona el texto SQL de otras sesiones.
   No implementa semáforo VERDE/AMARILLO/ROJO ni umbrales: registra métricas y la
-  interpretación se hace aparte. Los colores que menciona la SPEC no son un
-  requisito bloqueante del chequeo; sus umbrales quedan como mejora pendiente.
+  interpretación se hace aparte. Una clasificación por colores no es requisito
+  bloqueante del chequeo; sus umbrales quedan como mejora pendiente.
   `age(backend_xmin)` del control 4 es un indicador de diagnóstico, no prueba por
   sí solo de bloqueo de VACUUM; véanse sus límites en el
   [diseño](specs/design.md#32-health_checksql).

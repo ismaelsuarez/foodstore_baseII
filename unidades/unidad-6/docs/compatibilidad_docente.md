@@ -11,6 +11,11 @@ aprobaciones docentes que no consten en las fuentes.
 
 ### PDF (consigna oficial)
 
+Documento: `TPUnidad_6_Mantenimiento_FoodStore.pdf` — «Trabajo Práctico —
+Unidad 6: Mantenimiento, respaldo y recuperación». Material de la cátedra,
+actividad de laboratorio de la Semana 10, no incorporado al repositorio.
+Identificar el documento no resuelve las decisiones docentes pendientes.
+
 | Aspecto | Referencia del PDF |
 |---|---|
 | Base principal | `foodstore` |

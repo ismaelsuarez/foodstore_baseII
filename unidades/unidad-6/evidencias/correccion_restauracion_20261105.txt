@@ -1,0 +1,299 @@
+Extracto de evidencia — corrección de restore_test.sh (-a) y restauración sin origen disponible
+===============================================================================================
+Corrida: correccion_20261105_143921 (directorio de evidencia externo, fuera del repositorio).
+Copia líneas literales de la evidencia original; cada bloque indica su archivo de
+procedencia. Transformaciones: las rutas del host se sustituyen por <RUN> y <HOME>,
+y se eliminan los espacios al final de línea. Las líneas que empiezan con "#" dentro de
+N3_conexiones_autorizadas.txt y las marcadas "Anotación" son anotaciones posteriores,
+no salidas de herramientas. Zonas horarias: -03:00 en los scripts; UTC en el servidor.
+No incluye filas de usuario, contraseñas, verificadores, dumps ni huellas md5 por tabla.
+Alcance: corrida técnica del núcleo canónico. No es la comprobación docente ni recupera
+la seguridad de U5.
+
+[1] Huellas y estado previo
+
+--- Fuente: <RUN>/00_previas/huellas_antes.txt
+3b8e39c80b6bdfdd96da620a42f820230d79a6ace3ba3a076fa4be5123a44b52  unidades/unidad-6/backup_foodstore.sh
+68031b1f0d5e07048d5547897b7fe81a4185921562524f74449ac76fd42f9938  unidades/unidad-6/restore_test.sh
+ed2644efc13b06b6dacddc9a7f784331a6877bd4fca3fe5ff84c9a63a26ec3c7  unidades/unidad-6/health_check.sql
+f5e6bd2a07512bf318631401bc7bcc781da55381b49c1b2c4085f6595db0bbcd  unidades/unidad-6/maintenance.sql
+e4afea968f84dc721ecd7bf084630fe73de632d7c0b54e555c82548e28112eba  unidades/unidad-6/validaciones.sql
+d5cbb990c76ecc085c44736e877d3fc9d993a734ecc137120679ff3706e8a108  schema.sql
+ab983fbe7547793bc9fa5483c6254cee0d7c4b1363ba12f8b67ad3577327565f  datos_iniciales.sql
+9696a32e8edf56a5bdf23a30eda3bd589cedb0a1b00a382e63969bf3386aa6c4  tpi/sql/objetos_programables.sql
+--- restore_test.sh en el commit 8c8f81f
+fd7dde44a0980b9f9c442735e55907ce7ab5034f58d2df8d3c1d5f226d58a426  -
+
+--- Fuente: <RUN>/00_previas/git_estado.txt
+$ bash -c git\ branch\ --show-current\;\ git\ rev-parse\ HEAD\;\ echo\ \"staged:\"\;\ git\ diff\ --cached\ --name-only\;\ git\ status\ --short\ --untracked-files=all
+feat/u6-mantenimiento
+8c8f81ff9c2cd91e0661d2dcba2b81884e730709
+staged:
+ M unidades/unidad-6/README.md
+ M unidades/unidad-6/SPEC_U6.md
+ M unidades/unidad-6/docs/compatibilidad_docente.md
+ M unidades/unidad-6/restore_test.sh
+ M unidades/unidad-6/specs/design.md
+?? odd/tasks/u5-poc-consolidacion.md
+?? odd/tasks/u5-poc-permisos.md
+exit=0
+
+--- Fuente: <RUN>/00_previas/contenedor.txt
+id=2625b25f320ce7c14fdb9cc2c154f4d7040b926568bf5e7658ff04f47adfd602 state=running started=2026-11-05T16:13:33.685649729Z restarts=0 image=sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3 net=none privileged=false ports={} | /run/foodstore-u6-auth rw=false | /var/lib/postgresql/data rw=true
+
+--- Fuente: <RUN>/00_previas/version.txt
+PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+
+--- Fuente: <RUN>/00_previas/hba_trust.txt
+0 trust de 7
+
+--- Fuente: <RUN>/00_previas/ausencia_nombres.txt
+u6_fix_origen|false
+u6_fix_reserva|false
+u6_fix_destino|false
+
+[2] Origen nuevo y núcleo canónico
+
+--- Fuente: <RUN>/01_origen/1_createdb.txt
+$ docker exec foodstore-u6-lab createdb -w -U postgres --template=template0 u6_fix_origen
+exit=0
+
+--- Fuente: <RUN>/01_origen/2_schema.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_fix_origen\ -v\ ON_ERROR_STOP=1\ -1\ -f\ -\ \<\ schema.sql
+exit=0
+
+--- Fuente: <RUN>/01_origen/3_seed.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_fix_origen\ -v\ ON_ERROR_STOP=1\ -f\ -\ \<\ datos_iniciales.sql
+exit=0
+
+--- Fuente: <RUN>/01_origen/4_objetos.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_fix_origen\ -v\ ON_ERROR_STOP=1\ -1\ -f\ -\ \<\ tpi/sql/objetos_programables.sql
+exit=0
+
+--- Fuente: <RUN>/01_origen/5_validaciones_origen.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_fix_origen\ -v\ ON_ERROR_STOP=1\ -f\ -\ \<\ unidades/unidad-6/validaciones.sql
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+exit=0
+
+--- Fuente: <RUN>/01_origen/6_oid_origen.txt
+u6_fix_origen|16632
+
+[3] Respaldo
+
+--- Fuente: <RUN>/02_respaldo/1_backup_consola.txt
+$ bash unidades/unidad-6/backup_foodstore.sh -c foodstore-u6-lab -d u6_fix_origen -U postgres -o <RUN>/02_respaldo/backups -l <RUN>/02_respaldo/logs
+sesiones_cliente_en_origen=0
+2026-11-05T14:39:49-03:00 [INFO] run=20261105_143949 inicio de ejecución: contenedor=foodstore-u6-lab base=u6_fix_origen usuario=postgres
+2026-11-05T14:39:49-03:00 [INFO] run=20261105_143949 destino: <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump
+2026-11-05T14:39:49-03:00 [INFO] run=20261105_143949 herramienta: pg_dump (PostgreSQL) 17.11 (Debian 17.11-1.pgdg13+2)
+2026-11-05T14:39:49-03:00 [INFO] run=20261105_143949 LINEA_BASE_INICIO 2026-11-05T14:39:49-03:00
+2026-11-05T14:39:50-03:00 [INFO] run=20261105_143949 LINEA_BASE_FIN 2026-11-05T14:39:50-03:00 exit=0
+2026-11-05T14:39:50-03:00 [INFO] run=20261105_143949 PG_DUMP_INICIO 2026-11-05T14:39:50-03:00
+2026-11-05T14:39:50-03:00 [INFO] run=20261105_143949 PG_DUMP_FIN 2026-11-05T14:39:50-03:00 exit=0
+2026-11-05T14:39:50-03:00 [INFO] run=20261105_143949 tamaño: 26537 bytes
+2026-11-05T14:39:50-03:00 [INFO] run=20261105_143949 pg_restore --list: archivo legible
+2026-11-05T14:39:50-03:00 [INFO] run=20261105_143949 RESULTADO=OK archivo=<RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump linea_base=<RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline
+2026-11-05T14:39:50-03:00 [INFO] run=20261105_143949 la legibilidad no reemplaza una restauración de prueba
+exit=0
+
+[4] Renombre de la base nueva
+
+--- Fuente: <RUN>/03_renombre/0_sha_respaldo_antes.txt
+88ac0f059d12f68210a3f2577cb8948017dfe1b2139d8200c3fd215cc57a9b46  <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump
+88ecea9928b43b68fd0ee0d08238440ef62ed7978c2e1b4b503f856934e063ab  <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline
+
+--- Fuente: <RUN>/03_renombre/1_sesiones_previas.txt
+$ docker exec foodstore-u6-lab psql -X -w -U postgres -d postgres -At -c SELECT\ count\(\*\)\ FROM\ pg_stat_activity\ WHERE\ datname=\'u6_fix_origen\'
+0
+exit=0
+
+--- Fuente: <RUN>/03_renombre/2_renombre.txt
+$ docker exec foodstore-u6-lab psql -X -w -U postgres -d postgres -v ON_ERROR_STOP=1 -c ALTER\ DATABASE\ u6_fix_origen\ RENAME\ TO\ u6_fix_reserva
+ALTER DATABASE
+exit=0
+
+--- Fuente: <RUN>/03_renombre/3_estado_tras_renombre.txt
+$ docker exec foodstore-u6-lab psql -X -w -U postgres -d postgres -At -c SELECT\ n\ \|\|\ \'\|\'\ \|\|\ coalesce\(\(SELECT\ oid::text\ FROM\ pg_database\ WHERE\ datname\ =\ n\)\,\ \'ausente\'\)\ FROM\ unnest\(ARRAY\[\'u6_fix_origen\'\,\'u6_fix_reserva\'\,\'u6_fix_destino\'\]\)\ AS\ n
+u6_fix_origen|ausente
+u6_fix_reserva|16632
+u6_fix_destino|ausente
+exit=0
+
+--- Fuente: <RUN>/03_renombre/4_validaciones_reserva.txt
+$ bash -c docker\ exec\ -i\ foodstore-u6-lab\ psql\ -X\ -w\ -U\ postgres\ -d\ u6_fix_reserva\ -v\ ON_ERROR_STOP=1\ -f\ -\ \<\ unidades/unidad-6/validaciones.sql
+conteo.categoria|2
+conteo.detalle_pedido|7
+conteo.pedido|5
+conteo.producto|3
+conteo.usuario|3
+control.detalle_pedido_invalido|0
+control.producto_invalido|0
+eliminados.categoria|0
+eliminados.detalle_pedido|0
+eliminados.pedido|0
+eliminados.producto|0
+eliminados.usuario|0
+exit=0
+
+--- Fuente: <RUN>/03_renombre/6_sha_respaldo_despues.txt
+88ac0f059d12f68210a3f2577cb8948017dfe1b2139d8200c3fd215cc57a9b46  <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump
+88ecea9928b43b68fd0ee0d08238440ef62ed7978c2e1b4b503f856934e063ab  <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline
+
+Anotación: huella md5 de u6_fix_reserva (03_renombre/5_huella_reserva.txt) igual a la de u6_fix_origen recién creado (01_origen/7_huella_origen.txt): si
+
+[5] Restauración con -a postgres y origen ausente
+
+--- Fuente: <RUN>/04_restauracion/1_restore_consola.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -a postgres -s u6_fix_origen -d u6_fix_destino -f <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump -b <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline -m sin-propietarios -o <RUN>/04_restauracion/resultados
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 inicio: contenedor=foodstore-u6-lab usuario=postgres base_administrativa=postgres origen=u6_fix_origen destino=u6_fix_destino
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 el origen solo se usa para trazabilidad y para comprobar la línea base; no se abre conexión a él
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 MODO=sin-propietarios; ALCANCE=Solo validación de datos: propietarios, ACL y seguridad de U5 NO recuperados. Con --no-owner los objetos pertenecen al rol restaurador, lo que cambia los privilegios efectivos de funciones SECURITY DEFINER. No se restauran roles globales.
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 argumentos exactos de restauración: docker exec -i foodstore-u6-lab pg_restore -w --username=postgres --dbname=u6_fix_destino --exit-on-error --single-transaction --no-owner --no-privileges ; entrada=<RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 ANTIGUEDAD_RESPALDO_SEGUNDOS=24 PG_DUMP_INICIO=2026-11-05T14:39:50-03:00
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 metas RPO/RTO pendientes de aprobación; no se evalúa cumplimiento
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 RTO_INICIO=2026-11-05T14:40:14-03:00 (medición inmediatamente antes de createdb)
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 pg_restore terminó sin errores
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 RTO_FIN=2026-11-05T14:40:14-03:00 RTO_OBSERVADO_SEGUNDOS=0.264
+2026-11-05T14:40:14-03:00 [INFO] run=20261105_144014 RESULTADO=RESTAURACION_VALIDADA resumen=<RUN>/04_restauracion/resultados/restore_u6_fix_destino_20261105_144014/resumen.txt
+exit=0
+
+--- Fuente: <RUN>/04_restauracion/resultados/restore_u6_fix_destino_20261105_144014/resumen.txt
+RESULTADO=RESTAURACION_VALIDADA
+MODO=sin-propietarios
+ALCANCE=Solo validación de datos: propietarios, ACL y seguridad de U5 NO recuperados. Con --no-owner los objetos pertenecen al rol restaurador, lo que cambia los privilegios efectivos de funciones SECURITY DEFINER. No se restauran roles globales.
+CONTENEDOR=foodstore-u6-lab
+USUARIO=postgres
+BASE_ADMINISTRATIVA=postgres
+ORIGEN=u6_fix_origen
+DESTINO=u6_fix_destino
+ANTIGUEDAD_RESPALDO_SEGUNDOS=24
+PG_DUMP_INICIO=2026-11-05T14:39:50-03:00
+RTO_INICIO=2026-11-05T14:40:14-03:00
+RTO_FIN=2026-11-05T14:40:14-03:00
+RTO_OBSERVADO_SEGUNDOS=0.264
+RESPALDO=<RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump
+LINEA_BASE=<RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline
+SHA256_RESPALDO=88ac0f059d12f68210a3f2577cb8948017dfe1b2139d8200c3fd215cc57a9b46
+COMANDO_RESTAURACION=docker exec -i foodstore-u6-lab pg_restore -w --username=postgres --dbname=u6_fix_destino --exit-on-error --single-transaction --no-owner --no-privileges
+ARCHIVOS=restore_test.log, pg_restore_list.txt, pg_restore_stdout.txt, pg_restore_stderr.txt, validaciones_linea_base.txt, validaciones_destino.txt, comparacion.diff, resumen.txt
+DESTINO_CREADO_POR_ESTA_EJECUCION=1
+CONSERVACION=Se conserva el destino.
+METAS=RPO/RTO pendientes de aprobación; no se evalúa cumplimiento.
+
+--- Fuente: <RUN>/04_restauracion/5_comprobaciones.txt
+--- resumen
+--- comparacion.diff bytes: 0
+--- validaciones_destino == validaciones_linea_base: si
+--- lineas destino: 12
+--- u6_fix_origen: ausente
+--- u6_fix_reserva OID: 16632
+--- u6_fix_destino OID: 16754
+--- huella reserva sin cambios: si
+--- huella destino == origen creado: si
+--- stderr pg_restore bytes: 0
+
+--- Fuente: <RUN>/04_restauracion/2_log_servidor_conexiones.txt
+17:40:14.371 user=postgres database=postgres application_name=psql
+17:40:14.513 user=postgres database=postgres application_name=createdb
+17:40:14.611 user=postgres database=u6_fix_destino application_name=pg_restore
+17:40:14.701 user=postgres database=u6_fix_destino application_name=psql
+
+[6] Pruebas negativas
+
+--- Fuente: <RUN>/05_negativas/N1_sin_a.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -s u6_fix_origen -d u6_fix_destino -f <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump -b <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline -m sin-propietarios -o <RUN>/05_negativas/N1/resultados
+Uso: restore_test.sh -c CONTENEDOR -U USUARIO -a BASE_ADMINISTRATIVA -s BASE_ORIGEN -d BASE_DESTINO
+       -f RESPALDO.dump -b RESPALDO.baseline -m MODO -o DIR_RESULTADOS
+MODO: sin-propietarios | conservar-propietarios (todos los parámetros obligatorios).
+[ERROR] RESULTADO=FALLO etapa=parametros exit=2
+[ERROR] DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+exit=2
+conexiones al servidor durante la ejecución: 0
+
+--- Fuente: <RUN>/05_negativas/N2a_admin_igual_origen.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -a u6_fix_origen -s u6_fix_origen -d u6_fix_destino -f <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump -b <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline -m sin-propietarios -o <RUN>/05_negativas/N2a/resultados
+[ERROR] la base administrativa no puede ser igual al origen
+[ERROR] RESULTADO=FALLO etapa=parametros exit=2
+[ERROR] DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+exit=2
+conexiones al servidor durante la ejecución: 0
+
+--- Fuente: <RUN>/05_negativas/N2b_admin_igual_destino.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -a u6_fix_destino -s u6_fix_origen -d u6_fix_destino -f <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump -b <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline -m sin-propietarios -o <RUN>/05_negativas/N2b/resultados
+[ERROR] la base administrativa no puede ser igual al destino
+[ERROR] RESULTADO=FALLO etapa=parametros exit=2
+[ERROR] DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+exit=2
+conexiones al servidor durante la ejecución: 0
+
+--- Fuente: <RUN>/05_negativas/N3_destino_existente.txt
+$ bash unidades/unidad-6/restore_test.sh -c foodstore-u6-lab -U postgres -a postgres -s u6_fix_origen -d u6_fix_destino -f <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump -b <RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.baseline -m sin-propietarios -o <RUN>/05_negativas/N3/resultados
+2026-11-05T14:40:36-03:00 [INFO] run=20261105_144036 inicio: contenedor=foodstore-u6-lab usuario=postgres base_administrativa=postgres origen=u6_fix_origen destino=u6_fix_destino
+2026-11-05T14:40:36-03:00 [INFO] run=20261105_144036 el origen solo se usa para trazabilidad y para comprobar la línea base; no se abre conexión a él
+2026-11-05T14:40:36-03:00 [INFO] run=20261105_144036 MODO=sin-propietarios; ALCANCE=Solo validación de datos: propietarios, ACL y seguridad de U5 NO recuperados. Con --no-owner los objetos pertenecen al rol restaurador, lo que cambia los privilegios efectivos de funciones SECURITY DEFINER. No se restauran roles globales.
+2026-11-05T14:40:36-03:00 [INFO] run=20261105_144036 argumentos exactos de restauración: docker exec -i foodstore-u6-lab pg_restore -w --username=postgres --dbname=u6_fix_destino --exit-on-error --single-transaction --no-owner --no-privileges ; entrada=<RUN>/02_respaldo/backups/u6_fix_origen_20261105_143949.dump
+2026-11-05T14:40:36-03:00 [INFO] run=20261105_144036 ANTIGUEDAD_RESPALDO_SEGUNDOS=46 PG_DUMP_INICIO=2026-11-05T14:39:50-03:00
+2026-11-05T14:40:36-03:00 [INFO] run=20261105_144036 metas RPO/RTO pendientes de aprobación; no se evalúa cumplimiento
+2026-11-05T14:40:36-03:00 [ERROR] run=20261105_144036 el destino ya existe; no se borra ni se sobrescribe
+2026-11-05T14:40:36-03:00 [ERROR] run=20261105_144036 RESULTADO=FALLO etapa=ausencia_destino exit=2
+2026-11-05T14:40:36-03:00 [ERROR] run=20261105_144036 DESTINO_CREADO_POR_ESTA_EJECUCION=0; no se elimina ninguna base
+exit=2
+conexiones al servidor durante la ejecución: 1
+
+--- Fuente: <RUN>/05_negativas/N3_comparacion.txt
+N3 OID igual: si (16754) | huella igual: si
+
+--- Fuente: <RUN>/05_negativas/N3_conexiones_autorizadas.txt
+17:40:36.157 user=postgres database=postgres application_name=psql
+17:40:36.229 user=postgres database=postgres application_name=psql
+17:40:36.302 user=postgres database=postgres application_name=psql
+17:40:36.382 user=postgres database=u6_fix_reserva application_name=psql
+17:40:36.456 user=postgres database=u6_fix_destino application_name=psql
+17:40:36.633 user=postgres database=postgres application_name=psql
+17:40:36.723 user=postgres database=u6_fix_destino application_name=psql
+17:40:36.879 user=postgres database=postgres application_name=psql
+17:40:36.996 user=postgres database=postgres application_name=psql
+17:40:37.082 user=postgres database=u6_fix_destino application_name=psql
+# Anotación (agregada después; no es salida del servidor). Orden del bloque que ejecutó E y las negativas:
+# .157/.229/.302 postgres = consultas de OID del paso E; .382 u6_fix_reserva y .456 u6_fix_destino = huellas del paso E;
+# N1, N2a y N2b: 0 conexiones; .633 postgres = OID antes de N3; .723 u6_fix_destino = huella antes de N3;
+# .879 postgres = única conexión de restore_test.sh en N3 (consulta de ausencia del destino en la base administrativa);
+# .996 postgres = OID después de N3; 37.082 u6_fix_destino = huella después de N3.
+# Ninguna conexión a u6_fix_origen.
+
+[7] Estado final
+
+--- Fuente: <RUN>/06_estado_final/estado.txt
+--- huellas al finalizar
+3b8e39c80b6bdfdd96da620a42f820230d79a6ace3ba3a076fa4be5123a44b52  unidades/unidad-6/backup_foodstore.sh
+68031b1f0d5e07048d5547897b7fe81a4185921562524f74449ac76fd42f9938  unidades/unidad-6/restore_test.sh
+ed2644efc13b06b6dacddc9a7f784331a6877bd4fca3fe5ff84c9a63a26ec3c7  unidades/unidad-6/health_check.sql
+f5e6bd2a07512bf318631401bc7bcc781da55381b49c1b2c4085f6595db0bbcd  unidades/unidad-6/maintenance.sql
+e4afea968f84dc721ecd7bf084630fe73de632d7c0b54e555c82548e28112eba  unidades/unidad-6/validaciones.sql
+d5cbb990c76ecc085c44736e877d3fc9d993a734ecc137120679ff3706e8a108  schema.sql
+ab983fbe7547793bc9fa5483c6254cee0d7c4b1363ba12f8b67ad3577327565f  datos_iniciales.sql
+9696a32e8edf56a5bdf23a30eda3bd589cedb0a1b00a382e63969bf3386aa6c4  tpi/sql/objetos_programables.sql
+--- diff con huellas previas
+sin cambios durante la corrida
+--- bases
+postgres|5
+template0|4
+template1|1
+u6_ensayo_origen|16388
+u6_ensayo_restauracion|16510
+u6_fix_destino|16754
+u6_fix_reserva|16632
+--- u6_ensayo_origen sin cambios: si
+--- u6_ensayo_restauracion sin cambios: si
+contenedor state=running started=2026-11-05T16:13:33.685649729Z restarts=0 net=none

@@ -99,8 +99,19 @@ conteos con línea base; verifica productos y detalles inválidos en cero.
 **Estado:** `restore_test.sh` y `validaciones.sql` implementados y ensayados con
 el núcleo canónico. La restauración `sin-propietarios` quedó validada (exit 0,
 comparación vacía) y se rechazaron destino existente, destino igual al origen y
-dump alterado (exit 2). El modo `conservar-propietarios` no se probó. El modo `-m` (`sin-propietarios` o `conservar-propietarios`)
-se elige explícitamente y registra su alcance. `sin-propietarios` no recupera la
+dump alterado (exit 2). El modo `conservar-propietarios` no se probó.
+
+Corrección posterior ([detalle](../docs/correccion_restauracion.md)): el parámetro
+obligatorio `-a BASE_ADMINISTRATIVA` reemplaza al origen en la consulta de
+`pg_database` y en `createdb --maintenance-db`, así que el origen ya no necesita
+existir.
+
+- Restauración con el nombre de origen ausente: exit 0, sin conexiones al origen.
+- Sin `-a`, o con `-a` igual al origen o al destino: rechazo con exit 2.
+- Destino existente: rechazo con exit 2.
+
+El modo `-m` (`sin-propietarios` o `conservar-propietarios`) se elige
+explícitamente y registra su alcance. `sin-propietarios` no recupera la
 seguridad de U5, y ningún modo restaura roles globales.
 
 ## T6 — Ejecutar pruebas autorizadas y conservar evidencia

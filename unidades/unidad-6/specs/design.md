@@ -40,9 +40,9 @@ equipo, no una exigencia literal del TP.
 `pg_dump -Fc` con fecha y hora en el nombre del archivo. El script registra la marca
 de inicio de `pg_dump` en un log. Si `pg_dump` falla, registra el error y finaliza
 con código distinto de cero. Sin contraseñas en el script; autenticación
-desatendida con un archivo de formato pgpass (permiso 0600). La SPEC menciona
-`~/.pgpass`; en el laboratorio se selecciona mediante
-`PGPASSFILE=/run/foodstore-u6-auth/pgpass`, no desde el host. `PGHOST=127.0.0.1`
+desatendida con un archivo de formato pgpass (permiso 0600), seleccionado dentro
+del contenedor mediante `PGPASSFILE=/run/foodstore-u6-auth/pgpass`, no desde el
+`~/.pgpass` del host. `PGHOST=127.0.0.1`
 fija TCP al puerto 5432 también para el script sin opción `-h`. Los clientes se
 ejecutan por `docker exec` como usuario SO `root`, con el rol PostgreSQL
 `postgres`, solo para la prueba de infraestructura (véase §2.2).
@@ -130,11 +130,18 @@ No se cargaron base Food Store, schema/seed, objetos TPI, roles U5, vistas U3 ni
 `validaciones.sql`, `backup_foodstore.sh`, `health_check.sql`,
 `maintenance.sql` y `restore_test.sh` están implementados y se ensayaron con el
 núcleo canónico en el [ensayo funcional](../docs/ensayo_funcional.md), con las
-huellas SHA-256 que allí constan. `restore_test.sh` solo se ensayó en el modo
-`sin-propietarios`. Los comentarios iniciales de `backup_foodstore.sh`,
-`restore_test.sh` y `maintenance.sql` todavía dicen que no se probaron. Se
-conservaron sin cambios para no alterar las huellas ensayadas; el estado vigente es
-el de esta documentación. `informe_u6.pdf` sigue pendiente. El contrato y las tareas constan en
+huellas SHA-256 que allí constan.
+
+- **`restore_test.sh`:** después del ensayo se le agregó `-a` (de `fd7dde44…` a
+  `68031b1f…`) y esa versión se probó aparte, en la
+  [corrección de la restauración](../docs/correccion_restauracion.md). Solo se
+  ensayó en el modo `sin-propietarios`, y su comentario inicial ahora remite a
+  ambos documentos.
+- **`backup_foodstore.sh` y `maintenance.sql`:** sus comentarios iniciales todavía
+  dicen que no se probaron. Se conservan sin cambios para no alterar las huellas
+  ensayadas; el estado vigente es el de esta documentación.
+
+`informe_u6.pdf` sigue pendiente. El contrato y las tareas constan en
 [SPEC_U6.md](../SPEC_U6.md) y [tasks.md](tasks.md).
 
 ### 3.1 `backup_foodstore.sh`
@@ -170,9 +177,9 @@ control 4 la excluye. Cero filas en el control 4 es un resultado válido. La pri
 prueba sobre `postgres` terminó con exit 0; no había tablas de usuario.
 
 No implementa semáforo VERDE/AMARILLO/ROJO ni umbrales: registra métricas y la
-interpretación se hace aparte. La SPEC menciona AMARILLO/ROJO sin definir
-umbrales; los colores no son un requisito bloqueante y su definición queda como
-mejora pendiente.
+interpretación se hace aparte. La SPEC lo describe como registro de métricas sin
+semáforo; una clasificación por colores no es requisito bloqueante y la definición
+de sus umbrales queda como mejora pendiente.
 
 `START TRANSACTION READ ONLY` … `ROLLBACK` es una protección, no una garantía
 absoluta. PostgreSQL rechaza INSERT/UPDATE/DELETE/MERGE/COPY FROM sobre tablas no
@@ -210,9 +217,22 @@ eligió ANALYZE puntual sobre VACUUM; no hay `VACUUM FULL`, `REINDEX`, archivado
 
 ### 3.4 `restore_test.sh` (opcional)
 
-Interfaz: `-c CONTENEDOR -U USUARIO -s BASE_ORIGEN -d BASE_DESTINO -f RESPALDO.dump
--b RESPALDO.baseline -m MODO -o DIR_RESULTADOS`, todos obligatorios y sin valores
-por defecto.
+Interfaz: `-c CONTENEDOR -U USUARIO -a BASE_ADMINISTRATIVA -s BASE_ORIGEN
+-d BASE_DESTINO -f RESPALDO.dump -b RESPALDO.baseline -m MODO -o DIR_RESULTADOS`,
+todos obligatorios y sin valores por defecto.
+
+**Bases que participan:**
+
+- `-a`: debe existir y ser distinta del origen y del destino. Es la única base a la
+  que se conecta antes de crear el destino: consulta `pg_database` y la usa como
+  `--maintenance-db` de `createdb`.
+- `-s`: no necesita existir. Se usa solo para comparar con el `.baseline`, rechazar
+  un destino igual y dejar trazabilidad.
+- Destino: las validaciones posteriores consultan solo esta base y la comparan con
+  la línea base conservada.
+
+Hasta la [corrección de la restauración](../docs/correccion_restauracion.md), esas
+dos conexiones usaban el origen.
 
 Antes de escribir en PostgreSQL:
 
